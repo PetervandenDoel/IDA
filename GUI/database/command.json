@@ -1,5 +1,5 @@
 {
   "command": {
-    "data_apply_ch1_range": -10.0
+    "sensor_set_ref_ch1": -40.0
   }
 }

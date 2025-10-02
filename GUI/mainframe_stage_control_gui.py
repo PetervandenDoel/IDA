@@ -349,7 +349,7 @@ class stage_control(App):
             if self.memory.cp_pos != float(self.chip_position_lb.get_text()):
                 self.chip_position_lb.set_text(str(self.memory.cp_pos))
             if self.memory.fr_pos != float(self.fiber_position_lb.get_text()):
-                self.fiber_position_lb.set_text(str(self.memory.fr_pos))
+                self.fiber_position_lb.set_text(str(45 - self.memory.fr_pos))
 
         if self.configuration_sensor == 1:
             if self.sweep["sweep"] == 1 and self.sweep_count == 0:
@@ -1065,7 +1065,29 @@ class stage_control(App):
             )
             self.data = asyncio.run(self.area_sweep.begin_sweep())
             fileTime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            diagram = plot(filename="heat_map", fileTime=fileTime, user=self.user, project=self.project, data=self.data)
+
+            # Create window for plotting
+            if str(self.area_s["pattern"]) == "spiral":
+                diagram = plot(
+                    filename="heat_map",
+                    fileTime=fileTime,
+                    user=self.user,
+                    project=self.project,
+                    data=self.data,
+                    xticks=int(self.area_s["x_step"]),
+                    yticks=None,
+                    pos_i = [self.stage_x_pos, self.stage_y_pos])
+            else:
+                diagram = plot(
+                    filename="heat_map",
+                    fileTime=fileTime,
+                    user=self.user,
+                    project=self.project,
+                    data=self.data,
+                    xticks=int(self.area_s["x_step"]),
+                    yticks=int(self.area_s["y_step"]),
+                    pos_i = [self.stage_x_pos, self.stage_y_pos])
+
 
             with self._scan_done.get_lock():
                 self._scan_done.value = 1

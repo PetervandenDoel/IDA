@@ -496,7 +496,7 @@ class File():
 
 class plot():
     def __init__(self, x=None, y=None, filename=None, fileTime=None, user=None, name=None, project=None, data=None,
-                 file_format=None, file_path=""):
+                 file_format=None, file_path="", xticks = None, yticks=None, pos_i=None):
         if file_format is None:
             self.file_format = {"csv": 1, "mat": 1, "png": 1, "pdf": 1}
         else:
@@ -510,32 +510,167 @@ class plot():
         self.project = project
         self.data = data
         self.file_path = file_path
+        self.xticks = xticks
+        self.yticks = yticks
+        self.pos_i = pos_i
+
 
     def heat_map(self):
+        import numpy as np
+        import matplotlib.pyplot as plt
+        from mpl_toolkits.axes_grid1 import make_axes_locatable
+
         fig, ax = plt.subplots(figsize=(7, 7))
+
         min_value = np.nanmin(self.data)
         max_value = np.nanmax(self.data)
+
+        num_y, num_x = self.data.shape  # rows, cols
+
+        # ---- decide mode based on your original branching ----
+        if self.xticks is None and self.yticks is None:
+            mode = "index"  # no physical steps provided
+        elif self.xticks is not None and self.yticks is None:
+            mode = "spiral"  # single step → spiral logic
+        else:
+            mode = "crosshair"  # both steps → crosshair logic
+
+        # ---- compute physical bounds (µm) using ONLY your vars ----
+        # We interpret xticks/yticks as stage step per pixel in µm.
+        if mode == "spiral":
+            dx = float(self.xticks)  # step size in X (µm)
+            dy = float(self.xticks)  # spiral uses same step on Y
+            # start position: use pos_i if provided, otherwise assume origin (0,0)
+            x0 = float(self.pos_i[0]) if self.pos_i is not None else 0.0
+            y0 = float(self.pos_i[1]) if self.pos_i is not None else 0.0
+
+            x_min = x0
+            x_max = x0 + (num_x - 1) * dx
+            y_min = y0
+            y_max = y0 + (num_y - 1) * dy
+
+            origin = 'lower'  # spiral upwards
+
+        elif mode == "crosshair":
+            dx = float(self.xticks)  # X step (µm)
+            dy = float(self.yticks)  # Y step (µm)
+            # center position must come from pos_i
+            if self.pos_i is None:
+                # fallback to 0,0 if not provided
+                cx, cy = 0.0, 0.0
+            else:
+                cx, cy = float(self.pos_i[0]), float(self.pos_i[1])
+
+            hx = (num_x - 1) * dx / 2.0
+            hy = (num_y - 1) * dy / 2.0
+
+            x_min, x_max = cx - hx, cx + hx
+            y_min, y_max = cy - hy, cy + hy
+
+            origin = 'upper'  # crosshair goes downward physically
+
+        else:
+            # index fallback: keep your original behavior (no physical mapping)
+            heatmap = ax.imshow(
+                self.data,
+                origin='lower',
+                cmap='hot',
+                vmin=min_value - 3,
+                vmax=max_value + 1,
+                interpolation='nearest'
+            )
+            ax.set_title('Area Sweep Heat Map', fontsize=16)
+            ax.set_xlabel('X Position Index')
+            ax.set_ylabel('Y Position Index')
+
+            # original tick logic
+            if self.xticks is None and self.yticks is None:
+                ax.set_xticks(np.arange(0, num_x, 1))
+                ax.set_yticks(np.arange(0, num_y, 1))
+            elif self.xticks is not None and self.yticks is None:
+                ax.set_xticks(np.arange(0, num_x, self.xticks))
+                ax.set_yticks(np.arange(0, num_y, self.xticks))
+            else:
+                ax.set_xticks(np.arange(0, num_x, self.xticks))
+                ax.set_yticks(np.arange(0, num_y, self.yticks))
+
+            # colorbar (unchanged)
+            divider = make_axes_locatable(ax)
+            cax = divider.append_axes("right", size="5%", pad=0.05)
+            plt.colorbar(heatmap, cax=cax, label='Power (dBm)')
+            return  # or return fig, ax
+
+        # ---- physical-space plotting (µm) ----
         heatmap = ax.imshow(
             self.data,
-            origin='lower',
-            cmap='gist_heat_r',
+            origin=origin,
+            cmap='hot',
             vmin=min_value - 3,
             vmax=max_value + 1,
-            interpolation='nearest'
+            interpolation='nearest',
+            extent=[x_min, x_max, y_min, y_max],  # map pixels to µm
+            aspect='equal'
         )
 
         ax.set_title('Area Sweep Heat Map', fontsize=16)
-        ax.set_xlabel('X Position Index')
-        ax.set_ylabel('Y Position Index')
+        ax.set_xlabel('X Position (µm)')
+        ax.set_ylabel('Y Position (µm)')
 
-        num_x = self.data.shape[1]
-        num_y = self.data.shape[0]
-        ax.set_xticks(np.arange(0, num_x, 1))
-        ax.set_yticks(np.arange(0, num_y, 1))
+        # ---- ticks in µm, keeping your branching semantics ----
+        eps = 1e-9
+        if self.xticks is None and self.yticks is None:
+            # per-pixel ticks in µm (use dx, dy inferred above)
+            ax.set_xticks(np.arange(x_min, x_max + eps, dx))
+            ax.set_yticks(np.arange(y_min, y_max + eps, dy))
+        elif self.xticks is not None and self.yticks is None:
+            # spiral: single step on both axes
+            step = float(self.xticks)
+            ax.set_xticks(np.arange(x_min, x_max + eps, step))
+            ax.set_yticks(np.arange(y_min, y_max + eps, step))
+        else:
+            # crosshair: independent steps
+            ax.set_xticks(np.arange(x_min, x_max + eps, float(self.xticks)))
+            ax.set_yticks(np.arange(y_min, y_max + eps, float(self.yticks)))
 
+        # ---- colorbar (unchanged) ----
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="5%", pad=0.05)
         plt.colorbar(heatmap, cax=cax, label='Power (dBm)')
+        # fig, ax = plt.subplots(figsize=(7, 7))
+        # min_value = np.nanmin(self.data)
+        # max_value = np.nanmax(self.data)
+        # heatmap = ax.imshow(
+        #     self.data,
+        #     origin='lower',
+        #     cmap='hot',
+        #     vmin=min_value - 3,
+        #     vmax=max_value + 1,
+        #     interpolation='nearest'
+        # )
+        #
+        # ax.set_title('Area Sweep Heat Map', fontsize=16)
+        # ax.set_xlabel('X Position Index')
+        # ax.set_ylabel('Y Position Index')
+        #
+        # num_x = self.data.shape[1]
+        # num_y = self.data.shape[0]
+        #
+        # if self.xticks is None and self.yticks is None:
+        #     ax.set_xticks(np.arange(0, num_x, 1))
+        #     ax.set_yticks(np.arange(0, num_y, 1))
+        # elif self.xticks is not None and self.yticks is None:
+        #     # Set ticks to half of each for sprial, yticks will only
+        #     # Be passe  d if its a crosshair
+        #     ax.set_xticks(np.arange((self.pos_i[0]-(self.xticks*num_x/2)),(self.pos_i[1]+(self.xticks*num_x/2)), self.xticks))
+        #     ax.set_yticks(np.arange((self.pos_i[0]-(self.xticks*num_y/2)),(self.pos_i[1]+(self.xticks*num_y/2)), self.xticks))
+        # else:
+        #     # both params passed -> crosshair
+        #     ax.set_xticks(np.arange(self.pos_i[0], self.xticks*num_x, self.xticks))
+        #     ax.set_yticks(np.arange(self.pos_i[1], self.yticks*num_y, self.yticks))
+        #
+        # divider = make_axes_locatable(ax)
+        # cax = divider.append_axes("right", size="5%", pad=0.05)
+        # plt.colorbar(heatmap, cax=cax, label='Power (dBm)')
 
         def onclick(event):
             if event.inaxes == ax and event.xdata is not None and event.ydata is not None:
