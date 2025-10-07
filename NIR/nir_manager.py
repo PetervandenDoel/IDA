@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Any, Callable, List, Optional
+from typing import Dict, Any, Callable, List, Optional, Tuple
 from dataclasses import dataclass, asdict
 
 from NIR.nir_controller import NIR8164
@@ -300,20 +300,42 @@ class NIRManager:
                 return False
 
             self.controller.set_power_range(range_dbm, channel)
+            self._log(f"Power range set to {range_dbm}dBm for channel {channel}", "info")
             return True
 
         except Exception as e:
             self._log(f"Set detector range error: {e}", "error")
             return False
 
-    def get_power_range(self) -> bool:
+    def set_power_range_auto(self, channel: int = 1):
+        """Set the devices power ranging to auto"""
+        try:
+            if not self.controller or not self._connected:
+                self._log("Controller not connected", "error")
+                return False
+
+            ok = self.controller.set_power_range_auto(channel)
+            if ok:
+                self._log(f"Set power range auto: {channel}")
+                return True
+            self._log(f"Failed to set power range auto: {channel}dBm", "error")
+            return False
+        except Exception as e:
+            self._log(f"Set power range error: {e}", "info")
+            return False
+
+    def get_power_range(self) -> Optional[Tuple]:
         """Get power range"""
         try:
             if not self.controller or not self._connected:
                 self._log("Controller not connected", "error")
                 return False
-            self.controller.get_power_range()
-            return True
+            ok = self.controller.get_power_range()
+            if not ok:
+                self._log(f"Failed to get power range: {ok}dBm", "error")
+                return False
+            self._log(f"Power range set to {ok}dBm", "info")
+            return ok
         except Exception as e:
             self._log(f"Get detector range error: {e}", "error")
             return False
@@ -327,7 +349,7 @@ class NIRManager:
 
             success = self.controller.set_power_reference(ref_dbm, channel)
             if success:
-                self._log(f"Power reference set to {ref_dbm}dBm for channel {channel}")
+                self._log(f"Power reference set to {ref_dbm}dBm for channel {channel}", "info")
             else:
                 self._log(f"Failed to set power reference to {ref_dbm}dBm for channel {channel}", "error")
             return success
@@ -336,19 +358,23 @@ class NIRManager:
             self._log(f"Set power reference error: {e}", "error")
             return False
 
-    def get_power_reference(self, channel: int = 1) -> float:
+    def get_power_reference(self, channel: int = 1) -> Optional[Tuple]:
         """Get current power reference (noise floor)"""
         try:
             if not self.controller or not self._connected:
                 self._log("Controller not connected", "error")
-                return 0.0
+                return False
 
-            reference = self.controller.get_power_reference(channel)
-            return reference if reference is not None else 0.0
+            ok = self.controller.get_power_reference(channel)
+            if not ok:
+                self._log(f"Failed to get power reference: {ok}dBm", "error")
+                return False
+            self._log(f"Power reference set to {ok}dBm for channel {channel}", "info")
+            return ok
 
         except Exception as e:
             self._log(f"Get power reference error: {e}", "error")
-            return 0.0
+            return False
 
     ######################################################################
     # Sweep methods
@@ -407,8 +433,7 @@ class NIRManager:
             self._log(f"Lambda scan error: {e}", "error")
             return False
 
-        ######################################################################
-
+    ######################################################################
     # Configuration
     ######################################################################
 

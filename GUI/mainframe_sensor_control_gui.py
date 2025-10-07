@@ -51,6 +51,12 @@ class stage_control(App):
                     self.user = data.get("User", "")
                     self.project = data.get("Project", "")
                     self.sweep = data.get("Sweep", {})
+                    # Fragile detector window data pull
+                    self.detector_settings = []
+                    dw_help = [["Range", "AutoRange", "Reference"], ["1", "2"]]
+                    for key in dw_help[0]:
+                        for ch in dw_help[1]:
+                            self.detector_settings.append(data.get(f"Detector{key}_Ch{ch}", {}))
                     self.auto_sweep = data.get("AutoSweep", 0)
                     self.configuration = data.get("Configuration", {})
                     self.num = data.get("DeviceNum", "")
@@ -384,14 +390,18 @@ class stage_control(App):
                 self.sweep["sweep"] = 1
 
             # Data Window Commands
+            elif key == "data_apply_ch1_auto_range":
+                self.apply_detector_auto_range()
             elif key == "data_apply_ch1_range":
-                self.apply_detector_range(val, 1)
+                self.apply_detector_range()
             elif key == "data_apply_ch1_ref":
-                self.apply_detector_reference(val, 1)
+                self.apply_detector_reference()
+            elif key == "data_apply_ch2_auto_range":
+                self.apply_detector_auto_range()
             elif key == "data_apply_ch2_range":
-                self.apply_detector_range(val, 2)
+                self.apply_detector_range()
             elif key == "data_apply_ch2_ref":
-                self.apply_detector_reference(val, 2)
+                self.apply_detector_reference()
 
             while self.sweep["sweep"] == 1:
                 time.sleep(1)
@@ -400,8 +410,20 @@ class stage_control(App):
             print("sensor record")
             file = File("command", "command", new_command)
             file.save()
+    def apply_detector_autorange(self, channel: int):
+        """Apply autoranging setting via shared memory"""
+        try:
+            if channel == 1:
 
-    def apply_detector_range(self, range_dbm, channel):
+            data = self.detector_settings[]
+            file = File("shared_memory", f"DetectorAutoRange_Ch{channel}", range_data).save()
+            print(f"Saved detector autorange to channel {channel}")
+            return True
+        except Exception as e:
+            print(f"Error saving autorange (CH{channel}): {e}")
+            return False
+
+    def apply_detector_range(self, channel):
         """Apply detector range setting via shared memory"""
         try:
             # Store range setting in shared memory for stage control to read
@@ -418,7 +440,7 @@ class stage_control(App):
             print(f"Error saving detector range: {e}")
             return False
 
-    def apply_detector_reference(self, ref_dbm, channel):
+    def apply_detector_reference(self, channel):
         """Apply detector reference setting via shared memory"""
         try:
             # Store reference setting in shared memory for stage control to read

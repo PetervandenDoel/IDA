@@ -1475,13 +1475,29 @@ class stage_control(App):
                     val = 1
                 device = self.devices[int(val - 1)]
                 self.move_dd.set_value(device)
-                
-
 
         if stage == 1:
             print("stage record")
             file = File("command", "command", new_command)
             file.save()
+
+    def apply_detector_auto_range(self, channel):
+        """Apply detector autorange to specified channel"""
+        try:
+            if self.nir_manager and self.configuration_sensor == 1:
+                success = self.nir_manager.set_power_range_auto(channel)
+                if success:
+                    print(f"Applied detector autorange to  CH{channel}")
+                else:
+                    print(f"Failed to apply detector autorange to  CH{channel}")
+                return success
+            else:
+                print("NIR manager not available")
+                return False
+        except Exception as e:
+            print(f"Error applying detector auto-range: {e}")
+            return False
+
 
     def apply_detector_range(self, range_dbm, channel):
         """Apply detector range setting via NIR manager"""
