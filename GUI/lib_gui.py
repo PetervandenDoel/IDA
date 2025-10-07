@@ -24,6 +24,7 @@ web_h = -17
 from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent
 PROGRESS_PATH = BASE_DIR / "database" / "progress.json"
+import tempfile 
 
 _ORIG_WSGI_LOG = None
 _ORIG_HTTP_LOG = None
@@ -443,12 +444,51 @@ class File():
         self.data_info = data_info
         self.data_info2 = data_info2
 
+    # def _safe_write(self, data, filepath):
+    #     temp_filepath = filepath + ".tmp"
+    #     with open(temp_filepath, "w", encoding="utf-8") as f:
+    #         json.dump(data, f, indent=2)
+    #     os.replace(temp_filepath, filepath)  # 原子替换
     def _safe_write(self, data, filepath):
-        temp_filepath = filepath + ".tmp"
-        with open(temp_filepath, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
-        os.replace(temp_filepath, filepath)  # 原子替换
+        """
+        Robust, cross-platform atomic write:
+        - write to a unique temp file next to the target
+        - flush + fsync
+        - os.replace with a short Windows retry loop (handles transient EACCES)
+        """
+        os.makedirs(os.path.dirname(filepath) or ".", exist_ok=True)
 
+        # Create a unique temp file next to the destination (prevents .tmp collisions)
+        fd, tmp_path = tempfile.mkstemp(
+            prefix=os.path.basename(filepath) + ".",
+            suffix=".tmp",
+            dir=os.path.dirname(filepath) or ".",
+        )
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2)
+                f.flush()
+                os.fsync(f.fileno())
+
+            # On Windows, another reader/writer may briefly lock the dest.
+            # Retry os.replace a few times with small backoff.
+            for attempt in range(8):
+                try:
+                    os.replace(tmp_path, filepath)  # atomic on POSIX & Windows
+                    tmp_path = None  # replaced successfully
+                    break
+                except PermissionError:
+                    if os.name == "nt":
+                        time.sleep(0.05 * (attempt + 1))  # 50ms, 100ms, ...
+                        continue
+                    raise
+        finally:
+            # If replace succeeded, tmp_path is gone; otherwise clean up
+            if tmp_path and os.path.exists(tmp_path):
+                try:
+                    os.remove(tmp_path)
+                except FileNotFoundError:
+                    pass
     def save(self):
         filepath = os.path.join("database", f"{self.filename}.json")
         os.makedirs("database", exist_ok=True)
