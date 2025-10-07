@@ -662,10 +662,11 @@ class stage_control(App):
             ))
 
             # Zero button placeholder
-            setattr(self, f"{prefix}_zero_btn", StyledButton(
-                container=xyz_container, text="Zero", variable_name=f"{prefix}_zero_button", font_size=100,
-                left=ZERO_LEFT, top=top, width=55, height=ROW_H, normal_color="#6c757d", press_color="#5a6268"
-            ))
+            if prefix in ["x", "y", "z"]:
+                setattr(self, f"{prefix}_zero_btn", StyledButton(
+                    container=xyz_container, text="Zero", variable_name=f"{prefix}_zero_button", font_size=100,
+                    left=ZERO_LEFT, top=top, width=55, height=ROW_H, normal_color="#6c757d", press_color="#5a6268"
+                ))
 
         # ---- Right-hand panels (tighter vertical spacing; start after wider left box) ----
         limits_container = StyledContainer(
