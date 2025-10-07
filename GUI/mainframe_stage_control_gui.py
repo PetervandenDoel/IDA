@@ -131,7 +131,9 @@ class stage_control(App):
                     detector_range_ch2 = data.get("DetectorRange_Ch2", {})
                     detector_ref_ch1 = data.get("DetectorReference_Ch1", {})
                     detector_ref_ch2 = data.get("DetectorReference_Ch2", {})
-                    
+                    detector_auto_ch1 = data.get("DetectorAutoRange_Ch1", {})
+                    detector_auto_ch2 = data.get("DetectorAutoRange_Ch2", {})
+
                     # Apply detector settings if NIR manager is available
                     if hasattr(self, 'nir_manager') and self.nir_manager and self.configuration_sensor == 1:
                         if detector_range_ch1.get("range_dbm") is not None:
@@ -142,7 +144,13 @@ class stage_control(App):
                             self.nir_manager.set_power_reference(detector_ref_ch1["ref_dbm"], 1)
                         if detector_ref_ch2.get("ref_dbm") is not None:
                             self.nir_manager.set_power_reference(detector_ref_ch2["ref_dbm"], 2)
-                            
+                        if detector_auto_ch1:
+                            self.nir_manager.set_power_range_auto(1)
+                            File("shared_memory", "DetectorAutoRange_Ch1", {}).save()
+                        if detector_auto_ch2:
+                            self.nir_manager.set_power_range_auto(2)
+                            File("shared_memory", "DetectorAutoRange_Ch2", {}).save()
+
             except Exception as e:
                 print(f"[Warn] read json failed: {e}")
 

@@ -1,7 +1,9 @@
 from GUI.lib_gui import *
 from remi import start, App
+import datetime
 
 command_path = os.path.join("database", "command.json")
+shared_path = os.path.join("database", "shared_memory.json")
 
 class data_window(App):
     def __init__(self, *args, **kwargs):
@@ -48,10 +50,11 @@ class data_window(App):
         )
 
         self.apply_auto_btn1 = StyledButton(
-            container=data_window_container, text= "Auto Range CH1",
-            variable_name="apply_auto_btn1", left=280, top=145, width=110, height=24, font_size=85,
+            container=data_window_container, text="Auto Range CH1",
+            variable_name="apply_auto_btn1", left=190, top=105, width=80, height=24, font_size=85,
             normal_color="#007BFF", press_color="#0056B3"
         )
+
 
         self.ch1_range = StyledSpinBox(
             container=data_window_container, variable_name="ch1_range_in", left=80, top=45, value=-10,
@@ -91,10 +94,9 @@ class data_window(App):
 
         self.apply_auto_btn2 = StyledButton(
             container=data_window_container, text="Auto Range CH2",
-            variable_name="apply_auto_btn2", left=280, top=145, width=110, height=24, font_size=85,
+            variable_name="apply_auto_btn2", left=190, top=195, width=80, height=24, font_size=85,
             normal_color="#007BFF", press_color="#0056B3"
         )
-
         self.ch2_range = StyledSpinBox(
             container=data_window_container, variable_name="ch2_range_in", left=80, top=145, value=-10,
             width=60, height=24, min_value=-70, max_value=10, step=1, position="absolute"
@@ -141,69 +143,50 @@ class data_window(App):
             left=190, top=175, height=24, width=80, font_size=85, normal_color="#007BFF", press_color="#0056B3"
         )
 
-        # Confirm button
-        self.confirm_btn = StyledButton(
-            container=data_window_container, text="Save Settings", variable_name="confirm_btn",
-            left=95, top=210, height=25, width=90, font_size=90
-        )
-
         # Wire up events
-        self.apply_auto_btn1.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch1_autorange()))
-        self.apply_auto_btn1.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch2_autorange()))
+        self.apply_auto_btn1.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch1_autorange))
+        self.apply_auto_btn2.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch2_autorange))
         self.apply_range_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch1_range))
         self.apply_ref_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch1_ref))
         self.apply_range_btn2.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch2_range))
         self.apply_ref_btn2.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch2_ref))
-        self.confirm_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_confirm))
 
         self.data_window_container = data_window_container
         return data_window_container
 
     def onclick_apply_ch1_autorange(self):
-        File("command",
-              "command",
-             {"data_apply_ch1_auto_range": 1}).save()
-        print("Applied CH1 Autorange")
+        File(
+            "shared_memory", "DetectorAutoRange_Ch1",
+            {"channel": 1, "timestamp": datetime.datetime.now().isoformat()}).save()        
+        print("Applied Auto Range for CH1")
 
     def onclick_apply_ch1_range(self):
         range_val = float(self.ch1_range.get_value())
-        # Write a sensor-scoped command so the sensor controller can consume it
-        File("command",
-            "command",
+        File("shared_memory",
+            "DetectorRange_Ch1",
             {"data_apply_ch1_range": range_val}).save()
-        print(f"Applied CH1 Range (queued): {range_val} dBm")
+        print(f"Applied CH1 Range: {range_val} dBm")
 
     def onclick_apply_ch1_ref(self):
         ref_val = float(self.ch1_ref.get_value())
-        File("command", "command", {"data_apply_ch1_ref": ref_val}).save()
-        print(f"Applied CH1 Reference (queued): {ref_val} dBm")
+        File("shared_memory", "DetectorReference_Ch1", {"data_apply_ch1_ref": ref_val}).save()
+        print(f"Applied CH1 Reference: {ref_val} dBm")
 
     def onclick_apply_ch2_autorange(self):
-        File("command",
-              "command",
-             {"data_apply_ch2_auto_range": 1}).save()
+        File(
+            "shared_memory", "DetectorAutoRange_Ch2",
+            {"channel": 2, "timestamp": datetime.datetime.now().isoformat()}).save()
         print("Applied CH2 Autorange")
 
     def onclick_apply_ch2_range(self):
         range_val = float(self.ch2_range.get_value())
-        File("command", "command", {"data_apply_ch2_range": range_val}).save()
-        print(f"Applied CH2 Range (queued): {range_val} dBm")
+        File("shared_memory", "DetectorRange_Ch2", {"data_apply_ch2_range": range_val}).save()
+        print(f"Applied CH2 Range: {range_val} dBm")
 
     def onclick_apply_ch2_ref(self):
         ref_val = float(self.ch2_ref.get_value())
-        File("command", "command", {"data_apply_ch2_ref": ref_val}).save()
-        print(f"Applied CH2 Reference (queued): {ref_val} dBm")
-
-    def onclick_confirm(self):
-        value = {
-            "ch1_range": float(self.ch1_range.get_value()),
-            "ch1_ref": float(self.ch1_ref.get_value()),
-            "ch2_range": float(self.ch2_range.get_value()),
-            "ch2_ref": float(self.ch2_ref.get_value())
-        }
-        file = File("shared_memory", "DataWindow", value)
-        file.save()
-        print("Data Window Settings Saved")
+        File("shared_memory", "DetectorReference_Ch2", {"data_apply_ch2_ref": ref_val}).save()
+        print(f"Applied CH2 Reference: {ref_val} dBm")
 
     def execute_command(self, path=command_path):
         dw = 0

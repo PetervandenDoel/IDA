@@ -51,12 +51,6 @@ class stage_control(App):
                     self.user = data.get("User", "")
                     self.project = data.get("Project", "")
                     self.sweep = data.get("Sweep", {})
-                    # Fragile detector window data pull
-                    self.detector_settings = []
-                    dw_help = [["Range", "AutoRange", "Reference"], ["1", "2"]]
-                    for key in dw_help[0]:
-                        for ch in dw_help[1]:
-                            self.detector_settings.append(data.get(f"Detector{key}_Ch{ch}", {}))
                     self.auto_sweep = data.get("AutoSweep", 0)
                     self.configuration = data.get("Configuration", {})
                     self.num = data.get("DeviceNum", "")
@@ -322,7 +316,7 @@ class stage_control(App):
         file.save()
 
     def onchange_range_end(self, emitter, value):
-        print(f"Range End: {value:.1f} dBm")
+        print(f"Range End: {value:.1f} nm")
         value = float(value)
         self.sweep["end"] = value
         file = File("shared_memory", "Sweep", self.sweep)
@@ -390,72 +384,72 @@ class stage_control(App):
                 self.sweep["sweep"] = 1
 
             # Data Window Commands
-            elif key == "data_apply_ch1_auto_range":
-                self.apply_detector_auto_range()
-            elif key == "data_apply_ch1_range":
-                self.apply_detector_range()
-            elif key == "data_apply_ch1_ref":
-                self.apply_detector_reference()
-            elif key == "data_apply_ch2_auto_range":
-                self.apply_detector_auto_range()
-            elif key == "data_apply_ch2_range":
-                self.apply_detector_range()
-            elif key == "data_apply_ch2_ref":
-                self.apply_detector_reference()
+            # elif key == "data_apply_ch1_auto_range":
+                # self.apply_detector_auto_range()
+            # elif key == "data_apply_ch1_range":
+                # self.apply_detector_range()
+            # elif key == "data_apply_ch1_ref":
+                # self.apply_detector_reference()
+            # elif key == "data_apply_ch2_auto_range":
+                # self.apply_detector_auto_range()
+            # elif key == "data_apply_ch2_range":
+                # self.apply_detector_range()
+            # elif key == "data_apply_ch2_ref":
+                # self.apply_detector_reference()
 
-            while self.sweep["sweep"] == 1:
+            # while self.sweep["sweep"] == 1:
                 time.sleep(1)
 
         if sensor == 1:
             print("sensor record")
             file = File("command", "command", new_command)
             file.save()
-    def apply_detector_autorange(self, channel: int):
-        """Apply autoranging setting via shared memory"""
-        try:
-            if channel == 1:
+    # def apply_detector_autorange(self, channel: int):
+        # """Apply autoranging setting via shared memory"""
+        # try:
+            # if channel == 1:
 
-            data = self.detector_settings[]
-            file = File("shared_memory", f"DetectorAutoRange_Ch{channel}", range_data).save()
-            print(f"Saved detector autorange to channel {channel}")
-            return True
-        except Exception as e:
-            print(f"Error saving autorange (CH{channel}): {e}")
-            return False
+            # data = self.detector_settings[]
+            # file = File("shared_memory", f"DetectorAutoRange_Ch{channel}", range_data).save()
+            # print(f"Saved detector autorange to channel {channel}")
+            # return True
+        # except Exception as e:
+            # print(f"Error saving autorange (CH{channel}): {e}")
+            # return False
 
-    def apply_detector_range(self, channel):
-        """Apply detector range setting via shared memory"""
-        try:
+    # def apply_detector_range(self, channel):
+        # """Apply detector range setting via shared memory"""
+        # try:
             # Store range setting in shared memory for stage control to read
-            range_data = {
-                "channel": channel,
-                "range_dbm": range_dbm,
-                "timestamp": datetime.datetime.now().isoformat()
-            }
-            file = File("shared_memory", f"DetectorRange_Ch{channel}", range_data)
-            file.save()
-            print(f"Saved detector range {range_dbm} dBm for channel {channel} to shared memory")
-            return True
-        except Exception as e:
-            print(f"Error saving detector range: {e}")
-            return False
+            # range_data = {
+                # "channel": channel,
+                # "range_dbm": range_dbm,
+                # "timestamp": datetime.datetime.now().isoformat()
+            # }
+            # file = File("shared_memory", f"DetectorRange_Ch{channel}", range_data)
+            # file.save()
+            # print(f"Saved detector range {range_dbm} dBm for channel {channel} to shared memory")
+            # return True
+        # except Exception as e:
+            # print(f"Error saving detector range: {e}")
+            # return False
 
-    def apply_detector_reference(self, channel):
-        """Apply detector reference setting via shared memory"""
-        try:
+    # def apply_detector_reference(self, channel):
+        # """Apply detector reference setting via shared memory"""
+        # try:
             # Store reference setting in shared memory for stage control to read
-            ref_data = {
-                "channel": channel,
-                "ref_dbm": ref_dbm,
-                "timestamp": datetime.datetime.now().isoformat()
-            }
-            file = File("shared_memory", f"DetectorReference_Ch{channel}", ref_data)
-            file.save()
-            print(f"Saved detector reference {ref_dbm} dBm for channel {channel} to shared memory")
-            return True
-        except Exception as e:
-            print(f"Error saving detector reference: {e}")
-            return False
+            # ref_data = {
+                # "channel": channel,
+                # "ref_dbm": ref_dbm,
+                # "timestamp": datetime.datetime.now().isoformat()
+            # }
+            # file = File("shared_memory", f"DetectorReference_Ch{channel}", ref_data)
+            # file.save()
+            # print(f"Saved detector reference {ref_dbm} dBm for channel {channel} to shared memory")
+            # return True
+        # except Exception as e:
+            # print(f"Error saving detector reference: {e}")
+            # return False
 
     def on_close(self):
         # Signal closing with the e"x"it button
