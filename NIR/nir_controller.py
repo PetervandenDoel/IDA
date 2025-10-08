@@ -216,8 +216,8 @@ class NIR8164(LaserHAL):
         try:
             # Enable auto ranging
             self.write(f"SENSe{channel}:CHAN1:POWer:RANGe:AUTO 1")
-            mode = self.query(f"SENSe{channel}:CHAN1:POW:RANGE:AUTO?")
-            print(mode)
+            # mode = self.query(f"SENSe{channel}:CHAN1:POW:RANGE:AUTO?")
+            # print(mode)
             return True
         except Exception as e:
             return False
@@ -288,7 +288,8 @@ class NIR8164(LaserHAL):
     ######################################################################
     def optical_sweep(
             self, start_nm: float, stop_nm: float, step_nm: float,
-            laser_power_dbm: float, num_scans: int = 0
+            laser_power_dbm: float, num_scans: int = 0,
+            args: list = []
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         from NIR.sweep import HP816xLambdaScan
 
@@ -311,7 +312,8 @@ class NIR8164(LaserHAL):
                 step_pm=step_pm,
                 power_dbm=float(laser_power_dbm),
                 num_scans=0,
-                channels=self.detector_slots
+                channels=self.detector_slots,
+                args=args
             )
         finally:
             try:

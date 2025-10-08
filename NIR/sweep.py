@@ -256,7 +256,34 @@ class HP816xLambdaScan:
         }
 
     def lambda_scan(self, start_nm: float = 1490, stop_nm: float = 1600, step_pm: float = 0.5,
-                    power_dbm: float = 3.0, num_scans: int = 0, channels: list = [1, 2]):
+                    power_dbm: float = 3.0, num_scans: int = 0, channels: list = [1, 2],
+                    args: list = [1,-80,-20]):
+        """
+        Mainframe lambda scan, only to be taken with internal power detectors and TLS.
+        Internal triggering is set as the default. Equally spaced datapoints in enabled
+        by default, meaning interpolation is on.
+
+        :param start_nm: Start wavelength in nm
+        :param stop_nm: Stop wavelength in nm
+        :param step_pm: Step size in pm
+        :param power_dbm: Power in dBm
+        :param num_scans: Number of scans, zero indexed up to 4 scans
+        :param channels: List of channels to use, up to 4 channels, [1,2,3,4]
+        :param args: input arguments for changing the reference and ranging before
+                      a sweep has been taken. Use these parameter naming convention,
+                      should be taken from shared memory config. If more than 1 channel,
+                      group *args into 3 pairs, eg. lambda_scan(..., args = [1,-80, -10, 2, -70, -20])
+                      :param channel[int]: master/slave channel slot
+                      :param ref[float]: reference value in dBm (PWM relative internal)
+                      :param rang[float]: range value in dBm, if unspecified autorange
+
+        return: Dict {
+            'wavelengths_nm': wl_target,
+            'channels': channels,
+            'channels_dbm': channels_dbm, # List of np array measurements per channel
+            'num_points': int(n_target)
+        }
+        """
         if not self.session:
             raise RuntimeError("Not connected to instrument")
 
@@ -273,6 +300,61 @@ class HP816xLambdaScan:
         start_wl = start_nm * 1e-9
         stop_wl = stop_nm * 1e-9
         step_m = step_pm * 1e-12
+
+        # Prepare power ranging
+        if len(args) > 0:
+            for i in range(0,len(args),3):
+                # For each 3-pair, configure ranging and ref for sweep
+                # Pull 3-pair out
+                chan = args[i] # Slot
+                ref = args[i+1]
+                rang = args[i+2]
+
+                # Ranging
+                self.lib.hp816x_set_PWM_powerRange(
+                    self.session, # ihandle
+                    chan, # PWM slot
+                    0, # Master slot
+                    0 if rang is not None else 1, # 1 Auto; 0 Manual
+                    rang
+                )
+                self.lib.hp816x_set_PWM_powerRange(
+                    self.session,  # ihandle
+                    chan,  # PWM slot
+                    1,  # Slave slot
+                    0 if rang is not None else 1,  # 1 Auto; 0 Manual
+                    rang
+                )
+
+                # Reference
+                # Set reference source ot internal ref
+                self.lib.hp816x_set_PWM_referenceSource(
+                    self.session,  # ihandle
+                    chan,                # PWM Slot
+                    0,                   # Master
+                    0,                   # Absolute measurements (dBm, not dB)
+                    0                    # Set internal reference
+                )
+                self.lib.hp816x_set_PWM_referenceSource(
+                    self.session,  # ihandle
+                    chan,  # PWM Slot
+                    1,  # Slave
+                    0,  # Absolute measurements (dBm, not dB)
+                    0  # Set internal triggering
+                )
+                # Set Reference value
+                self.lib.hp816x_set_PWM_referenceValue(
+              self.session,
+                    chan,
+                    0, # Master
+                    ref,
+                )
+                self.lib.hp816x_set_PWM_referenceValue(
+                    self.session,
+                    chan,
+                    1,  # Slave
+                    ref,
+                )
 
         # Uniform output grid
         n_target = int(round((float(stop_nm) - float(start_nm)) / step_nm)) + 1

@@ -127,27 +127,27 @@ class stage_control(App):
                     self.file_path = data.get("FilePath", "")
                     
                     # Read detector range and reference settings
-                    detector_range_ch1 = data.get("DetectorRange_Ch1", {})
-                    detector_range_ch2 = data.get("DetectorRange_Ch2", {})
-                    detector_ref_ch1 = data.get("DetectorReference_Ch1", {})
-                    detector_ref_ch2 = data.get("DetectorReference_Ch2", {})
-                    detector_auto_ch1 = data.get("DetectorAutoRange_Ch1", {})
-                    detector_auto_ch2 = data.get("DetectorAutoRange_Ch2", {})
+                    self.detector_range_ch1 = data.get("DetectorRange_Ch1", {})
+                    self.detector_range_ch2 = data.get("DetectorRange_Ch2", {})
+                    self.detector_ref_ch1 = data.get("DetectorReference_Ch1", {})
+                    self.detector_ref_ch2 = data.get("DetectorReference_Ch2", {})
+                    self.detector_auto_ch1 = data.get("DetectorAutoRange_Ch1", {})
+                    self.detector_auto_ch2 = data.get("DetectorAutoRange_Ch2", {})
 
                     # Apply detector settings if NIR manager is available
                     if hasattr(self, 'nir_manager') and self.nir_manager and self.configuration_sensor == 1:
-                        if detector_range_ch1.get("range_dbm") is not None:
-                            self.nir_manager.set_power_range(detector_range_ch1["range_dbm"], 1)
-                        if detector_range_ch2.get("range_dbm") is not None:
-                            self.nir_manager.set_power_range(detector_range_ch2["range_dbm"], 2)
-                        if detector_ref_ch1.get("ref_dbm") is not None:
-                            self.nir_manager.set_power_reference(detector_ref_ch1["ref_dbm"], 1)
-                        if detector_ref_ch2.get("ref_dbm") is not None:
-                            self.nir_manager.set_power_reference(detector_ref_ch2["ref_dbm"], 2)
-                        if detector_auto_ch1:
+                        if self.detector_range_ch1.get("range_dbm") is not None:
+                            self.nir_manager.set_power_range(self.detector_range_ch1["range_dbm"], 1)
+                        if self.detector_range_ch2.get("range_dbm") is not None:
+                            self.nir_manager.set_power_range(self.detector_range_ch2["range_dbm"], 2)
+                        if self.detector_ref_ch1.get("ref_dbm") is not None:
+                            self.nir_manager.set_power_reference(self.detector_ref_ch1["ref_dbm"], 1)
+                        if self.detector_ref_ch2.get("ref_dbm") is not None:
+                            self.nir_manager.set_power_reference(self.detector_ref_ch2["ref_dbm"], 2)
+                        if self.detector_auto_ch1:
                             self.nir_manager.set_power_range_auto(1)
                             File("shared_memory", "DetectorAutoRange_Ch1", {}).save()
-                        if detector_auto_ch2:
+                        if self.detector_auto_ch2:
                             self.nir_manager.set_power_range_auto(2)
                             File("shared_memory", "DetectorAutoRange_Ch2", {}).save()
 
@@ -188,11 +188,30 @@ class stage_control(App):
             auto = 1
 
         try:
+            # For now, make work for 1 channel
+            # Ranging
+            if self.detector_auto_ch1 == {} and self.detector_range_ch1.get("range_dbm") is not None:
+                ch1_range = self.detector_range_ch1["range_dbm"]
+            elif self.detector_range_ch1 == {} and self.detector_auto_ch1:
+                # Machine expects None for auto
+                ch1_range = None
+            else:
+                ch1_range = -10 # dBm default
+
+            # Reference
+            if self.detector_ref_ch1.get("ref_dbm") is not None:
+                ch1_ref = self.detector_ref_ch1["ref_dbm"]
+            else:
+                ch1_ref = -80 # dBm default
+
             wl, d1, d2 = self.nir_manager.sweep(
                 start_nm=self.sweep["start"],
                 stop_nm=self.sweep["end"],
                 step_nm=self.sweep["step"],
-                laser_power_dbm=self.sweep["power"]
+                laser_power_dbm=self.sweep["power"],
+                chan=1, # Representing channel 1 SLOT
+                ref=ch1_ref,
+                range=ch1_range
             )
         except Exception as e:
             print(f"[Error] Sweep failed: {e}")
@@ -670,11 +689,11 @@ class stage_control(App):
             ))
 
             # Zero button placeholder
-            if prefix in ["x", "y", "z"]:
-                setattr(self, f"{prefix}_zero_btn", StyledButton(
-                    container=xyz_container, text="Zero", variable_name=f"{prefix}_zero_button", font_size=100,
-                    left=ZERO_LEFT, top=top, width=55, height=ROW_H, normal_color="#6c757d", press_color="#5a6268"
-                ))
+            # if prefix in ["x", "y", "z"]:
+            setattr(self, f"{prefix}_zero_btn", StyledButton(
+                container=xyz_container, text="Zero", variable_name=f"{prefix}_zero_button", font_size=100,
+                left=ZERO_LEFT, top=top, width=55, height=ROW_H, normal_color="#6c757d", press_color="#5a6268"
+            ))
 
         # ---- Right-hand panels (tighter vertical spacing; start after wider left box) ----
         limits_container = StyledContainer(
