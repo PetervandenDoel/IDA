@@ -2,7 +2,7 @@ import ctypes
 import numpy as np
 import pyvisa
 import pandas as pd
-from ctypes import c_double, c_int32, c_uint32, c_char, c_char_p, POINTER, byref, create_string_buffer
+from ctypes import c_double, c_int32, c_uint32, c_uint16, c_char, c_char_p, POINTER, byref, create_string_buffer
 from tqdm import tqdm
 import time
 
@@ -25,6 +25,29 @@ class HP816xLambdaScan:
         self._cancel = False
 
     def _setup_function_prototypes(self):
+        ###################################################
+        # # -*- coding: utf-8 -*-
+        # import ctypes
+        # ViChar = ctypes.c_char
+        # ViInt8 = ctypes.c_int8
+        # ViInt16 = ctypes.c_int16
+        # ViUInt16 = ctypes.c_uint16
+        # ViInt32 = ctypes.c_int32
+        # ViUInt32 = ctypes.c_uint32
+        # ViInt64 = ctypes.c_int64
+        # ViString = ctypes.c_char_p
+        # ViReal32 = ctypes.c_float
+        # ViReal64 = ctypes.c_double
+        # # Types that are based on other visatypes
+        # ViBoolean = ViUInt16
+        # VI_TRUE = ViBoolean(True)
+        # VI_FALSE = ViBoolean(False)
+        # ViStatus = ViInt32
+        # ViSession = ViUInt32
+        # ViAttr = ViUInt32
+        # ViConstString = ViString
+        # ViRsrc = ViString
+        ###################################################
         # hp816x_init
         self.lib.hp816x_init.argtypes = [c_char_p, c_int32, c_int32, POINTER(c_int32)]
         self.lib.hp816x_init.restype = c_int32
@@ -70,6 +93,39 @@ class HP816xLambdaScan:
             c_int32, c_int32, c_int32, c_double, POINTER(c_double), POINTER(c_double)
         ]
         self.lib.hp816x_getLambdaScanResult.restype = c_int32
+
+        # hp816x_get_PWM_referenceValue_Q
+        self.lib.hp816x_set_PWM_referenceValue.argtypes = [
+            c_int32, c_int32, c_int32, c_double, c_double
+        ]
+        self.lib.hp816x_set_PWM_referenceValue.restype = c_int32
+
+        self.lib.hp816x_set_PWM_referenceSource.argtypes = [
+            c_int32, c_int32, c_int32, c_int32, c_int32, c_int32, c_int32
+        ]
+        self.lib.hp816x_set_PWM_referenceSource.restype = c_int32
+
+        self.lib.hp816x_get_PWM_referenceValue_Q.argtypes = [
+            c_int32, c_int32, c_int32,
+            POINTER(c_int32), POINTER(c_double), POINTER(c_double)
+        ]
+        self.lib.hp816x_get_PWM_referenceValue_Q.restype = c_int32
+
+        # hp816x_get_PWM_powerRange_Q
+        self.lib.hp816x_get_PWM_powerRange_Q.argtypes = [
+            c_int32, c_int32, c_int32, POINTER(c_uint16), POINTER(c_double)
+        ]
+        self.lib.hp816x_get_PWM_powerRange_Q.restype = c_int32
+
+        self.lib.hp816x_set_PWM_powerRange.argtypes = [
+            c_int32, c_int32, c_int32, c_uint16, c_double
+        ]
+        self.lib.hp816x_set_PWM_powerRange.restype = c_int32
+
+        self.lib.hp816x_set_PWM_powerUnit.argtypes = [
+            c_int32, c_int32, c_int32, c_int32
+        ]
+        self.lib.hp816x_set_PWM_powerUnit.restype = c_int32
 
     def _err_msg(self, status):
         if not self.session:
@@ -307,54 +363,51 @@ class HP816xLambdaScan:
                 # For each 3-pair, configure ranging and ref for sweep
                 # Pull 3-pair out
                 chan = args[i] # Slot
-                ref = args[i+1]
-                rang = args[i+2]
+                ref_val = args[i+1]
+                range_val = args[i+2]
+                # Configure both channels (Master = CH1, Slave = CH2)
+                for ch_num in [0, 1]:  # hp816x_CHAN_1=0, hp816x_CHAN_2=1
+                    # --- Power Unit ---
+                    self.lib.hp816x_set_PWM_powerUnit(
+                        self.session,
+                        c_int32(chan),
+                        c_int32(ch_num),
+                        c_int32(0) # 0: dBm, 1: Watt
+                    )
+                    # --- Power Range (Auto/Manual) ---
+                    self.lib.hp816x_set_PWM_powerRange(
+                        c_int32(self.session),
+                        c_int32(chan),
+                        c_int32(ch_num),
+                        c_uint16(0 if range_val is not None else 1),
+                        c_double(range_val if range_val is not None else 0.0),
+                    )
+                    # --- Reference Source ---
+                    # Internal, Absolute (for mainframe lambda scan)
+                    self.lib.hp816x_set_PWM_referenceSource(
+                        self.session,
+                        chan,
+                        ch_num,
+                        0,  # hp816x_PWM_REF_ABSOLUTE (dBm)
+                        0,  # hp816x_PWM_TO_REF (Internal)
+                        0,  # Unused (slot)
+                        0  # Unused (channel)
+                    )
 
-                # Ranging
-                self.lib.hp816x_set_PWM_powerRange(
-                    self.session, # ihandle
-                    chan, # PWM slot
-                    0, # Master slot
-                    0 if rang is not None else 1, # 1 Auto; 0 Manual
-                    rang
-                )
-                self.lib.hp816x_set_PWM_powerRange(
-                    self.session,  # ihandle
-                    chan,  # PWM slot
-                    1,  # Slave slot
-                    0 if rang is not None else 1,  # 1 Auto; 0 Manual
-                    rang
-                )
+                    # --- Reference Value ---
+                    self.lib.hp816x_set_PWM_referenceValue(
+                        self.session,
+                        chan,
+                        ch_num,
+                        ref_val,  # internal reference value in dBm
+                        0.0  # reference channel value (unused)
+                    )
 
-                # Reference
-                # Set reference source ot internal ref
-                self.lib.hp816x_set_PWM_referenceSource(
-                    self.session,  # ihandle
-                    chan,                # PWM Slot
-                    0,                   # Master
-                    0,                   # Absolute measurements (dBm, not dB)
-                    0                    # Set internal reference
-                )
-                self.lib.hp816x_set_PWM_referenceSource(
-                    self.session,  # ihandle
-                    chan,  # PWM Slot
-                    1,  # Slave
-                    0,  # Absolute measurements (dBm, not dB)
-                    0  # Set internal triggering
-                )
-                # Set Reference value
-                self.lib.hp816x_set_PWM_referenceValue(
-              self.session,
-                    chan,
-                    0, # Master
-                    ref,
-                )
-                self.lib.hp816x_set_PWM_referenceValue(
-                    self.session,
-                    chan,
-                    1,  # Slave
-                    ref,
-                )
+        # Check settings
+        self.check_ref(1,0)
+        self.check_ref(1, 1)
+        self.check_range(1, 0)
+        self.check_range(1, 1)
 
         # Uniform output grid
         n_target = int(round((float(stop_nm) - float(start_nm)) / step_nm)) + 1
@@ -494,6 +547,30 @@ class HP816xLambdaScan:
             'channels_dbm': channels_dbm,
             'num_points': int(n_target)
         }
+    def check_ref(self, slot, chan):
+        mode = c_int32()
+        internal = c_double()
+        refchan = c_double()
+        s = self.lib.hp816x_get_PWM_referenceValue_Q(
+            self.session, slot, chan, byref(mode), byref(internal), byref(refchan)
+        )
+        if s!=0:
+            raise RuntimeError(f"Get PWM reference value failed: {self._err_msg(s)}")
+        print(
+            f"Slot: {slot} chan: {chan} mode: {mode.value} internal: {internal.value} refchan: {refchan.value}"
+        )
+
+    def check_range(self, slot, chan):
+        rval = c_uint16()
+        auto = c_double()
+        s = self.lib.hp816x_get_PWM_powerRange_Q(
+            self.session, slot, chan, byref(rval), byref(auto)
+        )
+        if s!=0:
+            raise RuntimeError(f"Get power range failed: {self._err_msg(s)}")
+        print(
+            f'SLot: {slot} chan: {chan} value: {auto.value} auto: {rval.value}'
+        )
 
     def cancel(self):
         self._cancel = True
@@ -502,21 +579,3 @@ class HP816xLambdaScan:
         if self.session:
             self.lib.hp816x_close(self.session)
             self.connected = None
-
-# def main():
-#     """Tester"""
-#     inst = HP816xLambdaScan()
-#     ok = inst.connect()
-#     if ok:
-#         print("success")
-#     else:
-#         inst.disconnect()
-#         return
-
-#     dict = inst.lambda_scan(start_nm=1400,stop_nm=1800,step_pm=4)
-
-#     print(dict)
-#     inst.disconnect()
-
-# if __name__ == "__main__":
-#      main()

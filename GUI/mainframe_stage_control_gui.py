@@ -209,9 +209,7 @@ class stage_control(App):
                 stop_nm=self.sweep["end"],
                 step_nm=self.sweep["step"],
                 laser_power_dbm=self.sweep["power"],
-                chan=1, # Representing channel 1 SLOT
-                ref=ch1_ref,
-                range=ch1_range
+                args=[1,ch1_ref,ch1_range]
             )
         except Exception as e:
             print(f"[Error] Sweep failed: {e}")

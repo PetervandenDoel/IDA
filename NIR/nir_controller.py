@@ -350,7 +350,9 @@ class NIR8164(LaserHAL):
         except:
             pass
         try:
-            self.write("*CLS")
+            # self.write("*CLS")
+            self.configure_units()
+            pass
         except:
             pass
 
