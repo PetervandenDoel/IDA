@@ -4,6 +4,7 @@ pywebview>=5.4
 matplotlib>=3.9,<3.10          # you call matplotlib.use("QtAgg")
 pyqtgraph>=0.13,<0.14
 PyQt5>=5.15                    # Qt backend for Matplotlib
+tqdm
 
 # ===== Vision (camera GUI) =====
 opencv-python==4.11.0.86

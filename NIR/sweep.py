@@ -2,7 +2,7 @@ import ctypes
 import numpy as np
 import pyvisa
 import pandas as pd
-from ctypes import c_double, c_int32, c_uint32, c_char, c_char_p, POINTER, byref, create_string_buffer
+from ctypes import c_double, c_int32, c_uint32, c_uint16, c_char, c_char_p, POINTER, byref, create_string_buffer
 from tqdm import tqdm
 import time
 
@@ -25,6 +25,29 @@ class HP816xLambdaScan:
         self._cancel = False
 
     def _setup_function_prototypes(self):
+        ###################################################
+        # # -*- coding: utf-8 -*-
+        # import ctypes
+        # ViChar = ctypes.c_char
+        # ViInt8 = ctypes.c_int8
+        # ViInt16 = ctypes.c_int16
+        # ViUInt16 = ctypes.c_uint16
+        # ViInt32 = ctypes.c_int32
+        # ViUInt32 = ctypes.c_uint32
+        # ViInt64 = ctypes.c_int64
+        # ViString = ctypes.c_char_p
+        # ViReal32 = ctypes.c_float
+        # ViReal64 = ctypes.c_double
+        # # Types that are based on other visatypes
+        # ViBoolean = ViUInt16
+        # VI_TRUE = ViBoolean(True)
+        # VI_FALSE = ViBoolean(False)
+        # ViStatus = ViInt32
+        # ViSession = ViUInt32
+        # ViAttr = ViUInt32
+        # ViConstString = ViString
+        # ViRsrc = ViString
+        ###################################################
         # hp816x_init
         self.lib.hp816x_init.argtypes = [c_char_p, c_int32, c_int32, POINTER(c_int32)]
         self.lib.hp816x_init.restype = c_int32
@@ -44,6 +67,39 @@ class HP816xLambdaScan:
         self.lib.hp816x_reset.restype = ViStatus
         self.lib.hp816x_registerMainframe.argtypes = [ViSession]
         self.lib.hp816x_registerMainframe.restype = ViStatus
+
+        # --- Single-frame Lambda Scan (TLS + up to 8 power arrays returned in one call) ---
+        #    int hp816x_prepareLambdaScan(
+        #      ViSession, ViInt32 powerUnit, ViReal64 power, ViInt32 opticalOutput,
+        #      ViInt32 numberOfScans, ViInt32 PWMChannels,
+        #      ViReal64 startWavelength, ViReal64 stopWavelength, ViReal64 stepSize,
+        #      ViUInt32* numberOfDatapoints, ViUInt32* numberOfArrays);
+        self.lib.hp816x_prepareLambdaScan.argtypes = [
+            c_int32,        # ViSession
+            c_int32,        # powerUnit (0=dBm, 1=W)
+            c_double,       # power (TLS setpoint)
+            c_int32,        # opticalOutput (0=HIGHPOW, others per frame)
+            c_int32,        # numberOfScans (0->1 scan, 1->2 scans, ...)
+            c_int32,        # PWMChannels (COUNT of enabled arrays)
+            c_double,       # startWavelength (m)
+            c_double,       # stopWavelength  (m)
+            c_double,       # stepSize (m)
+            POINTER(c_uint32),  # numberOfDatapoints
+            POINTER(c_uint32),  # numberOfArrays
+        ]
+        self.lib.hp816x_prepareLambdaScan.restype = c_int32
+
+        #    int hp816x_executeLambdaScan(
+        #      ViSession, ViReal64* wl,
+        #      ViReal64* p1, ViReal64* p2, ViReal64* p3, ViReal64* p4,
+        #      ViReal64* p5, ViReal64* p6, ViReal64* p7, ViReal64* p8);
+        self.lib.hp816x_executeLambdaScan.argtypes = [
+            c_int32,                # ViSession
+            POINTER(c_double),      # wl buffer
+            POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double),
+            POINTER(c_double), POINTER(c_double), POINTER(c_double), POINTER(c_double),
+        ]
+        self.lib.hp816x_executeLambdaScan.restype = c_int32
 
         # hp816x_prepareMfLambdaScan
         self.lib.hp816x_prepareMfLambdaScan.argtypes = [
@@ -70,6 +126,39 @@ class HP816xLambdaScan:
             c_int32, c_int32, c_int32, c_double, POINTER(c_double), POINTER(c_double)
         ]
         self.lib.hp816x_getLambdaScanResult.restype = c_int32
+
+        # hp816x_get_PWM_referenceValue_Q
+        self.lib.hp816x_set_PWM_referenceValue.argtypes = [
+            c_int32, c_int32, c_int32, c_double, c_double
+        ]
+        self.lib.hp816x_set_PWM_referenceValue.restype = c_int32
+
+        self.lib.hp816x_set_PWM_referenceSource.argtypes = [
+            c_int32, c_int32, c_int32, c_int32, c_int32, c_int32, c_int32
+        ]
+        self.lib.hp816x_set_PWM_referenceSource.restype = c_int32
+
+        self.lib.hp816x_get_PWM_referenceValue_Q.argtypes = [
+            c_int32, c_int32, c_int32,
+            POINTER(c_int32), POINTER(c_double), POINTER(c_double)
+        ]
+        self.lib.hp816x_get_PWM_referenceValue_Q.restype = c_int32
+
+        # hp816x_get_PWM_powerRange_Q
+        self.lib.hp816x_get_PWM_powerRange_Q.argtypes = [
+            c_int32, c_int32, c_int32, POINTER(c_uint16), POINTER(c_double)
+        ]
+        self.lib.hp816x_get_PWM_powerRange_Q.restype = c_int32
+
+        self.lib.hp816x_set_PWM_powerRange.argtypes = [
+            c_int32, c_int32, c_int32, c_uint16, c_double
+        ]
+        self.lib.hp816x_set_PWM_powerRange.restype = c_int32
+
+        self.lib.hp816x_set_PWM_powerUnit.argtypes = [
+            c_int32, c_int32, c_int32, c_int32
+        ]
+        self.lib.hp816x_set_PWM_powerUnit.restype = c_int32
 
     def _err_msg(self, status):
         if not self.session:
@@ -254,9 +343,245 @@ class HP816xLambdaScan:
             'channels_dbm': channels_dbm,
             'num_points': int(n_target)
         }
+    def lambda_scan_mf2(self, start_nm: float = 1490, stop_nm: float = 1600, step_pm: float = 0.5,
+                    power_dbm: float = 3.0, num_scans: int = 0, channels: list = (1, 2),
+                    args: list = (1, -80.0, None)):
+        """
+        Completed multi-frame Lambda scan using prepare/execute + per-channel result fetch.
+        Same signature/return shape as your lambda_scan(...).
+    
+        args packs 3-tuples repeating: [slot, ref_dbm, range_dbm_or_None, ...]
+          - ref_dbm is used in RELATIVE mode (internal)
+          - range_dbm_or_None -> None means AUTO, otherwise MANUAL full-scale (dBm)
+    
+        Returns:
+            {
+              'wavelengths_nm': wl_target (np.ndarray float64),
+              'channels': channels (list as passed in),
+              'channels_dbm': [np.ndarray for each channel in channels order],
+              'num_points': int,
+            }
+        """
+        if not self.session:
+            raise RuntimeError("Not connected to instrument")
+    
+        # ---- Clamp requested span/step to safe limits (match your other methods) ----
+        # 81635A spec band in your file: 1490..1640 nm, step >= 0.1 pm
+        start_nm = max(1490.0, float(start_nm))
+        stop_nm  = min(1640.0, float(stop_nm))
+        if stop_nm <= start_nm:
+            raise ValueError("stop_nm must be > start_nm")
+        step_pm  = max(0.1, float(step_pm))
+    
+        # ---- TLS power in dBm (powerUnit=0 here) ----
+        # Keep it sane for 81608A (example): [-20, +13] dBm
+        power_dbm = float(power_dbm)
+        if power_dbm < -20.0: power_dbm = -20.0
+        if power_dbm >  13.0: power_dbm =  13.0
+    
+        # ---- Build the uniform target grid we will fill/stitch into ----
+        step_nm = step_pm / 1000.0
+        n_target = int(round((stop_nm - start_nm) / step_nm)) + 1
+        wl_target = start_nm + np.arange(n_target, dtype=np.float64) * step_nm
+    
+        # ---- Segmentation with guard-bands (match your lambda_scan approach) ----
+        max_points_per_scan = 20001
+        guard_pre_pm  = 90.0
+        guard_post_pm = 90.0
+        guard_total_pm = guard_pre_pm + guard_post_pm
+        guard_points  = int(np.ceil(guard_total_pm / step_pm)) + 2
+        eff_points_budget = max_points_per_scan - guard_points
+        if eff_points_budget < 2:
+            raise RuntimeError("Step too small for guard-banded segmentation (eff_points_budget < 2)")
+    
+        segments = int(np.ceil(n_target / float(eff_points_budget)))
+        if segments < 1:
+            segments = 1
+    
+        # ---- Preallocate outputs (by channel label) ----
+        out_by_ch = {ch: np.full(n_target, np.nan, dtype=np.float64) for ch in channels}
+    
+        # ---- Helpers for re-applying PM settings AFTER prepare ----
+        def _ok(status, ctx):
+            if status != 0:
+                raise RuntimeError(f"{ctx} failed: {self._err_msg(status)}")
+    
+        def _pm_set_unit_dbm(slot, ch):
+            _ok(self.lib.hp816x_set_PWM_powerUnit(self.session, c_int32(slot), c_int32(ch), c_int32(0)),
+                f"set unit dBm s{slot} ch{ch}")
+    
+        def _pm_set_range(slot, ch, manual_dbm):
+            # mode: 0=MANUAL, 1=AUTO
+            if manual_dbm is None:
+                _ok(self.lib.hp816x_set_PWM_powerRange(self.session, c_int32(slot), c_int32(ch),
+                                                       c_uint16(1), c_double(0.0)),
+                    f"set AUTO range s{slot} ch{ch}")
+            else:
+                _ok(self.lib.hp816x_set_PWM_powerRange(self.session, c_int32(slot), c_int32(ch),
+                                                       c_uint16(0), c_double(float(manual_dbm))),
+                    f"set MAN range s{slot} ch{ch}={manual_dbm} dBm")
+    
+        def _pm_set_ref_rel_internal(slot, ch, ref_dbm):
+            # measureMode=1 RELATIVE, referenceSource=0 INTERNAL
+            _ok(self.lib.hp816x_set_PWM_referenceSource(self.session, c_int32(slot), c_int32(ch),
+                                                        c_int32(1), c_int32(0), c_int32(0), c_int32(0)),
+                f"set REF REL/INT s{slot} ch{ch}")
+            if ref_dbm is not None:
+                _ok(self.lib.hp816x_set_PWM_referenceValue(self.session, c_int32(slot), c_int32(ch),
+                                                           c_double(float(ref_dbm)), c_double(0.0)),
+                    f"set REF value s{slot} ch{ch}={ref_dbm} dBm")
+    
+        # ---- Segment loop ----
+        bottom = float(start_nm)
+        for _seg in tqdm(range(segments), desc="MF Lambda Scan", unit="seg"):
+            planned_top = bottom + (eff_points_budget - 1) * step_nm
+            top = min(planned_top, float(stop_nm))
+    
+            # Requested sub-span (no guard in the request; mainframe handles edges)
+            bottom_r = bottom
+            top_r    = top
+    
+            # ---- PREPARE (MF) ----
+            num_points_seg = c_uint32()
+            num_arrays_seg = c_uint32()
+            st = self.lib.hp816x_prepareMfLambdaScan(
+                self.session,
+                c_int32(0),                 # powerUnit: 0 = dBm for TLS setpoint
+                c_double(power_dbm),        # TLS power setpoint (dBm)
+                c_int32(0),                 # opticalOutput: 0 = HIGHPOW
+                c_int32(int(num_scans)),    # numberOfScans (0->1 scan, as per your code)
+                c_int32(len(channels)),     # PWMChannels: count of enabled arrays you want back
+                c_double(bottom_r * 1e-9),  # start (m)
+                c_double(top_r    * 1e-9),  # stop  (m)
+                c_double(step_pm  * 1e-12), # step  (m)
+                byref(num_points_seg),      # out: number of datapoints
+                byref(num_arrays_seg)       # out: number of arrays returned by MF
+            )
+            _ok(st, "prepareMfLambdaScan")
+    
+            points_seg = int(num_points_seg.value)
+            C          = int(num_arrays_seg.value)
+            if C < 1 or points_seg < 2:
+                # nothing to fetch; advance and continue
+                bottom = top + step_nm
+                continue
+    
+            # ---- REASSERT PM CONFIG AFTER PREPARE (critical) ----
+            if args and len(args) >= 3:
+                for i in range(0, len(args), 3):
+                    slot = int(args[i])
+                    ref_dbm = float(args[i + 1])
+                    range_dbm = args[i + 2]  # None => AUTO
+                    for chn in (0, 1):  # master/slave on this slot
+                        _pm_set_unit_dbm(slot, chn)
+                        _pm_set_range(slot, chn, range_dbm)
+                        _pm_set_ref_rel_internal(slot, chn, ref_dbm)
+    
+            # ---- EXECUTE (MF; wavelengths only) ----
+            wl_buf = (c_double * points_seg)()
+            st = self.lib.hp816x_executeMfLambdaScan(self.session, wl_buf)
+            _ok(st, "executeMfLambdaScan")
+    
+            # ---- Guard-trim and index mapping into global grid ----
+            wl_seg_nm_full = np.ctypeslib.as_array(wl_buf, shape=(points_seg,)).copy() * 1e9
+    
+            # Keep only [bottom_r, top_r] (drop ~90 pm internal guards)
+            mask = (wl_seg_nm_full >= bottom_r - 1e-6) & (wl_seg_nm_full <= top_r + 1e-6)
+            if not np.any(mask):
+                bottom = top + step_nm
+                continue
+            wl_seg_nm = wl_seg_nm_full[mask]
+    
+            # Global target indices for these wavelengths
+            idx = np.rint((wl_seg_nm - float(start_nm)) / step_nm).astype(np.int64)
+            valid = (idx >= 0) & (idx < n_target)
+            idx = idx[valid]
+            if idx.size == 0:
+                bottom = top + step_nm
+                continue
+    
+            # ---- Fetch per-channel power arrays and stitch ----
+            # NOTE: MF returns arrays in "slot order": powerArray1..C.
+            # Your 'channels' list represents labels you expect in output.
+            # The driver call needs the powerArray index (1..C). We'll
+            # fetch all returned arrays, then map them to your labels 1:1.
+            # If your 'channels' aligns with MF array order, this is direct.
+            # Otherwise, adjust here if you maintain a different mapping.
+            for slot_i in range(1, C + 1):  # 1..C
+                buf = (c_double * points_seg)()
+                # interpolate flag (int): 1, minPower floor (dBm): -90.0
+                st = self.lib.hp816x_getLambdaScanResult(
+                    self.session,
+                    c_int32(slot_i),    # MF array index (1..C)
+                    c_int32(1),         # interpolate=1 (equidistant)
+                    c_double(-90.0),    # floor
+                    buf,                # out power
+                    wl_buf              # wavelengths (pointer)
+                )
+                _ok(st, f"getLambdaScanResult array{slot_i}")
+    
+                pwr_full = np.ctypeslib.as_array(buf, shape=(points_seg,)).copy()
+                pwr_seg  = pwr_full[mask][valid]
+    
+                # Map MF array index back to your channels list (1:1 position mapping)
+                if slot_i <= len(channels):
+                    ch_label = channels[slot_i - 1]
+                    if pwr_seg.size != idx.size:
+                        m = min(pwr_seg.size, idx.size)
+                        if m > 0:
+                            out_by_ch[ch_label][idx[:m]] = pwr_seg[:m]
+                    else:
+                        out_by_ch[ch_label][idx] = pwr_seg
+    
+            # ---- Next segment ----
+            if top >= float(stop_nm) - 1e-12:
+                break
+            bottom = top + step_nm
+    
+        # ---- Guarantee the last sample is filled if the very last point was missed ----
+        for ch in channels:
+            arr = out_by_ch[ch]
+            if np.isnan(arr[-1]) and n_target >= 2:
+                arr[-1] = arr[-2]
+    
+        # ---- Pack outputs in the same shape as your lambda_scan(...) ----
+        channels_dbm = [out_by_ch[ch] for ch in channels]
+        return {
+            "wavelengths_nm": wl_target,
+            "channels": list(channels),
+            "channels_dbm": channels_dbm,
+            "num_points": int(n_target),
+        }
 
     def lambda_scan(self, start_nm: float = 1490, stop_nm: float = 1600, step_pm: float = 0.5,
-                    power_dbm: float = 3.0, num_scans: int = 0, channels: list = [1, 2]):
+                    power_dbm: float = 3.0, num_scans: int = 0, channels: list = [1, 2],
+                    args: list = [1,-80,-20]):
+        """
+        Mainframe lambda scan, only to be taken with internal power detectors and TLS.
+        Internal triggering is set as the default. Equally spaced datapoints in enabled
+        by default, meaning interpolation is on.
+
+        :param start_nm: Start wavelength in nm
+        :param stop_nm: Stop wavelength in nm
+        :param step_pm: Step size in pm
+        :param power_dbm: Power in dBm
+        :param num_scans: Number of scans, zero indexed up to 4 scans
+        :param channels: List of channels to use, up to 4 channels, [1,2,3,4]
+        :param args: input arguments for changing the reference and ranging before
+                      a sweep has been taken. Use these parameter naming convention,
+                      should be taken from shared memory config. If more than 1 channel,
+                      group *args into 3 pairs, eg. lambda_scan(..., args = [1,-80, -10, 2, -70, -20])
+                      :param channel[int]: master/slave channel slot
+                      :param ref[float]: reference value in dBm (PWM relative internal)
+                      :param rang[float]: range value in dBm, if unspecified autorange
+
+        return: Dict {
+            'wavelengths_nm': wl_target,
+            'channels': channels,
+            'channels_dbm': channels_dbm, # List of np array measurements per channel
+            'num_points': int(n_target)
+        }
+        """
         if not self.session:
             raise RuntimeError("Not connected to instrument")
 
@@ -274,7 +599,7 @@ class HP816xLambdaScan:
         stop_wl = stop_nm * 1e-9
         step_m = step_pm * 1e-12
 
-        # Uniform output grid
+       # Uniform output grid
         n_target = int(round((float(stop_nm) - float(start_nm)) / step_nm)) + 1
         wl_target = start_nm + np.arange(n_target, dtype=np.float64) * step_nm
 
@@ -321,6 +646,60 @@ class HP816xLambdaScan:
             )
             if result != 0:
                 raise RuntimeError(f"Prepare scan failed: {result} :: {self._err_msg(result)}")
+            
+            # Prepare power ranging
+            if len(args) > 0:
+                for i in range(0,len(args),3):
+                    # For each 3-pair, configure ranging and ref for sweep
+                    # Pull 3-pair out
+                    chan = args[i] # Slot
+                    ref_val = args[i+1]
+                    range_val = args[i+2]
+                    # Configure both channels (Master = CH1, Slave = CH2)
+                    for ch_num in [0, 1]:  # hp816x_CHAN_1=0, hp816x_CHAN_2=1
+                        # --- Power Unit ---
+                        self.lib.hp816x_set_PWM_powerUnit(
+                            self.session,
+                            c_int32(chan),
+                            c_int32(ch_num),
+                            c_int32(0) # 0: dBm, 1: Watt
+                        )
+                        # --- Power Range (Auto/Manual) ---
+                        self.lib.hp816x_set_PWM_powerRange(
+                            c_int32(self.session),
+                            c_int32(chan),
+                            c_int32(ch_num),
+                            c_uint16(0 if range_val is not None else 1),
+                            c_double(range_val if range_val is not None else 0.0),
+                        )
+                        # --- Reference Source ---
+                        # Internal, Absolute (for mainframe lambda scan)
+                        self.lib.hp816x_set_PWM_referenceSource(
+                            self.session,
+                            chan,
+                            ch_num,
+                            0,  # hp816x_PWM_REF_ABSOLUTE (dBm)
+                            0,  # hp816x_PWM_TO_REF (Internal)
+                            0,  # Unused (slot)
+                            0  # Unused (channel)
+                        )
+
+                        # --- Reference Value ---
+                        self.lib.hp816x_set_PWM_referenceValue(
+                            self.session,
+                            chan,
+                            ch_num,
+                            ref_val,  # internal reference value in dBm
+                            0.0  # reference channel value (unused)
+                        )
+
+            # Check settings
+            self.check_ref(1,0)
+            self.check_ref(1, 1)
+            self.check_range(1, 0)
+            self.check_range(1, 1)
+
+ 
 
             points_seg = int(num_points_seg.value)
             C = int(num_arrays_seg.value)
@@ -412,6 +791,30 @@ class HP816xLambdaScan:
             'channels_dbm': channels_dbm,
             'num_points': int(n_target)
         }
+    def check_ref(self, slot, chan):
+        mode = c_int32()
+        internal = c_double()
+        refchan = c_double()
+        s = self.lib.hp816x_get_PWM_referenceValue_Q(
+            self.session, slot, chan, byref(mode), byref(internal), byref(refchan)
+        )
+        if s!=0:
+            raise RuntimeError(f"Get PWM reference value failed: {self._err_msg(s)}")
+        print(
+            f"Slot: {slot} chan: {chan} mode: {mode.value} internal: {internal.value} refchan: {refchan.value}"
+        )
+
+    def check_range(self, slot, chan):
+        rval = c_uint16()
+        auto = c_double()
+        s = self.lib.hp816x_get_PWM_powerRange_Q(
+            self.session, slot, chan, byref(rval), byref(auto)
+        )
+        if s!=0:
+            raise RuntimeError(f"Get power range failed: {self._err_msg(s)}")
+        print(
+            f'SLot: {slot} chan: {chan} value: {auto.value} auto: {rval.value}'
+        )
 
     def cancel(self):
         self._cancel = True
@@ -420,21 +823,3 @@ class HP816xLambdaScan:
         if self.session:
             self.lib.hp816x_close(self.session)
             self.connected = None
-
-# def main():
-#     """Tester"""
-#     inst = HP816xLambdaScan()
-#     ok = inst.connect()
-#     if ok:
-#         print("success")
-#     else:
-#         inst.disconnect()
-#         return
-
-#     dict = inst.lambda_scan(start_nm=1400,stop_nm=1800,step_pm=4)
-
-#     print(dict)
-#     inst.disconnect()
-
-# if __name__ == "__main__":
-#      main()

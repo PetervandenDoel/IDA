@@ -191,7 +191,9 @@ class NIR8164(LaserHAL):
     def enable_autorange(self, enable: bool = True, channel: int = 1) -> bool:
         """Enable/disable autorange """
         try:
-            self.write(f"SENSe{channel}:POWer:RANGe:AUTO {1 if enable else 0}")
+            self.write(f"SENSe{channel}:CHAN1:POWer:RANGe:AUTO {1 if enable else 0}")
+            ok = self.query(f"SENSe{channel}:CHAN1:POW:AUTO?")
+            print(ok)
             return True
         except Exception as e:
             return False
@@ -200,44 +202,57 @@ class NIR8164(LaserHAL):
         """Set power range for both slots"""
         try:
             # Disable autorange first
-            self.write(f"SENSe{channel}:POWer:RANGe:AUTO 0")
+            self.write(f"SENSe{channel}:CHAN1:POWer:RANGe:AUTO 0")
             # Set range
-            self.write("SENS1:CHAN1:POW:RANG " + str(range_dbm))
+            self.write(f"SENS{channel}:CHAN1:POW:RANG " + str(range_dbm))
             time.sleep(0.05)
-            self.write("SENS1:CHAN2:POW:RANG " + str(range_dbm))
+            self.write(f"SENS{channel}:CHAN2:POW:RANG " + str(range_dbm))
             return True
         except Exception as e:
             return False
 
-    def get_power_range(self) -> bool:
+    def set_power_range_auto(self, channel: int = 1) -> bool:
+        """Set power range for master / slave of channel"""
+        try:
+            # Enable auto ranging
+            self.write(f"SENSe{channel}:CHAN1:POWer:RANGe:AUTO 1")
+            # mode = self.query(f"SENSe{channel}:CHAN1:POW:RANGE:AUTO?")
+            # print(mode)
+            return True
+        except Exception as e:
+            return False
+
+    def get_power_range(self, channel: int = 1) -> Optional[Tuple]:
         """Get power range for both slots"""
         try:
             # Set range
-            _ = self.query("SENS1:CHAN1:POW:RANG?")
-            _ = self.query("SENS1:CHAN2:POW:RANG?")  # don't know if you need to query the slave
-            return True
+            a = self.query(f"SENS{channel}:CHAN1:POW:RANG?")
+            b = self.query(f"SENS{channel}:CHAN2:POW:RANG?")
+            return a, b
         except Exception as e:
             return False
 
     def set_power_reference(self, ref_dbm: float, channel: int = 1) -> bool:
         """Set power reference (noise floor) for detector channel"""
         try:
-            # Based on Keysight 8164B programmer's guide
             # Set reference level for the specified channel
-            self.write(f"SENS{channel}:POW:REF {ref_dbm}")
+            # sens1:pow:ref tomod,-40DB
+            self.write(f"SENS{channel}:CHAN1:POW:REF TOREF,{ref_dbm}DBM")
+            self.write(f"SENS{channel}:CHAN2:POW:REF TOREF,{ref_dbm}DBM")
             time.sleep(0.05)
             return True
         except Exception as e:
             return False
 
-    def get_power_reference(self, channel: int = 1) -> float:
+    def get_power_reference(self, channel: int = 1) -> Optional[Tuple[float, float]]:
         """Get current power reference (noise floor) for detector channel"""
         try:
             # Query reference level for the specified channel
-            response = self.query(f"SENS{channel}:POW:REF?")
-            return float(response.strip()) if response else 0.0
+            response = self.query(f"SENS{channel}:CHAN1:POW:REF? TOREF")
+            response2 = self.query(f"SENS{channel}:CHAN2:POW:REF? TOREF")
+            return float(response), float(response2)
         except Exception as e:
-            return 0.0
+            return False
 
     ######################################################################
     # Sweep functions
@@ -273,7 +288,8 @@ class NIR8164(LaserHAL):
     ######################################################################
     def optical_sweep(
             self, start_nm: float, stop_nm: float, step_nm: float,
-            laser_power_dbm: float, num_scans: int = 0
+            laser_power_dbm: float, num_scans: int = 0,
+            args: list = []
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         from NIR.sweep import HP816xLambdaScan
 
@@ -296,7 +312,8 @@ class NIR8164(LaserHAL):
                 step_pm=step_pm,
                 power_dbm=float(laser_power_dbm),
                 num_scans=0,
-                channels=self.detector_slots
+                channels=self.detector_slots,
+                args=args
             )
         finally:
             try:
@@ -333,7 +350,9 @@ class NIR8164(LaserHAL):
         except:
             pass
         try:
-            self.write("*CLS")
+            # self.write("*CLS")
+            self.configure_units()
+            pass
         except:
             pass
 

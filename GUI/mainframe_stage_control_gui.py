@@ -127,22 +127,30 @@ class stage_control(App):
                     self.file_path = data.get("FilePath", "")
                     
                     # Read detector range and reference settings
-                    detector_range_ch1 = data.get("DetectorRange_Ch1", {})
-                    detector_range_ch2 = data.get("DetectorRange_Ch2", {})
-                    detector_ref_ch1 = data.get("DetectorReference_Ch1", {})
-                    detector_ref_ch2 = data.get("DetectorReference_Ch2", {})
-                    
+                    self.detector_range_ch1 = data.get("DetectorRange_Ch1", {})
+                    self.detector_range_ch2 = data.get("DetectorRange_Ch2", {})
+                    self.detector_ref_ch1 = data.get("DetectorReference_Ch1", {})
+                    self.detector_ref_ch2 = data.get("DetectorReference_Ch2", {})
+                    self.detector_auto_ch1 = data.get("DetectorAutoRange_Ch1", {})
+                    self.detector_auto_ch2 = data.get("DetectorAutoRange_Ch2", {})
+
                     # Apply detector settings if NIR manager is available
                     if hasattr(self, 'nir_manager') and self.nir_manager and self.configuration_sensor == 1:
-                        if detector_range_ch1.get("range_dbm") is not None:
-                            self.nir_manager.set_power_range(detector_range_ch1["range_dbm"], 1)
-                        if detector_range_ch2.get("range_dbm") is not None:
-                            self.nir_manager.set_power_range(detector_range_ch2["range_dbm"], 2)
-                        if detector_ref_ch1.get("ref_dbm") is not None:
-                            self.nir_manager.set_power_reference(detector_ref_ch1["ref_dbm"], 1)
-                        if detector_ref_ch2.get("ref_dbm") is not None:
-                            self.nir_manager.set_power_reference(detector_ref_ch2["ref_dbm"], 2)
-                            
+                        if self.detector_range_ch1.get("range_dbm") is not None:
+                            self.nir_manager.set_power_range(self.detector_range_ch1["range_dbm"], 1)
+                        if self.detector_range_ch2.get("range_dbm") is not None:
+                            self.nir_manager.set_power_range(self.detector_range_ch2["range_dbm"], 2)
+                        if self.detector_ref_ch1.get("ref_dbm") is not None:
+                            self.nir_manager.set_power_reference(self.detector_ref_ch1["ref_dbm"], 1)
+                        if self.detector_ref_ch2.get("ref_dbm") is not None:
+                            self.nir_manager.set_power_reference(self.detector_ref_ch2["ref_dbm"], 2)
+                        if self.detector_auto_ch1:
+                            self.nir_manager.set_power_range_auto(1)
+                            File("shared_memory", "DetectorAutoRange_Ch1", {}).save()
+                        if self.detector_auto_ch2:
+                            self.nir_manager.set_power_range_auto(2)
+                            File("shared_memory", "DetectorAutoRange_Ch2", {}).save()
+
             except Exception as e:
                 print(f"[Warn] read json failed: {e}")
 
@@ -180,11 +188,28 @@ class stage_control(App):
             auto = 1
 
         try:
+            # For now, make work for 1 channel
+            # Ranging
+            if self.detector_auto_ch1 == {} and self.detector_range_ch1.get("range_dbm") is not None:
+                ch1_range = self.detector_range_ch1["range_dbm"]
+            elif self.detector_range_ch1 == {} and self.detector_auto_ch1:
+                # Machine expects None for auto
+                ch1_range = None
+            else:
+                ch1_range = -10 # dBm default
+
+            # Reference
+            if self.detector_ref_ch1.get("ref_dbm") is not None:
+                ch1_ref = self.detector_ref_ch1["ref_dbm"]
+            else:
+                ch1_ref = -80 # dBm default
+
             wl, d1, d2 = self.nir_manager.sweep(
                 start_nm=self.sweep["start"],
                 stop_nm=self.sweep["end"],
                 step_nm=self.sweep["step"],
-                laser_power_dbm=self.sweep["power"]
+                laser_power_dbm=self.sweep["power"],
+                args=[1,ch1_ref,ch1_range]
             )
         except Exception as e:
             print(f"[Error] Sweep failed: {e}")
@@ -349,7 +374,7 @@ class stage_control(App):
             if self.memory.cp_pos != float(self.chip_position_lb.get_text()):
                 self.chip_position_lb.set_text(str(self.memory.cp_pos))
             if self.memory.fr_pos != float(self.fiber_position_lb.get_text()):
-                self.fiber_position_lb.set_text(str(self.memory.fr_pos))
+                self.fiber_position_lb.set_text(str(45 - self.memory.fr_pos))
 
         if self.configuration_sensor == 1:
             if self.sweep["sweep"] == 1 and self.sweep_count == 0:
@@ -662,6 +687,7 @@ class stage_control(App):
             ))
 
             # Zero button placeholder
+            # if prefix in ["x", "y", "z"]:
             setattr(self, f"{prefix}_zero_btn", StyledButton(
                 container=xyz_container, text="Zero", variable_name=f"{prefix}_zero_button", font_size=100,
                 left=ZERO_LEFT, top=top, width=55, height=ROW_H, normal_color="#6c757d", press_color="#5a6268"
@@ -1065,7 +1091,29 @@ class stage_control(App):
             )
             self.data = asyncio.run(self.area_sweep.begin_sweep())
             fileTime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            diagram = plot(filename="heat_map", fileTime=fileTime, user=self.user, project=self.project, data=self.data)
+
+            # Create window for plotting
+            if str(self.area_s["pattern"]) == "spiral":
+                diagram = plot(
+                    filename="heat_map",
+                    fileTime=fileTime,
+                    user=self.user,
+                    project=self.project,
+                    data=self.data,
+                    xticks=int(self.area_s["x_step"]),
+                    yticks=None,
+                    pos_i = [self.stage_x_pos, self.stage_y_pos])
+            else:
+                diagram = plot(
+                    filename="heat_map",
+                    fileTime=fileTime,
+                    user=self.user,
+                    project=self.project,
+                    data=self.data,
+                    xticks=int(self.area_s["x_step"]),
+                    yticks=int(self.area_s["y_step"]),
+                    pos_i = [self.stage_x_pos, self.stage_y_pos])
+
 
             with self._scan_done.get_lock():
                 self._scan_done.value = 1
@@ -1453,13 +1501,29 @@ class stage_control(App):
                     val = 1
                 device = self.devices[int(val - 1)]
                 self.move_dd.set_value(device)
-                
-
 
         if stage == 1:
             print("stage record")
             file = File("command", "command", new_command)
             file.save()
+
+    def apply_detector_auto_range(self, channel):
+        """Apply detector autorange to specified channel"""
+        try:
+            if self.nir_manager and self.configuration_sensor == 1:
+                success = self.nir_manager.set_power_range_auto(channel)
+                if success:
+                    print(f"Applied detector autorange to  CH{channel}")
+                else:
+                    print(f"Failed to apply detector autorange to  CH{channel}")
+                return success
+            else:
+                print("NIR manager not available")
+                return False
+        except Exception as e:
+            print(f"Error applying detector auto-range: {e}")
+            return False
+
 
     def apply_detector_range(self, range_dbm, channel):
         """Apply detector range setting via NIR manager"""

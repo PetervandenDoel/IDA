@@ -128,7 +128,7 @@ class instruments(App):
             StyledLabel(
                 container=instruments_container, variable_name=f"label_{key}",
                 text={"stage": "Stage:",
-                      "sensor": "Sensor:",
+                      "sensor": "Laser / Detector:",
                       "tec": "TEC:"}[key],
                 left=0, top=15 + idx * 40, width=150, height=20, font_size=100, color="#444", align="right"
             )

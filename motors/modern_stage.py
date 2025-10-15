@@ -616,6 +616,9 @@ class StageControl(MotorHAL):
 
                 # Notify that homing, limit-finding is complete
                 self._emit_event(MotorEventType.HOMED, {'limits_um': self._position_limits})
+
+                # Clear MMC-100 default error thats appearing
+                self._send_command(f"{axis_num}CER")
                 return True
 
             except Exception as e:
@@ -625,7 +628,12 @@ class StageControl(MotorHAL):
         def _mid_point():
             """Go to mid point"""
             try:
-                mid_point = (self._position_limits[1] - self._position_limits[0]) / 2
+                if axis_num == 4:
+                    # Fiber array
+                    mid_point = self._position_limits[1] * (37.0 / 45.0) # 8 deg
+                else:
+                    mid_point = (self._position_limits[1] - self._position_limits[0]) / 2
+
                 self._emit_event(MotorEventType.MOVE_STARTED, {'operation': 'middling'})
                 self._send_command(f"{axis_num}MVA{(mid_point/1000):.6f}")
                 

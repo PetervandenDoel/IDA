@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Any, Callable, List, Optional
+from typing import Dict, Any, Callable, List, Optional, Tuple
 from dataclasses import dataclass, asdict
 
 from NIR.nir_controller import NIR8164
@@ -299,21 +299,46 @@ class NIRManager:
                 self._log("Controller not connected", "error")
                 return False
 
-            self.controller.set_power_range(range_dbm, channel)
-            return True
-
+            ok = self.controller.set_power_range(range_dbm, channel)
+            if ok:
+                self._log(f"Power range set to {range_dbm}dBm for channel {channel}", "info")
+                return True
+            else:
+                self._log(f"Failed to set power range for channel {channel}", "error")
+                return False
         except Exception as e:
             self._log(f"Set detector range error: {e}", "error")
             return False
 
-    def get_power_range(self) -> bool:
+    def set_power_range_auto(self, channel: int = 1):
+        """Set the devices power ranging to auto"""
+        try:
+            if not self.controller or not self._connected:
+                self._log("Controller not connected", "error")
+                return False
+
+            ok = self.controller.set_power_range_auto(channel)
+            if ok:
+                self._log(f"Set power range auto: {channel}")
+                return True
+            self._log(f"Failed to set power range auto: {channel}dBm", "error")
+            return False
+        except Exception as e:
+            self._log(f"Set power range error: {e}", "info")
+            return False
+
+    def get_power_range(self) -> Optional[Tuple]:
         """Get power range"""
         try:
             if not self.controller or not self._connected:
                 self._log("Controller not connected", "error")
                 return False
-            self.controller.get_power_range()
-            return True
+            ok = self.controller.get_power_range()
+            if not ok:
+                self._log(f"Failed to get power range: {ok}dBm", "error")
+                return False
+            self._log(f"Power range set to {ok}dBm", "info")
+            return ok
         except Exception as e:
             self._log(f"Get detector range error: {e}", "error")
             return False
@@ -327,7 +352,7 @@ class NIRManager:
 
             success = self.controller.set_power_reference(ref_dbm, channel)
             if success:
-                self._log(f"Power reference set to {ref_dbm}dBm for channel {channel}")
+                self._log(f"Power reference set to {ref_dbm}dBm for channel {channel}", "info")
             else:
                 self._log(f"Failed to set power reference to {ref_dbm}dBm for channel {channel}", "error")
             return success
@@ -336,24 +361,28 @@ class NIRManager:
             self._log(f"Set power reference error: {e}", "error")
             return False
 
-    def get_power_reference(self, channel: int = 1) -> float:
+    def get_power_reference(self, channel: int = 1) -> Optional[Tuple]:
         """Get current power reference (noise floor)"""
         try:
             if not self.controller or not self._connected:
                 self._log("Controller not connected", "error")
-                return 0.0
+                return False
 
-            reference = self.controller.get_power_reference(channel)
-            return reference if reference is not None else 0.0
+            ok = self.controller.get_power_reference(channel)
+            if not ok:
+                self._log(f"Failed to get power reference: {ok}dBm", "error")
+                return False
+            self._log(f"Power reference set to {ok}dBm for channel {channel}", "info")
+            return ok
 
         except Exception as e:
             self._log(f"Get power reference error: {e}", "error")
-            return 0.0
+            return False
 
     ######################################################################
     # Sweep methods
     ######################################################################
-    def sweep(self, start_nm, stop_nm, step_nm, laser_power_dbm, num_scans=0):
+    def sweep(self, start_nm, stop_nm, step_nm, laser_power_dbm, num_scans=0, args=[]):
         """
         Execute a lambda scan, auto stitches longer measurements (>20,001 points)
         params:
@@ -361,7 +390,16 @@ class NIRManager:
             stop_nm[nm]: end of sweep in nm
             step_nm[nm]: step size of sweep in nm
             laser_power_dbm[dbm]: laser power in dBm
-            averaging_time_s[s]: Optional averaging time in s
+            num_scans[int]: num scans zero indexes up to 3,
+            :param *args: input arguments for changing the reference and ranging before
+                      a sweep has been taken. Use these parameter naming convention,
+                      should be taken from shared memory config. If more than 1 channel,
+                      group *args into 3 pairs, eg.
+                      lambda_scan(..., chan1=1, ref1=-10, range1=-80,
+                                  chan2=2, ref2=-20, range2=None)
+                      :param channel[int]: master/slave channel slot
+                      :param ref[float]: reference value in dBm (PWM relative internal)
+                      :param range[float]: range value in dBm, if unspecified autorange
         """
         try:
             if not self.controller or not self._connected:
@@ -371,7 +409,7 @@ class NIRManager:
             # (wavelengths[nm], channel1[dBm], channel2[dBm])
             results = self.controller.optical_sweep(
                 start_nm, stop_nm, step_nm, laser_power_dbm,
-                num_scans)
+                num_scans, args)
             self.controller.cleanup_scan()
             self.controller.set_wavelength(self.config.initial_wavelength_nm)
 
@@ -407,8 +445,7 @@ class NIRManager:
             self._log(f"Lambda scan error: {e}", "error")
             return False
 
-        ######################################################################
-
+    ######################################################################
     # Configuration
     ######################################################################
 

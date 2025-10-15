@@ -1,108 +1,96 @@
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:06:38,059 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:06:39,074 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:06:40,088 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:06:41,103 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:06:42,113 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:06:43,120 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:06:44,132 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:06:45,145 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:06:46,149 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:06:47,160 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:06:48,161 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:06:49,169 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:06:50,171 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:06:51,178 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:06:52,190 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:06:53,202 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:06:54,204 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:06:55,212 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:06:56,225 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-▶ camera_gui.py started (pid=4184)
+2025-10-02 12:42:31,655 - INFO - Centered spiral completed 6x6 at 4 �m pitch
+2025-10-02 12:42:31,655 - INFO - Centered spiral completed 6x6 at 4 �m pitch
+AreaSweep        INFO     Centered spiral completed 6x6 at 4 �m pitch
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+[Tkinter] Dialog closed
+Done Scan
+Done Scan
+✓ Windows Job Object created for process tree management
+✓ Console close handler registered
+✓ Process 7752 assigned to job object
+▶ camera_gui.py started (pid=7752)
 ⏹ camera_gui.py exited (rc=0)
-▶ init_gui.py started (pid=17668)
+✓ Process 7628 assigned to job object
+▶ init_gui.py started (pid=7628)
 C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   from pkg_resources import get_distribution, DistributionNotFound
-▶ lib_gui.py started (pid=24644)
+✓ Process 20392 assigned to job object
+▶ lib_gui.py started (pid=20392)
 C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   from pkg_resources import get_distribution, DistributionNotFound
-▶ main_devices_gui.py started (pid=42344)
+✓ Process 40640 assigned to job object
+▶ main_devices_gui.py started (pid=40640)
 C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   from pkg_resources import get_distribution, DistributionNotFound
-▶ main_instruments_gui.py started (pid=19116)
+✓ Process 40596 assigned to job object
+▶ main_instruments_gui.py started (pid=40596)
 C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   from pkg_resources import get_distribution, DistributionNotFound
-▶ main_registration_gui.py started (pid=19696)
+✓ Process 18152 assigned to job object
+▶ main_registration_gui.py started (pid=18152)
 C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   from pkg_resources import get_distribution, DistributionNotFound
 ⏹ init_gui.py exited (rc=0)
-▶ main_start_gui.py started (pid=28188)
+✓ Process 13964 assigned to job object
+▶ main_start_gui.py started (pid=13964)
 C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   from pkg_resources import get_distribution, DistributionNotFound
 ⏹ lib_gui.py exited (rc=0)
-▶ main_testing_gui.py started (pid=11312)
+✓ Process 35864 assigned to job object
+▶ main_testing_gui.py started (pid=35864)
 C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   from pkg_resources import get_distribution, DistributionNotFound
-▶ mainframe_command_gui.py started (pid=19936)
+✓ Process 20852 assigned to job object
+▶ mainframe_command_gui.py started (pid=20852)
 C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   from pkg_resources import get_distribution, DistributionNotFound
-▶ mainframe_configuration_gui.py started (pid=29952)
-▶ mainframe_sensor_control_gui.py started (pid=33392)
-  File "C:\Users\347\Desktop\Probe_Stage\Probe_Stage\GUI\mainframe_sensor_control_gui.py", line 426
-    global app_instance = stage_control()
-                        ^
-SyntaxError: invalid syntax
-⏹ mainframe_sensor_control_gui.py exited (rc=1)
-▶ mainframe_stage_control_gui.py started (pid=35320)
+✓ Process 8968 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=8968)
+✓ Process 26632 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=26632)
 C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   from pkg_resources import get_distribution, DistributionNotFound
-▶ mainframe_tec_control_gui.py started (pid=15212)
+✓ Process 13592 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=13592)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 42708 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=42708)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 21724 assigned to job object
+▶ sub_add_btn_gui.py started (pid=21724)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 42552 assigned to job object
+▶ sub_area_scan_setting_gui.py started (pid=42552)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 26644 assigned to job object
+▶ sub_connect_config_gui.py started (pid=26644)
+✓ Process 36440 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=36440)
+✓ Process 39808 assigned to job object
+▶ sub_fine_align_setting_gui.py started (pid=39808)
 C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   from pkg_resources import get_distribution, DistributionNotFound
 C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_add_btn_gui.py started (pid=40608)
-▶ sub_area_scan_setting_gui.py started (pid=24688)
 C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_connect_config_gui.py started (pid=41424)
+✓ Process 32896 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=32896)
+✓ Process 19244 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=19244)
 C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_data_window_setting_gui.py started (pid=31832)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_fine_align_setting_gui.py started (pid=1972)
-▶ sub_laser_sweep_setting_gui.py started (pid=18756)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_limit_setting_gui.py started (pid=28488)
 C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   from pkg_resources import get_distribution, DistributionNotFound
 C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   from pkg_resources import get_distribution, DistributionNotFound
 Welcome To Probe Stage
-{'velocities': {'X': 2000.0, 'Y': 2000.0, 'Z': 2000.0, 'ROTATION_FIBER': 2000.0, 'ROTATION_CHIP': 2000.0}, 'accelerations': {'X': 100.0, 'Y': 100.0, 'Z': 100.0, 'ROTATION_FIBER': 100.0, 'ROTATION_CHIP': 100.0}, 'position_limits': {'X': (-100.0, 25000.0), 'Y': (-100.0, 25000.0), 'Z': (-100.0, 25000.0), 'ROTATION_FIBER': (-100.0, 25000.0), 'ROTATION_CHIP': (-100.0, 25000.0)}, 'position_tolerance': 1.0, 'status_poll_interval': 0.05, 'move_timeout': 30.0, 'driver_types': {'X': 'stage_control', 'Y': 'stage_control', 'Z': 'stage_control', 'ROTATION_FIBER': 'stage_control', 'ROTATION_CHIP': 'stage_control'}}
+{'velocities': {'X': 2000.0, 'Y': 2000.0, 'Z': 2000.0, 'ROTATION_FIBER': 2000.0, 'ROTATION_CHIP': 2000.0}, 'accelerations': {'X': 100.0, 'Y': 100.0, 'Z': 100.0, 'ROTATION_FIBER': 100.0, 'ROTATION_CHIP': 100.0}, 'position_limits': {'X': (-100000.0, 100000.0), 'Y': (-100000.0, 100000.0), 'Z': (-100000.0, 100000.0), 'ROTATION_FIBER': (-100000.0, 100000.0), 'ROTATION_CHIP': (-100000.0, 100000.0)}, 'position_tolerance': 1.0, 'status_poll_interval': 0.05, 'move_timeout': 30.0, 'driver_types': {'X': 'stage_control', 'Y': 'stage_control', 'Z': 'stage_control', 'ROTATION_FIBER': 'stage_control', 'ROTATION_CHIP': 'stage_control'}}
 motors.stage_manager INFO     Shared memory initialized
 motors.stage_manager INFO     Stage manager started
 motors.stage_manager INFO     Position monitor started
@@ -114,474 +102,428 @@ motors.stage_manager INFO     Axis ROTATION_CHIP initialized successfully
 motors.stage_manager INFO     Axis ROTATION_FIBER initialized successfully
 motors.stage_manager INFO     All axes initialized successfully
 Stage Connection Successful
-2025-09-29 14:07:26,182 - INFO - Initializing NIR device...
+2025-10-02 12:43:15,942 - INFO - Initializing NIR device...
 NIRManager       INFO     Initializing NIR device...
-2025-09-29 14:07:26,318 - INFO - Connected to NIR device
+2025-10-02 12:43:16,092 - INFO - Connected to NIR device
 NIRManager       INFO     Connected to NIR device
-2025-09-29 14:07:26,337 - INFO - Device configured with current settings
+2025-10-02 12:43:16,114 - INFO - Device configured with current settings
 NIRManager       INFO     Device configured with current settings
-2025-09-29 14:07:26,337 - INFO - NIR initialized successfully
+2025-10-02 12:43:16,114 - INFO - NIR initialized successfully
 NIRManager       INFO     NIR initialized successfully
-2025-09-29 14:07:26,349 - INFO - Wavelength set to 1550.0nm
+2025-10-02 12:43:16,123 - INFO - Wavelength set to 1550.0nm
 NIRManager       INFO     Wavelength set to 1550.0nm
 Sensor Connection Successful
-2025-09-29 14:07:26,462 - INFO - Power set to 1.0dBm
+2025-10-02 12:43:16,248 - INFO - Power set to 1.0dBm
 NIRManager       INFO     Power set to 1.0dBm
-C:\Users\347\Desktop\Probe_Stage\Probe_Stage\GUI\mainframe_stage_control_gui.py:283: RuntimeWarning: coroutine 'StageManager.shutdown' was never awaited
+Confirm Area Scan Setting: {'pattern': 'crosshair', 'x_size': 20.0, 'x_step': 4.0, 'y_size': 20.0, 'y_step': 4.0, 'plot': 'New'}
+Start Scan
+2025-10-02 12:43:28,626 - INFO - AreaSweep initialized
+AreaSweep        INFO     AreaSweep initialized
+2025-10-02 12:43:28,633 - INFO - Crosshair sweep: cols=5, rows=5, step=(4.0,4.0)
+AreaSweep        INFO     Crosshair sweep: cols=5, rows=5, step=(4.0,4.0)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+### Waiting ###
+[Dialog Process] Starting with PID 26508
+[Dialog Process] Using tkinter for progress display
+[Tkinter] Creating progress dialog...
+[Tkinter] Starting dialog event loop...
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+2025-10-02 12:43:40,116 - INFO - Crosshair sweep completed. Total rows stored: 5
+AreaSweep        INFO     Crosshair sweep completed. Total rows stored: 5
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+Done Scan
+Done Scan
+[Tkinter] Dialog closed
+Confirm Area Scan Setting: {'pattern': 'spiral', 'x_size': 20.0, 'x_step': 4.0, 'y_size': 20.0, 'y_step': 4.0, 'plot': 'New'}
+Start Scan
+2025-10-02 12:43:54,136 - INFO - AreaSweep initialized
+2025-10-02 12:43:54,136 - INFO - AreaSweep initialized
+AreaSweep        INFO     AreaSweep initialized
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+### Waiting ###
+[Dialog Process] Starting with PID 41636
+[Dialog Process] Using tkinter for progress display
+[Tkinter] Creating progress dialog...
+[Tkinter] Starting dialog event loop...
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+2025-10-02 12:44:09,053 - INFO - Centered spiral completed 6x6 at 4 �m pitch
+2025-10-02 12:44:09,053 - INFO - Centered spiral completed 6x6 at 4 �m pitch
+AreaSweep        INFO     Centered spiral completed 6x6 at 4 �m pitch
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+[Tkinter] Dialog closed
+Done Scan
+Done Scan
+✓ Windows Job Object created for process tree management
+✓ Console close handler registered
+✓ Process 20348 assigned to job object
+▶ camera_gui.py started (pid=20348)
+⏹ camera_gui.py exited (rc=0)
+✓ Process 30180 assigned to job object
+▶ init_gui.py started (pid=30180)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 31056 assigned to job object
+▶ lib_gui.py started (pid=31056)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 4952 assigned to job object
+▶ main_devices_gui.py started (pid=4952)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 20636 assigned to job object
+▶ main_instruments_gui.py started (pid=20636)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 32392 assigned to job object
+▶ main_registration_gui.py started (pid=32392)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 34360 assigned to job object
+▶ main_start_gui.py started (pid=34360)
+⏹ init_gui.py exited (rc=0)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 34624 assigned to job object
+▶ main_testing_gui.py started (pid=34624)
+⏹ lib_gui.py exited (rc=0)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 28656 assigned to job object
+▶ mainframe_command_gui.py started (pid=28656)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 2072 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=2072)
+✓ Process 25212 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=25212)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 41924 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=41924)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 26544 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=26544)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 10416 assigned to job object
+▶ sub_add_btn_gui.py started (pid=10416)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 14312 assigned to job object
+▶ sub_area_scan_setting_gui.py started (pid=14312)
+✓ Process 39444 assigned to job object
+▶ sub_connect_config_gui.py started (pid=39444)
+✓ Process 5588 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=5588)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 26844 assigned to job object
+▶ sub_fine_align_setting_gui.py started (pid=26844)
+✓ Process 34676 assigned to job object
+
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+✓ Process 39364 assigned to job object
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+  from pkg_resources import get_distribution, DistributionNotFound
+▶ sub_limit_setting_gui.py started (pid=39364)
+  from pkg_resources import get_distribution, DistributionNotFound
+▶ sub_laser_sweep_setting_gui.py started (pid=34676)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+Welcome To Probe Stage
+{'velocities': {'X': 2000.0, 'Y': 2000.0, 'Z': 2000.0, 'ROTATION_FIBER': 2000.0, 'ROTATION_CHIP': 2000.0}, 'accelerations': {'X': 100.0, 'Y': 100.0, 'Z': 100.0, 'ROTATION_FIBER': 100.0, 'ROTATION_CHIP': 100.0}, 'position_limits': {'X': (-100000.0, 100000.0), 'Y': (-100000.0, 100000.0), 'Z': (-100000.0, 100000.0), 'ROTATION_FIBER': (-100000.0, 100000.0), 'ROTATION_CHIP': (-100000.0, 100000.0)}, 'position_tolerance': 1.0, 'status_poll_interval': 0.05, 'move_timeout': 30.0, 'driver_types': {'X': 'stage_control', 'Y': 'stage_control', 'Z': 'stage_control', 'ROTATION_FIBER': 'stage_control', 'ROTATION_CHIP': 'stage_control'}}
+motors.stage_manager INFO     Shared memory initialized
+motors.stage_manager INFO     Stage manager started
+motors.stage_manager INFO     Position monitor started
+motors.stage_manager INFO     Axis X initialized successfully
+motors.stage_manager INFO     Axis Y initialized successfully
+motors.stage_manager INFO     Axis Z initialized successfully
+motors.stage_manager ERROR    Position monitor error: dictionary changed size during iteration
+motors.stage_manager INFO     Axis ROTATION_CHIP initialized successfully
+motors.stage_manager INFO     Axis ROTATION_FIBER initialized successfully
+motors.stage_manager INFO     All axes initialized successfully
+Stage Connection Successful
+2025-10-02 12:48:02,851 - INFO - Initializing NIR device...
+NIRManager       INFO     Initializing NIR device...
+2025-10-02 12:48:03,007 - INFO - Connected to NIR device
+NIRManager       INFO     Connected to NIR device
+2025-10-02 12:48:03,026 - INFO - Device configured with current settings
+NIRManager       INFO     Device configured with current settings
+2025-10-02 12:48:03,027 - INFO - NIR initialized successfully
+NIRManager       INFO     NIR initialized successfully
+2025-10-02 12:48:03,045 - INFO - Wavelength set to 1550.0nm
+NIRManager       INFO     Wavelength set to 1550.0nm
+Sensor Connection Successful
+2025-10-02 12:48:03,152 - INFO - Power set to 1.0dBm
+NIRManager       INFO     Power set to 1.0dBm
+Confirm Area Scan Setting: {'pattern': 'crosshair', 'x_size': 20.0, 'x_step': 4.0, 'y_size': 20.0, 'y_step': 4.0, 'plot': 'New'}
+Start Scan
+2025-10-02 12:48:14,276 - INFO - AreaSweep initialized
+AreaSweep        INFO     AreaSweep initialized
+2025-10-02 12:48:14,284 - INFO - Crosshair sweep: cols=5, rows=5, step=(4.0,4.0)
+AreaSweep        INFO     Crosshair sweep: cols=5, rows=5, step=(4.0,4.0)
+### Waiting ###
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+### Waiting ###
+[Dialog Process] Starting with PID 40136
+[Dialog Process] Using tkinter for progress display
+[Tkinter] Creating progress dialog...
+[Tkinter] Starting dialog event loop...
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+2025-10-02 12:48:26,109 - INFO - Crosshair sweep completed. Total rows stored: 5
+AreaSweep        INFO     Crosshair sweep completed. Total rows stored: 5
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+Done Scan
+Done Scan
+[Tkinter] Dialog closed
+✓ Windows Job Object created for process tree management
+✓ Console close handler registered
+✓ Process 24948 assigned to job object
+▶ camera_gui.py started (pid=24948)
+⏹ camera_gui.py exited (rc=0)
+✓ Process 20040 assigned to job object
+▶ init_gui.py started (pid=20040)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 6348 assigned to job object
+▶ lib_gui.py started (pid=6348)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 23848 assigned to job object
+▶ main_devices_gui.py started (pid=23848)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 29660 assigned to job object
+▶ main_instruments_gui.py started (pid=29660)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 27524 assigned to job object
+▶ main_registration_gui.py started (pid=27524)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+⏹ init_gui.py exited (rc=0)
+✓ Process 18536 assigned to job object
+▶ main_start_gui.py started (pid=18536)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+⏹ lib_gui.py exited (rc=0)
+✓ Process 19376 assigned to job object
+▶ main_testing_gui.py started (pid=19376)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 22272 assigned to job object
+▶ mainframe_command_gui.py started (pid=22272)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 37932 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=37932)
+✓ Process 36976 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=36976)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 22044 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=22044)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 29924 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=29924)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 21804 assigned to job object
+▶ sub_add_btn_gui.py started (pid=21804)
+✓ Process 36268 assigned to job object
+▶ sub_area_scan_setting_gui.py started (pid=36268)
+✓ Process 3724 assigned to job object
+▶ sub_connect_config_gui.py started (pid=3724)
+✓ Process 38456 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=38456)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 18660 assigned to job object
+▶ sub_fine_align_setting_gui.py started (pid=18660)
+✓ Process 28152 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=28152)
+✓ Process 4688 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=4688)
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+Welcome To Probe Stage
+{'velocities': {'X': 2000.0, 'Y': 2000.0, 'Z': 2000.0, 'ROTATION_FIBER': 2000.0, 'ROTATION_CHIP': 2000.0}, 'accelerations': {'X': 100.0, 'Y': 100.0, 'Z': 100.0, 'ROTATION_FIBER': 100.0, 'ROTATION_CHIP': 100.0}, 'position_limits': {'X': (-100000.0, 100000.0), 'Y': (-100000.0, 100000.0), 'Z': (-100000.0, 100000.0), 'ROTATION_FIBER': (-100000.0, 100000.0), 'ROTATION_CHIP': (-100000.0, 100000.0)}, 'position_tolerance': 1.0, 'status_poll_interval': 0.05, 'move_timeout': 30.0, 'driver_types': {'X': 'stage_control', 'Y': 'stage_control', 'Z': 'stage_control', 'ROTATION_FIBER': 'stage_control', 'ROTATION_CHIP': 'stage_control'}}
+motors.stage_manager INFO     Shared memory initialized
+motors.stage_manager INFO     Stage manager started
+motors.stage_manager INFO     Position monitor started
+motors.stage_manager INFO     Axis X initialized successfully
+motors.stage_manager INFO     Axis Y initialized successfully
+motors.stage_manager INFO     Axis Z initialized successfully
+motors.stage_manager ERROR    Position monitor error: dictionary changed size during iteration
+motors.stage_manager INFO     Axis ROTATION_CHIP initialized successfully
+motors.stage_manager INFO     Axis ROTATION_FIBER initialized successfully
+motors.stage_manager INFO     All axes initialized successfully
+Stage Connection Successful
+2025-10-02 12:52:05,425 - INFO - Initializing NIR device...
+NIRManager       INFO     Initializing NIR device...
+2025-10-02 12:52:05,578 - INFO - Connected to NIR device
+NIRManager       INFO     Connected to NIR device
+2025-10-02 12:52:05,597 - INFO - Device configured with current settings
+NIRManager       INFO     Device configured with current settings
+2025-10-02 12:52:05,597 - INFO - NIR initialized successfully
+NIRManager       INFO     NIR initialized successfully
+2025-10-02 12:52:05,610 - INFO - Wavelength set to 1550.0nm
+NIRManager       INFO     Wavelength set to 1550.0nm
+Sensor Connection Successful
+2025-10-02 12:52:05,724 - INFO - Power set to 1.0dBm
+NIRManager       INFO     Power set to 1.0dBm
+Confirm Area Scan Setting: {'pattern': 'crosshair', 'x_size': 20.0, 'x_step': 4.0, 'y_size': 20.0, 'y_step': 4.0, 'plot': 'New'}
+Start Scan
+2025-10-02 12:52:21,998 - INFO - AreaSweep initialized
+AreaSweep        INFO     AreaSweep initialized
+2025-10-02 12:52:22,004 - INFO - Crosshair sweep: cols=5, rows=5, step=(4.0,4.0)
+AreaSweep        INFO     Crosshair sweep: cols=5, rows=5, step=(4.0,4.0)
+### Waiting ###
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+### Waiting ###
+[Dialog Process] Starting with PID 28844
+[Dialog Process] Using tkinter for progress display
+[Tkinter] Creating progress dialog...
+[Tkinter] Starting dialog event loop...
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+2025-10-02 12:52:34,430 - INFO - Crosshair sweep completed. Total rows stored: 5
+AreaSweep        INFO     Crosshair sweep completed. Total rows stored: 5
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+[Tkinter] Dialog closed
+Confirm Area Scan Setting: {'pattern': 'spiral', 'x_size': 20.0, 'x_step': 5.0, 'y_size': 20.0, 'y_step': 5.0, 'plot': 'New'}
+Start Scan
+2025-10-02 12:52:59,383 - INFO - AreaSweep initialized
+2025-10-02 12:52:59,383 - INFO - AreaSweep initialized
+AreaSweep        INFO     AreaSweep initialized
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+### Waiting ###
+[Dialog Process] Starting with PID 2320
+[Dialog Process] Using tkinter for progress display
+[Tkinter] Creating progress dialog...
+[Tkinter] Starting dialog event loop...
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+### Waiting ###
+2025-10-02 12:53:09,977 - INFO - Centered spiral completed 5x5 at 5 �m pitch
+2025-10-02 12:53:09,977 - INFO - Centered spiral completed 5x5 at 5 �m pitch
+AreaSweep        INFO     Centered spiral completed 5x5 at 5 �m pitch
+C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+[Tkinter] Dialog closed
+Process Process-4:
+Traceback (most recent call last):
+  File "C:\Users\347\AppData\Local\Programs\Python\Python39\lib\multiprocessing\process.py", line 315, in _bootstrap
+    self.run()
+  File "C:\Users\347\AppData\Local\Programs\Python\Python39\lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\347\Desktop\Probe_Stage\Probe_Stage\GUI\lib_gui.py", line 699, in heat_map
+    print(f"\u2705 Saved heatmap figure: {fig_path}")
+  File "C:\Users\347\AppData\Local\Programs\Python\Python39\lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 0: character maps to <undefined>
+Done Scan
+
+Done Scan
+Process Process-2:
+Traceback (most recent call last):
+  File "C:\Users\347\AppData\Local\Programs\Python\Python39\lib\multiprocessing\process.py", line 315, in _bootstrap
+    self.run()
+  File "C:\Users\347\AppData\Local\Programs\Python\Python39\lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\347\Desktop\Probe_Stage\Probe_Stage\GUI\lib_gui.py", line 699, in heat_map
+    print(f"\u2705 Saved heatmap figure: {fig_path}")
+  File "C:\Users\347\AppData\Local\Programs\Python\Python39\lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 0: character maps to <undefined>
+Done Scan
+Done Scan
+2025-10-02 12:57:54,132 - INFO - Disconnected from NIR device
+NIRManager       INFO     Disconnected from NIR device
+Sensor Disconnected
+C:\Users\347\Desktop\Probe_Stage\Probe_Stage\GUI\mainframe_stage_control_gui.py:301: RuntimeWarning: coroutine 'StageManager.shutdown' was never awaited
   self.stage_manager.shutdown()
 RuntimeWarning: Enable tracemalloc to get the object allocation traceback
 Stage Disconnected
-2025-09-29 14:07:43,838 - INFO - Disconnected from NIR device
-NIRManager       INFO     Disconnected from NIR device
-Sensor Disconnected
-2025-09-29 14:07:43,928 - ERROR - Controller not connected
+2025-10-02 12:57:55,001 - ERROR - Controller not connected
 NIRManager       ERROR    Controller not connected
-2025-09-29 14:07:44,938 - ERROR - Controller not connected
+2025-10-02 12:57:56,019 - ERROR - Controller not connected
 NIRManager       ERROR    Controller not connected
-2025-09-29 14:07:45,948 - ERROR - Controller not connected
+2025-10-02 12:57:57,020 - ERROR - Controller not connected
 NIRManager       ERROR    Controller not connected
-2025-09-29 14:07:46,956 - ERROR - Controller not connected
+2025-10-02 12:57:58,036 - ERROR - Controller not connected
 NIRManager       ERROR    Controller not connected
-2025-09-29 14:07:47,964 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:07:48,969 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:07:49,971 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:07:50,979 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:07:51,984 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:07:52,998 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:07:54,010 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:07:55,019 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:07:56,026 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:07:57,031 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:07:58,032 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:07:59,046 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:08:00,049 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:08:01,052 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-09-29 14:08:02,068 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-▶ camera_gui.py started (pid=18820)
-⏹ camera_gui.py exited (rc=0)
-▶ init_gui.py started (pid=31380)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ lib_gui.py started (pid=31876)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ main_devices_gui.py started (pid=18932)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ main_instruments_gui.py started (pid=8560)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ main_registration_gui.py started (pid=24816)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-⏹ init_gui.py exited (rc=0)
-▶ main_start_gui.py started (pid=32352)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-⏹ lib_gui.py exited (rc=0)
-▶ main_testing_gui.py started (pid=21268)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ mainframe_command_gui.py started (pid=1492)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ mainframe_configuration_gui.py started (pid=9012)
-▶ mainframe_sensor_control_gui.py started (pid=29272)
-  File "C:\Users\347\Desktop\Probe_Stage\Probe_Stage\GUI\mainframe_sensor_control_gui.py", line 429
-    global app_instance = stage_control()
-                        ^
-SyntaxError: invalid syntax
-⏹ mainframe_sensor_control_gui.py exited (rc=1)
-▶ mainframe_stage_control_gui.py started (pid=13092)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ mainframe_tec_control_gui.py started (pid=16664)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_add_btn_gui.py started (pid=11624)
-▶ sub_area_scan_setting_gui.py started (pid=27372)
-▶ sub_connect_config_gui.py started (pid=31928)
-▶ sub_data_window_setting_gui.py started (pid=27808)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_fine_align_setting_gui.py started (pid=32824)
-▶ sub_laser_sweep_setting_gui.py started (pid=6796)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_limit_setting_gui.py started (pid=16224)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-Welcome To Probe Stage
-2025-09-29 14:10:50,811 - INFO - Initializing NIR device...
-NIRManager       INFO     Initializing NIR device...
-2025-09-29 14:10:50,979 - INFO - Connected to NIR device
-NIRManager       INFO     Connected to NIR device
-2025-09-29 14:10:50,998 - INFO - Device configured with current settings
-NIRManager       INFO     Device configured with current settings
-2025-09-29 14:10:50,998 - INFO - NIR initialized successfully
-NIRManager       INFO     NIR initialized successfully
-2025-09-29 14:10:51,013 - INFO - Wavelength set to 1550.0nm
-
-NIRManager       INFO     Wavelength set to 1550.0nm
-Sensor Connection Successful
-2025-09-29 14:10:51,125 - INFO - Power set to 1.0dBm
-NIRManager       INFO     Power set to 1.0dBm
-2025-09-29 14:10:57,047 - INFO - Disconnected from NIR device
-NIRManager       INFO     Disconnected from NIR device
-Sensor Disconnected
-▶ camera_gui.py started (pid=38932)
-⏹ camera_gui.py exited (rc=0)
-▶ init_gui.py started (pid=28548)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ lib_gui.py started (pid=11652)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ main_devices_gui.py started (pid=10516)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ main_instruments_gui.py started (pid=3680)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ main_registration_gui.py started (pid=16876)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-⏹ init_gui.py exited (rc=0)
-▶ main_start_gui.py started (pid=10736)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-⏹ lib_gui.py exited (rc=0)
-▶ main_testing_gui.py started (pid=17968)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ mainframe_command_gui.py started (pid=35408)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ mainframe_configuration_gui.py started (pid=30884)
-▶ mainframe_sensor_control_gui.py started (pid=26368)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ mainframe_stage_control_gui.py started (pid=10352)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ mainframe_tec_control_gui.py started (pid=32956)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_add_btn_gui.py started (pid=30508)
-▶ sub_area_scan_setting_gui.py started (pid=36472)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_connect_config_gui.py started (pid=16916)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_data_window_setting_gui.py started (pid=28208)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_fine_align_setting_gui.py started (pid=39928)
-▶ sub_laser_sweep_setting_gui.py started (pid=18324)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_limit_setting_gui.py started (pid=35004)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-----------------------------------------
-Exception occurred during processing of request from ('10.2.113.57', 57163)
-Traceback (most recent call last):
-  File "C:\Users\347\AppData\Local\Programs\Python\Python39\lib\socketserver.py", line 683, in process_request_thread
-    self.finish_request(request, client_address)
-  File "C:\Users\347\AppData\Local\Programs\Python\Python39\lib\socketserver.py", line 360, in finish_request
-    self.RequestHandlerClass(request, client_address, self)
-  File "C:\Users\347\Desktop\Probe_Stage\Probe_Stage\GUI\mainframe_sensor_control_gui.py", line 12, in __init__
-    super().__init__()
-TypeError: __init__() missing 3 required positional arguments: 'request', 'client_address', and 'server'
-----------------------------------------
-----------------------------------------
-Exception occurred during processing of request from ('10.2.113.57', 57165)
-Traceback (most recent call last):
-  File "C:\Users\347\AppData\Local\Programs\Python\Python39\lib\socketserver.py", line 683, in process_request_thread
-    self.finish_request(request, client_address)
-  File "C:\Users\347\AppData\Local\Programs\Python\Python39\lib\socketserver.py", line 360, in finish_request
-    self.RequestHandlerClass(request, client_address, self)
-  File "C:\Users\347\Desktop\Probe_Stage\Probe_Stage\GUI\mainframe_sensor_control_gui.py", line 12, in __init__
-    super().__init__()
-TypeError: __init__() missing 3 required positional arguments: 'request', 'client_address', and 'server'
-----------------------------------------
-Welcome To Probe Stage
-2025-09-29 14:13:01,888 - INFO - Initializing NIR device...
-NIRManager       INFO     Initializing NIR device...
-2025-09-29 14:13:02,024 - INFO - Connected to NIR device
-NIRManager       INFO     Connected to NIR device
-2025-09-29 14:13:02,044 - INFO - Device configured with current settings
-NIRManager       INFO     Device configured with current settings
-2025-09-29 14:13:02,044 - INFO - NIR initialized successfully
-NIRManager       INFO     NIR initialized successfully
-2025-09-29 14:13:02,062 - INFO - Wavelength set to 1550.0nm
-NIRManager       INFO     Wavelength set to 1550.0nm
-Sensor Connection Successful
-----------------------------------------
-Exception occurred during processing of request from ('10.2.113.57', 57246)
-Traceback (most recent call last):
-  File "C:\Users\347\AppData\Local\Programs\Python\Python39\lib\socketserver.py", line 683, in process_request_thread
-    self.finish_request(request, client_address)
-  File "C:\Users\347\AppData\Local\Programs\Python\Python39\lib\socketserver.py", line 360, in finish_request
-    self.RequestHandlerClass(request, client_address, self)
-  File "C:\Users\347\Desktop\Probe_Stage\Probe_Stage\GUI\mainframe_sensor_control_gui.py", line 12, in __init__
-    super().__init__()
-TypeError: __init__() missing 3 required positional arguments: 'request', 'client_address', and 'server'
-----------------------------------------
-----------------------------------------
-Exception occurred during processing of request from ('10.2.113.57', 57247)
-Traceback (most recent call last):
-  File "C:\Users\347\AppData\Local\Programs\Python\Python39\lib\socketserver.py", line 683, in process_request_thread
-    self.finish_request(request, client_address)
-  File "C:\Users\347\AppData\Local\Programs\Python\Python39\lib\socketserver.py", line 360, in finish_request
-    self.RequestHandlerClass(request, client_address, self)
-  File "C:\Users\347\Desktop\Probe_Stage\Probe_Stage\GUI\mainframe_sensor_control_gui.py", line 12, in __init__
-    super().__init__()
-TypeError: __init__() missing 3 required positional arguments: 'request', 'client_address', and 'server'
-----------------------------------------
-2025-09-29 14:13:02,171 - INFO - Power set to 1.0dBm
-NIRManager       INFO     Power set to 1.0dBm
-----------------------------------------
-Exception occurred during processing of request from ('10.2.113.57', 57248)
-Traceback (most recent call last):
-  File "C:\Users\347\AppData\Local\Programs\Python\Python39\lib\socketserver.py", line 683, in process_request_thread
-    self.finish_request(request, client_address)
-  File "C:\Users\347\AppData\Local\Programs\Python\Python39\lib\socketserver.py", line 360, in finish_request
-    self.RequestHandlerClass(request, client_address, self)
-  File "C:\Users\347\Desktop\Probe_Stage\Probe_Stage\GUI\mainframe_sensor_control_gui.py", line 12, in __init__
-    super().__init__()
-TypeError: __init__() missing 3 required positional arguments: 'request', 'client_address', and 'server'
-----------------------------------------
-----------------------------------------
-Exception occurred during processing of request from ('10.2.113.57', 57249)
-Traceback (most recent call last):
-  File "C:\Users\347\AppData\Local\Programs\Python\Python39\lib\socketserver.py", line 683, in process_request_thread
-    self.finish_request(request, client_address)
-  File "C:\Users\347\AppData\Local\Programs\Python\Python39\lib\socketserver.py", line 360, in finish_request
-    self.RequestHandlerClass(request, client_address, self)
-  File "C:\Users\347\Desktop\Probe_Stage\Probe_Stage\GUI\mainframe_sensor_control_gui.py", line 12, in __init__
-    super().__init__()
-TypeError: __init__() missing 3 required positional arguments: 'request', 'client_address', and 'server'
-----------------------------------------
-2025-09-29 14:13:09,614 - INFO - Disconnected from NIR device
-NIRManager       INFO     Disconnected from NIR device
-Sensor Disconnected
-▶ camera_gui.py started (pid=18248)
-⏹ camera_gui.py exited (rc=0)
-▶ init_gui.py started (pid=30228)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ lib_gui.py started (pid=42080)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ main_devices_gui.py started (pid=42136)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ main_instruments_gui.py started (pid=23676)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ main_registration_gui.py started (pid=20088)
-⏹ init_gui.py exited (rc=0)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ main_start_gui.py started (pid=22176)
-⏹ lib_gui.py exited (rc=0)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ main_testing_gui.py started (pid=27264)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ mainframe_command_gui.py started (pid=27824)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ mainframe_configuration_gui.py started (pid=11816)
-▶ mainframe_sensor_control_gui.py started (pid=21936)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ mainframe_stage_control_gui.py started (pid=428)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ mainframe_tec_control_gui.py started (pid=25668)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_add_btn_gui.py started (pid=34144)
-▶ sub_area_scan_setting_gui.py started (pid=35144)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_connect_config_gui.py started (pid=36316)
-▶ sub_data_window_setting_gui.py started (pid=5660)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_fine_align_setting_gui.py started (pid=27928)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_laser_sweep_setting_gui.py started (pid=36784)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_limit_setting_gui.py started (pid=23036)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-Welcome To Probe Stage
-▶ camera_gui.py started (pid=20540)
-⏹ camera_gui.py exited (rc=0)
-▶ init_gui.py started (pid=39116)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ lib_gui.py started (pid=34440)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ main_devices_gui.py started (pid=21964)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ main_instruments_gui.py started (pid=22744)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ main_registration_gui.py started (pid=36592)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-⏹ init_gui.py exited (rc=0)
-▶ main_start_gui.py started (pid=38204)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-⏹ lib_gui.py exited (rc=0)
-▶ main_testing_gui.py started (pid=13044)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ mainframe_command_gui.py started (pid=23388)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ mainframe_configuration_gui.py started (pid=16676)
-▶ mainframe_sensor_control_gui.py started (pid=18580)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ mainframe_stage_control_gui.py started (pid=16824)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ mainframe_tec_control_gui.py started (pid=41428)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_add_btn_gui.py started (pid=31044)
-▶ sub_area_scan_setting_gui.py started (pid=21668)
-▶ sub_connect_config_gui.py started (pid=30944)
-▶ sub_data_window_setting_gui.py started (pid=36624)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_fine_align_setting_gui.py started (pid=38140)
-▶ sub_laser_sweep_setting_gui.py started (pid=15012)
-▶ sub_limit_setting_gui.py started (pid=25332)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-Welcome To Probe Stage
-▶ camera_gui.py started (pid=27340)
-⏹ camera_gui.py exited (rc=0)
-▶ init_gui.py started (pid=31200)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ lib_gui.py started (pid=11684)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ main_devices_gui.py started (pid=32732)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ main_instruments_gui.py started (pid=41028)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ main_registration_gui.py started (pid=19648)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-⏹ init_gui.py exited (rc=0)
-▶ main_start_gui.py started (pid=26424)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-⏹ lib_gui.py exited (rc=0)
-▶ main_testing_gui.py started (pid=32368)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ mainframe_command_gui.py started (pid=26228)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ mainframe_configuration_gui.py started (pid=26448)
-▶ mainframe_sensor_control_gui.py started (pid=15176)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ mainframe_stage_control_gui.py started (pid=25628)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ mainframe_tec_control_gui.py started (pid=35748)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_add_btn_gui.py started (pid=41996)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_area_scan_setting_gui.py started (pid=42948)
-▶ sub_connect_config_gui.py started (pid=28252)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_data_window_setting_gui.py started (pid=9400)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_fine_align_setting_gui.py started (pid=40712)
-▶ sub_laser_sweep_setting_gui.py started (pid=37960)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_limit_setting_gui.py started (pid=6080)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-Welcome To Probe Stage
