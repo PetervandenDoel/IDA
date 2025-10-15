@@ -87,7 +87,6 @@ class Keithley2600BController(SMUHal):
         return {ch: float(self.inst.query(f"print({_chname(ch)}.measure.r())")) for ch in ("A","B")}  # SI ohms
 
     def get_power_limits(self) -> Dict[str, float]:
-        # 2600B supports true power compliance; if unset, returns default instrument value.
         return {ch: float(self.inst.query(f"print({_chname(ch)}.source.limitp)")) for ch in ("A","B")}  # SI W
 
     def get_state(self) -> Dict:
@@ -136,7 +135,7 @@ class Keithley2600BController(SMUHal):
         self.inst.write(f"{c}.source.limitp = {lim}")
         return True  # 2600B supports limitp (true power compliance)
 
-    # --- output & level (HAL semantics) ---
+    # --- output & level ) ---
     def output_on(self, channel: str) -> bool:
         c = _chname(channel)
         self.inst.write(f"{c}.source.output = {c}.OUTPUT_ON")
@@ -184,8 +183,7 @@ class Keithley2600BController(SMUHal):
             {c}.nvbuffer1.appendmode = 1
             {c}.nvbuffer1.collectsourcevalues = 0
             {c}.measure.nplc = {self.nplc}
-            {c}.measure.count = 1
-        """)
+            {c}.measure.count = 1""")
 
         # Select source mode
         if kind == "voltage":
