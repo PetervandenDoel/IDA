@@ -59,14 +59,41 @@ class Keithley2600BController(SMUHal):
         except Exception as e:
             self._emit_event(SMUEventType.ERROR, {"where":"disconnect", "error": str(e)})
             return False
-
+    
     def idn(self) -> str:
+        # keep as-is; useful for logging
         return self.inst.query("*IDN?").strip()
 
-    def clear_errors(self) -> None:
-        # Minimal: ask status; for deeper debugging poll error queue script if needed.
-        pass
+    def get_and_clear_errors(self) -> list[dict]:
+        try:
+            errs = self.get_errors()
+            self.clear_errors()
+            return errs
+        except Exception as e:
+            self._emit_event(
+                SMUEventType.ERROR,
+                {"where":"get_and_clear_errors", "error": str(e)}
+                )
+            return []
 
+    def clear_errors(self) -> None:
+        try:
+            self.inst.write("errorqueue.clear()")
+        except Exception as e:
+            self._emit_event(SMUEventType.ERROR, {"where":"clear_errors", "error": str(e)})
+
+    def get_errors(self) -> list[dict]:
+        try:
+            n = int(float(self.inst.query("print(errorqueue.count)")))
+            errs = []
+            for _ in range(n):
+                code, msg, sev, node = self.inst.query("print(errorqueue.next())").strip().split("\t")
+                errs.append({"code": int(code), "message": msg, "severity": int(sev), "node": int(node)})
+            return errs
+        except Exception as e:
+            self._emit_event(SMUEventType.ERROR, {"where":"get_errors", "error": str(e)})
+            return []
+        
     def get_config(self) -> Dict:
         return {"address": self.addr, "nplc": self.nplc, "off_mode": self.off_mode}
 
