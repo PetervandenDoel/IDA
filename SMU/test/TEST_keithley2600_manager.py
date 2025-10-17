@@ -1,22 +1,30 @@
 from SMU.keithley2600_manager import Keithley2600Manager
+from SMU.config.smu_config import SMUConfiguration
 import time
 from time import sleep
 
 print("=== Keithley 2600 Manager Test Suite ===")
 
-# Test initialization
-print("\n1. Testing Manager Initialization")
-manager = Keithley2600Manager(
+# Test configuration
+print("\n1. Testing Configuration")
+config = SMUConfiguration(
     visa_address='GPIB0::26::INSTR',
     nplc=0.1,
     off_mode="NORMAL",
     polling_interval=0.5,
     debug=True
 )
+print(f"Config created: {config is not None}")
+print(f"Config valid: {config.validate()}")
+print(f"Config dict: {list(config.to_dict().keys())}")
+
+# Test initialization
+print("\n2. Testing Manager Initialization")
+manager = Keithley2600Manager(config, debug=True)
 print(f"Manager created: {manager is not None}")
 
 # Test device lifecycle
-print("\n2. Testing Device Lifecycle")
+print("\n3. Testing Device Lifecycle")
 init_ok = manager.initialize()
 print(f"Initialize: {init_ok}")
 
@@ -30,7 +38,7 @@ if connect_ok:
     print(f"Device IDN: {manager.smu.idn()}")
 
 # Test configuration methods
-print("\n3. Testing Configuration Methods")
+print("\n4. Testing Configuration Methods")
 channels = ["A", "B"]
 
 for ch in channels:
@@ -191,17 +199,30 @@ if connect_ok:
     else:
         print("IV Sweep List failed")
 
+# Test configuration update
+print("\n13. Testing Configuration Update")
+new_config = SMUConfiguration(
+    visa_address='GPIB0::26::INSTR',
+    nplc=0.2,
+    off_mode="ZERO",
+    polling_interval=2.0,
+    debug=False
+)
+update_ok = manager.update_config(new_config)
+print(f"Config update: {update_ok}")
+
 # Test context manager
-print("\n13. Testing Context Manager")
+print("\n14. Testing Context Manager")
 try:
-    with Keithley2600Manager('GPIB0::26::INSTR') as ctx_manager:
+    test_config = SMUConfiguration(visa_address='GPIB0::26::INSTR')
+    with Keithley2600Manager(test_config) as ctx_manager:
         print(f"Context manager created: {ctx_manager is not None}")
     print("Context manager exited successfully")
 except Exception as e:
     print(f"Context manager error: {e}")
 
 # Cleanup
-print("\n14. Cleanup")
+print("\n15. Cleanup")
 if connect_ok:
     # Ensure all outputs are off
     for ch in channels:

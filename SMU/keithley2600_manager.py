@@ -6,6 +6,7 @@ from typing import Dict, Any, Callable, List, Optional
 from SMU.keithley2600_controller import Keithley2600BController
 from SMU.hal.smu_hal import SMUEvent, SMUEventType
 from SMU.hal.smu_factory import create_driver
+from SMU.config.smu_config import SMUConfiguration
 from utils.logging_helper import setup_logger
 
 
@@ -17,14 +18,9 @@ class Keithley2600Manager:
     Cameron Basara, 2025
     """
     
-    def __init__(self, visa_address: str, nplc: float = 0.1, 
-                 off_mode: str = "NORMAL", use_shared_memory: bool = False, 
-                 debug: bool = False, polling_interval: float = 1.0):
-        self.visa_address = visa_address
-        self.nplc = nplc
-        self.off_mode = off_mode
-        self.debug = debug
-        self.polling_interval = polling_interval
+    def __init__(self, config: SMUConfiguration, use_shared_memory: bool = False, debug: bool = False):
+        self.config = config
+        self.debug = debug or config.debug
         self._connected = False
         self._event_callbacks: List[Callable[[SMUEvent], None]] = []
         self.smu = None
@@ -36,11 +32,16 @@ class Keithley2600Manager:
         self._measurement_callbacks: List[Callable[[Dict[str, Any]], None]] = []
         
         # Setup logger
-        self.logger = setup_logger("Keithley2600Manager", "SMU", debug_mode=debug)
+        self.logger = setup_logger("Keithley2600Manager", "SMU", debug_mode=self.debug)
+        
+        # Validate configuration
+        if not self.config.validate():
+            self.logger.error("Invalid SMU configuration")
+            raise ValueError("Invalid SMU configuration")
         
         # Shared memory setup (placeholder for future implementation)
-        self.use_shared_memory = use_shared_memory
-        if use_shared_memory:
+        self.use_shared_memory = use_shared_memory or config.use_shared_memory
+        if self.use_shared_memory:
             self.logger.warning("Shared memory not yet implemented for SMU")
             self.use_shared_memory = False
 
@@ -74,11 +75,11 @@ class Keithley2600Manager:
     def initialize(self) -> bool:
         """Initialize the SMU device"""
         try:
-            # Create controller instance
+            # Create controller instance using config
             self.smu = Keithley2600BController(
-                visa_address=self.visa_address,
-                nplc=self.nplc,
-                off_mode=self.off_mode
+                visa_address=self.config.visa_address,
+                nplc=self.config.nplc,
+                off_mode=self.config.off_mode
             )
             
             # Add event callback to forward events
@@ -400,17 +401,39 @@ class Keithley2600Manager:
 
     # === Configuration ===
     
+    def update_config(self, new_config: SMUConfiguration) -> bool:
+        """Update configuration"""
+        try:
+            if not new_config.validate():
+                self._log("Invalid configuration provided", "error")
+                return False
+                
+            old_config = self.config
+            self.config = new_config
+            
+            # If connected, may need to reinitialize with new settings
+            if self._connected:
+                self._log("Configuration updated - device may need reinitialization")
+            
+            self._log("Configuration updated successfully")
+            return True
+            
+        except Exception as e:
+            self.config = old_config  # Rollback
+            self._log(f"Config update error: {e}", "error")
+            return False
+    
     def get_config(self) -> Dict[str, Any]:
         """Get current configuration"""
         try:
             if self.smu:
-                return self.smu.get_config()
+                device_config = self.smu.get_config()
+                # Merge with manager config
+                full_config = self.config.to_dict()
+                full_config.update(device_config)
+                return full_config
             else:
-                return {
-                    "visa_address": self.visa_address,
-                    "nplc": self.nplc,
-                    "off_mode": self.off_mode
-                }
+                return self.config.to_dict()
         except Exception as e:
             self._log(f"Get config error: {e}", "error")
             return {}
@@ -477,7 +500,7 @@ class Keithley2600Manager:
                 name="Keithley2600_Polling"
             )
             self._polling_thread.start()
-            self._log(f"Started polling at {self.polling_interval}s intervals")
+            self._log(f"Started polling at {self.config.polling_interval}s intervals")
             return True
             
         except Exception as e:
@@ -512,7 +535,7 @@ class Keithley2600Manager:
                 self._log("Polling interval must be positive", "error")
                 return False
                 
-            self.polling_interval = interval
+            self.config.polling_interval = interval
             self._log(f"Polling interval set to {interval}s")
             return True
             
@@ -544,7 +567,7 @@ class Keithley2600Manager:
                     if self.use_shared_memory:
                         self._update_shared_memory(measurements)
                 
-                time.sleep(self.polling_interval)
+                time.sleep(self.config.polling_interval)
                 
             except Exception as e:
                 self._log(f"Polling loop error: {e}", "error")
@@ -642,12 +665,12 @@ class Keithley2600Manager:
         try:
             device_info = {
                 "connected": self._connected,
-                "visa_address": self.visa_address,
-                "nplc": self.nplc,
-                "off_mode": self.off_mode,
+                "visa_address": self.config.visa_address,
+                "nplc": self.config.nplc,
+                "off_mode": self.config.off_mode,
                 "use_shared_memory": self.use_shared_memory,
                 "polling_active": self._is_polling,
-                "polling_interval": self.polling_interval,
+                "polling_interval": self.config.polling_interval,
                 "last_measurements": self._last_measurements
             }
             
