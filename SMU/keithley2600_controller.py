@@ -184,6 +184,53 @@ class Keithley2600BController(SMUHal):
         else:
             self.inst.write(f"{c}.source.leveli = {output}")
         return True
+    
+    # --- Ranging ---
+    def source_range(self, range_val: float, 
+                     channel: list, var_type: str) -> bool:
+        channels = []
+        for i in range(len(channel)):
+            ch = channel[i]
+            c = _chname(ch)
+            channels.append(c)
+        kind = var_type.lower()
+        if kind not in ("voltage", "current", "v", "i"):
+            raise ValueError("type must be 'voltage' or 'current'")
+        else:
+            kind = kind[0] if kind[0] != "c" else "i" 
+
+        for ch in channels:
+            self.inst.write(f'{ch}.source.AUTORANGE_OFF')
+            self.inst.write(f'{ch}.source.range{kind} = {range_val}')
+
+        self._emit_event(SMUEventType.CONFIG_CHANGED, {"range": range_val, "var": var_type})
+        return True
+    
+    def source_autorange(self, lowest_range: Optional[float],
+                         channel: list, var_type: str) -> bool:
+        channels = []
+        for i in range(len(channel)):
+            ch = channel[i]
+            c = _chname(ch)
+            channels.append(c)
+        kind = var_type.lower()
+        if kind not in ("voltage", "current", "v", "i"):
+            raise ValueError("type must be 'voltage' or 'current'")
+        else:
+            kind = kind[0] if kind[0] != "c" else "i" 
+
+        if lowest_range is None:
+            if kind == "i":
+                lowest_range = 100e-9  # 100 nA
+            else: 
+                lowest_range = 0.1     # 100 mV 
+
+        for ch in channels:
+            self.inst.write(f'{ch}.source.lowrange{kind} = {lowest_range}')
+            self.inst.write(f'{ch}.source.AUTORANGE_ON')
+
+        self._emit_event(SMUEventType.CONFIG_CHANGED, {"range": "auto_range", "var": var_type})
+        return True
 
     # --- IV sweep ---
     def iv_sweep(self,
