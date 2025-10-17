@@ -375,3 +375,6 @@ class Keithley2600BController(SMUHal):
         self._emit_event(SMUEventType.IV_SWEEP, {"channels": channel, "npts": npts})
         return out
 
+# Register the fixed driver
+from SMU.hal.smu_factory import register_driver
+register_driver("keithley2600B_smu", Keithley2600BController)
