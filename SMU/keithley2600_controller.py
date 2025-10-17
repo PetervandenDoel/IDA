@@ -185,68 +185,146 @@ class Keithley2600BController(SMUHal):
             self.inst.write(f"{c}.source.leveli = {output}")
         return True
 
-    # --- high-throughput IV sweep (single channel; dual via two calls) ---
+    # --- IV sweep ---
     def iv_sweep(self,
                  start: float,
                  stop: float,
                  step: float,
                  channel: List[str],
-                 type: str  # "voltage" or "current"
+                 sweep_type: str,  # "voltage" or "current"
+                 scale: str = "LIN" # or LOG
                  ) -> Dict[str, Any]:
-        assert len(channel) == 1, "Use one channel per call to keep the buffer contract simple."
-        ch = channel[0]
-        c = _chname(ch)
-        kind = type.lower()
-        if kind not in ("voltage", "current"):
+        channels = []
+        for i in range(len(channel)):
+            ch = channel[i]
+            c = _chname(ch)
+            channels.append(c)
+        kind = sweep_type.lower()
+        if kind not in ("voltage", "current", "v", "i"):
             raise ValueError("type must be 'voltage' or 'current'")
 
-        # Compute count robustly and clamp the last point to 'stop'
+        # step = (stopi - starti) / (points - 1)
         npts = int(round((stop - start) / step)) + 1
         if npts <= 1: raise ValueError("sweep requires at least 2 points")
 
-        # Configure measure speed and buffers
-        self.inst.write(f"""
-            {c}.nvbuffer1.clear()
-            {c}.nvbuffer1.appendmode = 1
-            {c}.nvbuffer1.collectsourcevalues = 0
-            {c}.measure.nplc = {self.nplc}
-            {c}.measure.count = 1""")
+        # Return data
+        out = {ch: None for ch in channels}
 
-        # Select source mode
-        if kind == "voltage":
-            self.inst.write(f"{c}.source.func = {c}.OUTPUT_DCVOLTS")
-            level_field = "levelv"
-        else:
-            self.inst.write(f"{c}.source.func = {c}.OUTPUT_DCAMPS")
-            level_field = "leveli"
+        for ch in channels:
+            # Configure measure speed and buffers
+            w = self.inst.write
+            q = self.inst.query
+            w(f'{ch}.nvbuffer1.clear()')
+            w(f'{ch}.nvbuffer1.appendmode=1')
+            w(f'{ch}.nvbuffer1.collectsourcevalues=1')
+            w(f'{ch}.nvbuffer1.collecttimestamps=1')
 
-        # Build and run the TSP sweep on instrument
-        # We write a compact for-loop to minimize I/O (no host sleeps).
-        tsp = [f"for x = {start}, {stop}, {step} do",
-               f"  {c}.source.{level_field} = x",
-               "  delay(0)",  # use NPLC as integration; set dwell here if needed
-               f"  {c}.measure.i({c}.nvbuffer1)" if kind == "voltage" else f"  {c}.measure.v({c}.nvbuffer1)",
-               "end"]
-        self.inst.write("\n".join(tsp))
+            # Select source mode
+            if kind == "voltage" or kind == "v":
+                if scale == 'LIN':
+                    w(f'SweepVLinMeasureI({ch}, {start}, {stop}, 0.01, {npts})')
+                    w('waitcomplete()')
 
-        # Prepare binary fetch: REAL64, little-endian (manual format.data/byteorder)
-        self.inst.write("format.data = format.REAL64")             # double precision binary :contentReference[oaicite:1]{index=1}
-        self.inst.write("format.byteorder = format.LITTLEENDIAN")  # choose host endianness          :contentReference[oaicite:2]{index=2}
+                    # Get points from buffer and retrieve
+                    i_csv = q(f'printbuffer(1, {ch}.nvbuffer1.n, {ch}.nvbuffer1.readings)')
+                    v_csv = q(f'printbuffer(1, {ch}.nvbuffer1.n, {ch}.nvbuffer1.sourcevalues)')
+                    t_csv = q(f'printbuffer(1, {ch}.nvbuffer1.n, {ch}.nvbuffer1.timestamps)')
+                
+                else:
+                    # LOG scale
+                    w(f'SweepVLogMeasureI({ch}, {start}, {stop}, 0.01, {npts})')
+                    w('waitcomplete()')
 
-        # One response message with all data (printbuffer contract)
-        # printbuffer(startIndex, endIndex, buffer.readings)      (manual)   :contentReference[oaicite:3]{index=3}
-        resp = self.inst.query_binary_values(f"printbuffer(1, {c}.nvbuffer1.n, {c}.nvbuffer1.readings)",
-                                             datatype="d", container=list)  # 'd' -> REAL64
+                    # Get points from buffer and retrieve
+                    i_csv = q(f'printbuffer(1, {ch}.nvbuffer1.n, {ch}.nvbuffer1.readings)')
+                    v_csv = q(f'printbuffer(1, {ch}.nvbuffer1.n, {ch}.nvbuffer1.sourcevalues)')
+                    t_csv = q(f'printbuffer(1, {ch}.nvbuffer1.n, {ch}.nvbuffer1.timestamps)')
 
-        # Compose outputs
-        if kind == "voltage":
-            V = [start + i*step for i in range(npts)]
-            I = resp[:npts]
-        else:
-            I = [start + i*step for i in range(npts)]
-            V = resp[:npts]
-        t = [0.0]*npts  # If you want timestamps, enable collecttimestamps; default stays off (manual) :contentReference[oaicite:4]{index=4}
+            else:
+                # Current sweep
+                if scale == 'LIN':
+                    w(f'SweepILinMeasureV({ch}, {start}, {stop}, 0.01, {npts})')
+                    w('waitcomplete()')
 
-        out = {"V": V, "I": I, "t": t, "meta": {"npts": npts, "start": start, "stop": stop, "step": step, "nplc": self.nplc, "type": kind, "channel": ch}}
-        self._emit_event(SMUEventType.IV_SWEEP, {"channel": ch, "npts": npts})
+                    # Get points from buffer and retrieve, flipped
+                    v_csv = q(f'printbuffer(1, {ch}.nvbuffer1.n, {ch}.nvbuffer1.readings)')
+                    i_csv = q(f'printbuffer(1, {ch}.nvbuffer1.n, {ch}.nvbuffer1.sourcevalues)')
+                    t_csv = q(f'printbuffer(1, {ch}.nvbuffer1.n, {ch}.nvbuffer1.timestamps)')
+                
+                else:
+                    # LOG scale
+                    w(f'SweepILogMeasureV({ch}, {start}, {stop}, 0.01, {npts})')
+                    w('waitcomplete()')
+
+                    # Get points from buffer and retrieve, flipped
+                    v_csv = q(f'printbuffer(1, {ch}.nvbuffer1.n, {ch}.nvbuffer1.readings)')
+                    i_csv = q(f'printbuffer(1, {ch}.nvbuffer1.n, {ch}.nvbuffer1.sourcevalues)')
+                    t_csv = q(f'printbuffer(1, {ch}.nvbuffer1.n, {ch}.nvbuffer1.timestamps)')
+                
+            I = [float(x) for x in i_csv.strip().split(',') if x]
+            V = [float(x) for x in v_csv.strip().split(',') if x]
+            t = [float(x) for x in t_csv.strip().split(',') if x]
+            out[f'{ch}'] = {'I': I, 'V': V, 't': t}
+        
+        self._emit_event(SMUEventType.IV_SWEEP, {"channels": channel, "npts": npts})
         return out
+
+    def iv_sweep_list(
+            self,
+            sweep_list: list,
+            channel: list,
+            sweep_type: str # Voltage or Current
+    ) -> dict[str, Any]:
+        channels = []
+        for i in range(len(channel)):
+            ch = channel[i]
+            c = _chname(ch)
+            channels.append(c)
+        kind = sweep_type.lower()
+        if kind not in ("voltage", "current", "v", "i"):
+            raise ValueError("type must be 'voltage' or 'current'")
+
+        # step = (stopi - starti) / (points - 1)
+        npts = len(sweep_list) 
+        if npts <= 1: raise ValueError("sweep requires at least 2 points")
+
+        # Return data
+        out = {ch: None for ch in channels}
+
+        for ch in channels:
+            # Configure measure speed and buffers
+            w = self.inst.write
+            q = self.inst.query
+            w(f'{ch}.nvbuffer1.clear()')
+            w(f'{ch}.nvbuffer1.appendmode=1')
+            w(f'{ch}.nvbuffer1.collectsourcevalues=1')
+            w(f'{ch}.nvbuffer1.collecttimestamps=1')
+
+            # Select source mode
+            if kind == "voltage" or kind == "v":
+                w(f'SweepVListMeasureI({ch}, {sweep_list}, 0.01, {npts})')
+                w('waitcomplete()')
+
+                # Get points from buffer and retrieve
+                n = int(float(q(f'print({ch}.nvbuffer.n)')))
+                i_csv = q(f'printbuffer(1, {ch}.nvbuffer1.n, {ch}.nvbuffer1.readings)')
+                v_csv = q(f'printbuffer(1, {ch}.nvbuffer1.n, {ch}.nvbuffer1.sourcevalues)')
+                t_csv = q(f'printbuffer(1, {ch}.nvbuffer1.n, {ch}.nvbuffer1.timestamps)')
+            else:
+                # Current sweep
+                w(f'SweepIListMeasureV({ch}, {sweep_list}, 0.01, {npts})')
+                w('waitcomplete()')
+
+                # Get points from buffer and retrieve, flipped
+                v_csv = q(f'printbuffer(1, {ch}.nvbuffer1.n, {ch}.nvbuffer1.readings)')
+                i_csv = q(f'printbuffer(1, {ch}.nvbuffer1.n, {ch}.nvbuffer1.sourcevalues)')
+                t_csv = q(f'printbuffer(1, {ch}.nvbuffer1.n, {ch}.nvbuffer1.timestamps)')
+                
+            I = [float(x) for x in i_csv.strip().split(',') if x]
+            V = [float(x) for x in v_csv.strip().split(',') if x]
+            t = [float(x) for x in t_csv.strip().split(',') if x]
+            out[f'{ch}'] = {'I': I, 'V': V, 't': t}
+
+        self._emit_event(SMUEventType.IV_SWEEP, {"channels": channel, "npts": npts})
+        return out
+
