@@ -10,8 +10,6 @@ Hardware Abstraction Layer for Multi-Axis Stage Control
 
 Cameron Basara, 5/29/2025
 
-This HAL provides a clean, unified interface for controlling various motor stages
-while hiding the complexity of the underlying legacy drivers.
 """
 
 class AxisType(Enum):
