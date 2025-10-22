@@ -8,8 +8,8 @@ import time
 # Local imports
 from motors.hal.motors_hal import AxisType, MotorState, Position, MotorEvent, MotorEventType
 #from motors.stage_controller import StageController
-from motors.modern_stage import StageControl as StageController
-import motors.modern_stage
+# from motors.modern_stage import StageControl as StageController
+# import motors.modern_stage
 from motors.hal.stage_factory import create_driver
 from motors.config.stage_config import StageConfiguration
 from motors.utils.shared_memory import *
