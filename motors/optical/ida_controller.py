@@ -1,636 +1,586 @@
 import asyncio
 import time
-from typing import Optional, Dict, Any, Tuple, Callable
+from typing import Optional, Dict, Tuple
 
-from motors.hal.motors_hal import MotorHAL, AxisType, MotorState, Position, MotorConfig, MotorEventType, MotorEvent
-import serial
+import pyvisa as visa
 
+from motors.hal.motors_hal import (
+    MotorHAL, AxisType, MotorState, Position, MotorConfig, MotorEventType
+)
 
 """
-Made by: Cameron Basara, 2025
+Reimplementation of the CorvusEco motor controller from PyOptomip:
+https://github.com/SiEPIC/SiEPIClab/blob/master/pyOptomip/CorvusEco.py
 
-Refactored Ida stage code to work with the HAL
+To fit HAL interface while preserving legacy command semantics.
+
+**Credit to original author**
+@author: Stephen Lin
+Last updated: July 15, 2014
+
+Cameron Basara, 2025
 """
 
+class CorvusEcoController(MotorHAL):
+    """
+    Stage controller for ITL09 Corvus Eco multi-axis controller.
+    
+    This controller manages up to 3 axes (X, Y, Z) simultaneously.
+    """
+    
+    AXIS_MAPPING = {
+        AxisType.X: 1,
+        AxisType.Y: 2,
+        AxisType.Z: 3,
+    }
 
-class StageControl(MotorHAL):
-    def __init__(self, axis : AxisType, com_port: str,
-                 baudrate: int, timeout: float,
-                 velocity: float = 3000.0, acceleration: float = 5000.0,
-                 position_limits: Tuple[float, float] = (-50000.0, 50000.0),
-                 position_tolerance: float = 1.0, 
-                 status_poll_interval: float = 0.05): 
+    def __init__(
+        self,
+        axis: list[AxisType],
+        visa_address: str,
+        velocity_um_s: float = 5000.0,
+        acceleration_um_s2: float = 20000.0,
+        position_limits_um: Tuple[float, float] = (-50000.0, 50000.0),
+        step_size: Optional[Dict[str, float]] = None,
+        status_poll_interval: float = 0.05,
+        enable_closed_loop: bool = True,
+        resource_manager: Optional[visa.ResourceManager] = None,
+    ):
+        """
+        Initialize Corvus HAL interface.
         
-        super().__init__(axis)
+        Args:
+            axis: List of axes to control (e.g., [AxisType.X, AxisType.Y, AxisType.Z])
+            visa_address: VISA resource string (e.g. 'ASRL3::INSTR')
+            velocity_um_s: Default velocity in um/s
+            acceleration_um_s2: Default acceleration in um/s2
+            position_limits_um: Software limits (min, max) in um
+            step_size: Step sizes for each axis (optional)
+            status_poll_interval: Polling period for motion status (seconds)
+            enable_closed_loop: Enable encoder closed-loop control
+            resource_manager: Existing VISA RM to reuse (optional)
+        """
+        # Validate axes
+        for ax in axis:
+            if ax not in (AxisType.X, AxisType.Y, AxisType.Z):
+                raise ValueError(f"CorvusEco supports X/Y/Z only, got {ax}")
         
-        # Serial config 
-        self.com_port = com_port
-        self.baudrate = baudrate
-        self.timeout = timeout
+        if not 1 <= len(axis) <= 3:
+            raise ValueError(f"CorvusEco requires 1-3 axes, got {len(axis)}")
+        
+        # Store first axis for HAL compatibility, but track all
+        super().__init__(axis[0])
+        self._axes = axis
+        self._num_axes = len(axis)
 
-        # Connections
-        self._is_connected = False
+        # Configuration
+        self._addr = visa_address
+        self._vel = float(velocity_um_s)
+        self._acc = float(acceleration_um_s2)
+        self._limits = position_limits_um
+        self._poll_dt = status_poll_interval
+        self._closed_loop = enable_closed_loop
         
-        # Passing params
-        self._velocity = velocity  # um/s default
-        self._acceleration = acceleration  # um/s^2 default
-        self._position_limits = position_limits  # um
-        self._step_size = step_size # (um, um)
-        self._position_tolerance = position_tolerance  # um
-        self._status_poll_interval = status_poll_interval  # seconds
+        # Step sizes with defaults
+        default_steps = {
+            "step_size_x": 1.0,
+            "step_size_y": 1.0,
+            "step_size_z": 1.0,
+            "step_size_fr": 0.1,  # N/A
+            "step_size_cr": 0.1   # N/A
+        }
+        if step_size:
+            default_steps.update(step_size)
+        self._step = default_steps
+
+        # IO/State
+        self._external_rm = resource_manager
+        self._rm: Optional[visa.ResourceManager] = None
+        self._inst = None
+        self._connected = False
         
-        # State tracking
-        self._last_position = 0.0 
-        self._is_homed = False
+        # Position tracking for all 3 axes (even if not enabled)
+        self._position_um = [0.0, 0.0, 0.0]
         self._move_in_progress = False
-        self._target_position = None
-        self._placeholder = ''
-        # self._axis_grid: Tuple[float, float] = ()
-        self._callbacks = []
 
-    def add_callback(self, callback):
-        """Add event callback"""
-        if callback not in self._callbacks:
-            self._callbacks.append(callback)
-    
-    async def connect(self):
-        def _connect():
-            try:
-                if not self._serial_port:
-                    self._serial_port = _get_shared_serial()
-                
-                if not self._serial_port.is_open:
-                    self._serial_port.open()
+    # --- Low-level I/O helpers ---
+    def _write(self, cmd: str) -> None:
+        if not self._inst:
+            raise RuntimeError("Not connected")
+        self._inst.write(cmd)
 
-                # Init axis
-                self._send_command(f"{self.AXIS_MAP[self.axis]}FBK3")  # Closed loop mode
-                time.sleep(0.1)
-                self._send_command(f"{self.AXIS_MAP[self.axis]}VEL{self._velocity * 0.001}")  # Set velocity
-                time.sleep(0.1)
+    def _query(self, cmd: str) -> str:
+        if not self._inst:
+            raise RuntimeError("Not connected")
+        return self._inst.query(cmd)
 
-                # Connection successful
-                self._is_connected = True 
-                return True
-            
-            except Exception as e:
-                print(f"Connection unsuccessful {e}")
-                return False
-        
-        return await asyncio.get_event_loop().run_in_executor(self._executor, _connect)
-    
-    async def disconnect(self):
+    def _read(self) -> str:
+        if not self._inst:
+            raise RuntimeError("Not connected")
+        return self._inst.read()
+
+    def _get_error(self) -> str:
+        """Get error code from controller (legacy showErr)."""
+        try:
+            self._write('ge')
+            error_code = self._read().strip()
+            return f"Error Code: {error_code} (Refer to Manual Page 165)"
+        except Exception as e:
+            return f"Failed to retrieve error: {e}"
+
+    def _build_triplet(self, **axis_values) -> str:
         """
-        Clean up resources, SiEPIC Stage compatible
-        """
-        if self._serial_port and self._serial_port.is_open:
-            self._serial_port.close()
-        self._executor.shutdown(wait=True) 
-    
-    def _send_command(self, cmd : str) -> str:
-        """
-        Send a command to the motor drivers via serial, opt receive response
-        """
-        with self._serial_lock:
-            if not self._serial_port or not self._serial_port.is_open:
-                raise ConnectionError("Serial port not connected")
-
-            # print(f"cmd: {cmd}")
-            self._serial_port.write((cmd + "\r").encode('ascii')) # maybe
-            time.sleep(0.05)  # Small delay for command processing
-            
-            # Read response if available
-            response = ""
-            if self._serial_port.in_waiting > 0:
-                response = self._serial_port.read_until(b'\r\n').decode('ascii').strip()
-                
-            return response
-     
-    def _query_command(self, cmd : str) -> str:
-        """
-        Send query command and wait for response
-        """
-        with self._serial_lock:
-            if not self._serial_port or not self._serial_port.is_open:
-                raise ConnectionError("Serial port not connected")
-            
-            # Clear everything first
-            self._serial_port.reset_input_buffer()
-            self._serial_port.reset_output_buffer()
-
-            # print(f"Querying {cmd}")
-            self._serial_port.write((cmd + "\r").encode('ascii'))   
-            time.sleep(0.05)
-            self._serial_port.flush()          
-            time.sleep(0.05)  # Small delay for command processing
-
-            if "STA?" in cmd:
-                raw = self._serial_port.read_until(b"\n\r")
-                text = raw.decode('ascii').strip()
-                
-                if len(text) == 0:
-                    return str(0)  # Default to moving if no response
-                
-                # Parse status number (remove # prefix)
-                status_number = int(text.strip('#'))
-                status_bit = (status_number >> 3) & 1 # bit 3 is stopped when 1
-                return str(status_bit)
-
-            elif "POS?" in cmd:
-                raw = self._serial_port.read_until(b"\n\r")
-                text = raw.decode('ascii').strip()
-                # print(f"POS raw: {text}")
-                
-                if len(text) == 0:
-                    raise Exception("No data received")
-                
-                # Remove # prefix and split
-                clean_text = text.strip('#')
-                values = clean_text.split(',')
-                return values
-
-    # MOVEMENT
-    async def move_absolute(self, position, velocity=None, wait_for_completion=True):
-        """
-        Move to absolute position in microns
+        Build position triplet string for Corvus commands.
         
         Args:
-            position: Target position in microns
+            axis_values: Keyword args like x=10.0, y=5.0, z=0.0
+            
+        Returns:
+            String like "10.000000 5.000000 0.000000"
+        """
+        triplet = [
+            axis_values.get('x', 0.0),
+            axis_values.get('y', 0.0),
+            axis_values.get('z', 0.0)
+        ]
+        return f"{triplet[0]:.6f} {triplet[1]:.6f} {triplet[2]:.6f}"
+
+    # --- Initialization ---
+
+    async def connect(self) -> bool:
+        """
+        Connect to Corvus controller.
+        """
+        try:
+            # Use external RM if provided, else create new one
+            self._rm = self._external_rm or visa.ResourceManager()
+            
+            # Open resource
+            self._inst = self._rm.open_resource(self._addr)
+            
+            try:
+                self._inst.baud_rate = 57600
+            except Exception:
+                pass
+            self._write('identify')
+            try:
+                id_response = self._read()
+                print(f"[CorvusEco] Connected: {id_response.strip()}")
+            except Exception:
+                print("[CorvusEco] Identify command sent")
+
+            # Set dimension and enable axes
+            self._write(f'{self._num_axes} setdim')
+            
+            # Enable/disable each axis
+            all_axes = [AxisType.X, AxisType.Y, AxisType.Z]
+            enabled_set = set(self._axes)
+            for axis_type in all_axes:
+                axis_num = self.AXIS_MAPPING[axis_type]
+                enable = 1 if axis_type in enabled_set else 0
+                self._write(f'{enable} {axis_num} setaxis')
+            
+            print(f"[CorvusEco] Enabled {self._num_axes} axis/axes: {[ax.name for ax in self._axes]}")
+
+            # Set units to microns for virtual axis (0) and all physical axes (1-3)
+            for axis_num in range(0, 4):
+                self._write(f'1 {axis_num} setunit')
+            print("[CorvusEco] Units set to microns (um)")
+
+            # Set acceleration function to 0 (no special accel curve)
+            self._write('0 setaccelfunc')
+
+            # Set output port
+            self._write('1 setout')
+
+            # Set trigger out
+            # out trig [time][polarity][output]
+            self._write('10 0 1 ot')
+
+
+            # Enable closed-loop if requested
+            if self._closed_loop:
+                for axis_num in range(1, self._num_axes + 1):
+                    self._write(f'1 {axis_num} setcloop')
+                print("[CorvusEco] Closed-loop enabled")
+
+            # Set initial velocity and acceleration
+            self._write(f'{self._vel:.6f} sv')
+            self._write(f'{self._acc:.6f} sa')
+            
+            # Optional: read back values
+            try:
+                vel_readback = self._query('gv').strip()
+                acc_readback = self._query('ga').strip()
+                print(f"[CorvusEco] Velocity: {vel_readback} um/s, Acceleration: {acc_readback} um/s2")
+            except Exception:
+                pass
+
+            self._connected = True
+            return True
+
+        except Exception as e:
+            print(f"[CorvusEco] Connection failed: {e}")
+            if self._inst:
+                try:
+                    self._inst.close()
+                except Exception:
+                    pass
+            if self._rm and not self._external_rm:
+                try:
+                    self._rm.close()
+                except Exception:
+                    pass
+            return False
+
+    async def disconnect(self) -> Optional[bool]:
+        """Disconnect from controller."""
+        try:
+            if self._inst:
+                self._inst.close()
+                print("[CorvusEco] Disconnected")
+            
+            if self._rm and not self._external_rm:
+                try:
+                    self._rm.close()
+                except Exception:
+                    pass
+            
+            self._connected = False
+            return True
+        except Exception as e:
+            print(f"[CorvusEco] Disconnect error: {e}")
+            return False
+
+    async def move_absolute(self, position: float, velocity: Optional[float] = None) -> bool:
+        """Move to absolute position (converts to relative move)."""
+        current_pos = await self.get_position()
+        delta = position - current_pos.actual
+        return await self.move_relative(delta, velocity)
+
+    async def move_relative(self, distance: float, velocity: Optional[float] = None) -> bool:
+        """
+        Perform relative move on primary axis.
+        
+        Constructs triplet command "x y z r" with movement only on the primary axis.
+        """
+        try:
+            # Determine which axis to move
+            axis_idx = self.AXIS_MAPPING[self.axis]
+            current = self._position_um[axis_idx]
+            target = current + distance
+
+            # Enforce software limits
+            lo, hi = self._limits
+            if not (lo <= target <= hi):
+                error_msg = f"Move to {target:.2f} um violates limits [{lo}, {hi}]"
+                self._emit_event(MotorEventType.ERROR_OCCURRED, {"error": error_msg})
+                return False
+
+            # Override velocity if specified
+            if velocity is not None:
+                self._write(f'{velocity:.6f} sv')
+
+            self._emit_event(MotorEventType.MOVE_STARTED, {
+                "axis": self.axis.name,
+                "distance_um": distance,
+                "target_um": target
+            })
+
+            self._move_in_progress = True
+
+            # Build triplet command with movement only on the specified axis
+            kwargs = {['x', 'y', 'z'][axis_idx]: distance}
+            cmd = f"{self._build_triplet(**kwargs)} r"
+            self._write(cmd)
+
+            # Wait for move completion
+            start_time = time.time()
+            timeout = 60.0
+            
+            while True:
+                try:
+                    status = self._query('st').strip()
+                    moving = (int(status) & 1) == 1
+                    if not moving:
+                        break
+                except Exception:
+                    # Fallback: check if we're within settle band
+                    try:
+                        positions = self._read_position_triplet()
+                        if abs(positions[axis_idx] - target) <= 0.5:
+                            break
+                    except Exception:
+                        pass
+                
+                if time.time() - start_time > timeout:
+                    error_msg = f"Move timeout after {timeout}s"
+                    self._emit_event(MotorEventType.ERROR_OCCURRED, {"error": error_msg})
+                    self._move_in_progress = False
+                    return False
+                
+                await asyncio.sleep(self._poll_dt)
+
+            # Update position tracker
+            self._position_um[axis_idx] = target
+
+            self._move_in_progress = False
+            self._emit_event(MotorEventType.MOVE_COMPLETE, {"position_um": target})
+            
+            return True
+
+        except Exception as e:
+            error_msg = f"Move failed: {e}\n{self._get_error()}"
+            print(f"[CorvusEco] {error_msg}")
+            self._emit_event(MotorEventType.ERROR_OCCURRED, {"error": error_msg})
+            self._move_in_progress = False
+            return False
+
+    async def move_multi_axis(self, distances: Dict[AxisType, float], velocity: Optional[float] = None) -> bool:
+        """
+        Move multiple axes simultaneously.
+        
+        Args:
+            distances: Dict mapping AxisType to distance (e.g., {AxisType.X: 10.0, AxisType.Y: 5.0})
             velocity: Optional velocity override
-            wait_for_completion: If True, wait for move to complete and emit MOVE_COMPLETED event
-        """
-        def _move():
-            try:
-                if velocity:
-                    self._send_command(f"{self.AXIS_MAP[self.axis]}VA{velocity:.6f}")
-
-                if self.axis == AxisType.ROTATION_FIBER:
-                    # Map from deg to mm
-                    lim = self._position_limits[1]
-                    distance = (45 - position) * (lim / 45) 
-                    position_mm = distance * 0.001
-                    # print(position_mm)
-                elif self.axis == AxisType.ROTATION_CHIP:
-                    # Map from deg to mm
-                    lim = self._position_limits[1]
-                    distance = (3.6 - position) * (lim / 3.6)
-                    position_mm = distance * 0.001
-                    # print(position_mm)
-                else:
-                    # Convert um to mm
-                    position_mm = position * 0.001
-
-                # Safety (Previously handled m way, don't know why)
-                lo, hi = self._position_limits
-                # if abs(position_mm) >= 1e-6 and abs(position_mm) <= (1000-1e-6):
-                if position >= lo and position <= hi: 
-                    self._send_command(f"{self.AXIS_MAP[self.axis]}MVA{position_mm:.6f}")
-
-                    # Wait for movement
-                    if wait_for_completion:
-                        while True:
-                            response = self._query_command(f"{self.AXIS_MAP[self.axis]}STA?") 
-                            status = int(response)
-                            if status == 1:
-                                break
-                            time.sleep(0.1) 
-                else:
-                    raise Exception(f"Distance entered exceeds softlimits, must be within bounds : {lo} <= {position} <= {hi}")
-
-                # Update state tracking
-                self._move_in_progress = True
-                self._target_position = position
-
-                # Event handling
-                self._emit_event(MotorEventType.MOVE_STARTED, {
-                    'target_position': position,
-                    'velocity': velocity or self._velocity,
-                    'operation': 'absolute_move'
-                })
-
-                return True 
             
-            except Exception as e:
-                self._emit_event(MotorEventType.ERROR_OCCURRED, {'error': str(e)})
-                return False
-        
-        return await asyncio.get_event_loop().run_in_executor(self._executor, _move)
-        
-    async def move_relative(self, distance, velocity=None, wait_for_completion=True):
+        Returns:
+            True if successful
         """
-        Move to rel pos in microns
-        
-        Args:
-            distance: Distance to move in microns
-            velocity: Optional velocity override  
-            wait_for_completion: If True, wait for move to complete and emit MOVE_COMPLETED event
-        """
-        def _move_rel():
-            try:
-                if velocity:
-                    self._send_command(f"{self.AXIS_MAP[self.axis]}VA{velocity:.6f}")
-
-                lim = self._position_limits[1] if self._position_limits[1] > 0 else self._position_limits[0]
-                if self.axis == AxisType.ROTATION_FIBER:
-                    # Map from deg to mm
-                    distance_temp = distance * (lim / 45)
-                    distance_mm = distance_temp * 0.001
-                elif self.axis == AxisType.ROTATION_CHIP:
-                    # Map from deg to mm
-                    distance_temp =  distance * (lim / 3.6)
-                    distance_mm = distance_temp * 0.001
-
-                else:
-                    # Convert um to mm
-                    distance_mm = distance * 0.001
-
-                # Safety
-                lo, hi = self._position_limits
-                pos = self._last_position + distance
-
-                # Event handling
-                self._emit_event(MotorEventType.MOVE_STARTED, {
-                    "target_position": pos,
-                    "distance": distance,
-                    "velocity": velocity or self._velocity,
-                    "operation": "relative_move"
-                })
-                
-                if pos >= lo and pos <= hi:  
-                    self._send_command(f"{self.AXIS_MAP[self.axis]}MVR{distance_mm:.6f}") 
-                    # Wait for movement
-                    if wait_for_completion:
-                        while True:
-                            response = self._query_command(f"{self.AXIS_MAP[self.axis]}STA?") 
-                            status = int(response)
-                            if status == 1:
-                                break
-                            time.sleep(0.1)
-                else:
-                    raise Exception(f"Relative distance entered exceeds softlimits, must be within bounds : {lo} <= {distance} <= {hi}")
-
-                self._target_position = pos
-                self._last_position = pos
-                self._emit_event(MotorEventType.MOVE_COMPLETE, {
-                    "target_position": pos,
-                    "distance": distance,
-                    "velocity": velocity or self._velocity,
-                    "operation": "relative_move"
-                })
-
-                return pos
-                    
-            except Exception as e:
-                self._emit_event(MotorEventType.ERROR_OCCURRED, {'error': str(e)})
-                return None
-        
-        return await asyncio.get_event_loop().run_in_executor(self._executor, _move_rel)
-    
-    async def stop(self):
-        """
-        Stop motor motion
-        """
-        def _stop():
-            try:
-                self._send_command(f"{self.AXIS_MAP[self.axis]}STP")
-                self._move_in_progress = False
-                self._target_position = None
-                return True
-            except Exception as e:
-                print(f"Stop error: {e}")
-                return False
-                
-        return await asyncio.get_event_loop().run_in_executor(self._executor, _stop)
-
-    async def emergency_stop(self):
-        """
-        Emergency stop axis
-        """
-        def _estop():
-            try:
-                self._send_command(f"{self.AXIS_MAP[self.axis]}EST")  # Stop axes
-                self._move_in_progress = False
-                self._target_position = None
-                return True
-            except Exception as e:
-                print(f"Emergency stop error: {e}")
-                return False
-                
-        return await asyncio.get_event_loop().run_in_executor(self._executor, _estop)
-
-    # Status and Position
-    async def get_position(self):
-        """
-        Get current position
-        """
-        def _get_pos():
-            try:
-                response = self._query_command(f"{self.AXIS_MAP[self.axis]}POS?")
-
-                
-                # Parse response: "position,encoder_position"
-                # parts = response.split(',')
-                theoretical_mm = float(response[0])
-                actual_mm = float(response[1])  
-                
-                # Convert mm to um
-                theoretical_um = theoretical_mm * 1000
-                actual_um = actual_mm * 1000
-
-                if self.axis == AxisType.ROTATION_FIBER:
-                    if self._is_homed:
-                        # 0-45 deg
-                        theoretical_um = (theoretical_um / self._position_limits[1]) * 45
-                        actual_um = (actual_um / self._position_limits[1]) * 45
-                elif self.axis == AxisType.ROTATION_CHIP:
-                    if self._is_homed:
-                        # 0-3.6 deg
-                        theoretical_um = (theoretical_um / self._position_limits[1]) * 3.6
-                        actual_um = (actual_um / self._position_limits[1]) * 3.6
-
-                # Update cached position
-                self._last_position = actual_um
-                
-                return Position(
-                    theoretical=theoretical_um,
-                    actual=actual_um,
-                    units="um",
-                    timestamp=time.time()
-                )
-                
-            except Exception as e:
-                print(f"Position read error: {e}")
-                return Position(0.0, 0.0, "um", time.time())
-                
-        return await asyncio.get_event_loop().run_in_executor(self._executor, _get_pos)
-
-    async def get_state(self):
-        """
-        Get current motor state
-        """
-        def _get_state():
-            try:
-                response = self._query_command(f"{self.AXIS_MAP[self.axis]}STA?")
-                status_int = int(response)
-                
-                # Check bit 3 (moving[0]/stopped[1])
-                if status_int == 1:
-                    return MotorState.IDLE
-                
-                return MotorState.MOVING # else
-                    
-            except Exception as e:
-                print(f"State read error: {e}")
-                return MotorState.ERROR
-                
-        return await asyncio.get_event_loop().run_in_executor(self._executor, _get_state)
-
-    async def is_moving(self):
-        """
-        Check if motor is moving
-        """
-        state = await self.get_state()
-        return state == MotorState.MOVING
-    
-    # Configuration
-    async def set_velocity(self, velocity):
-        """
-        Set velocity in um/s
-        """
-        def _set_vel():
-            try:
-                # Convert um/s to mm/s for controller
-                vel_mm_s = velocity * 0.001
-                self._send_command(f"{self.AXIS_MAP[self.axis]}VEL{vel_mm_s:.6f}")
-                self._velocity = velocity
-                return True
+        try:
+            # Build movement dict
+            move_kwargs = {}
+            targets = {}
             
-            except Exception as e:
-                print(f"Set velocity error: {e}")
-                return False
+            for axis_type, distance in distances.items():
+                if axis_type not in self._axes:
+                    print(f"[CorvusEco] Warning: {axis_type.name} not enabled, skipping")
+                    continue
                 
-        return await asyncio.get_event_loop().run_in_executor(self._executor, _set_vel)
-    
-    async def set_acceleration(self, acceleration):
-        """
-        Set acceleration in um/s2
-        """
-        def _set_acc():
-            try:
-                # Convert um/s2 to mm/s2 for controller
-                acc_mm_s2 = acceleration * 0.001
-                self._send_command(f"{self.AXIS_MAP[self.axis]}ACC{acc_mm_s2:.6f}")
-                self._acceleration = acceleration
-                return True
+                axis_idx = self.AXIS_MAPPING[axis_type]
+                axis_name = ['x', 'y', 'z'][axis_idx]
+                
+                current = self._position_um[axis_idx]
+                target = current + distance
+                
+                # Check limits
+                lo, hi = self._limits
+                if not (lo <= target <= hi):
+                    error_msg = f"{axis_type.name} move to {target:.2f} um violates limits [{lo}, {hi}]"
+                    self._emit_event(MotorEventType.ERROR_OCCURRED, {"error": error_msg})
+                    return False
+                
+                move_kwargs[axis_name] = distance
+                targets[axis_idx] = target
+
+            if not move_kwargs:
+                return True  # Nothing to move
+
+            # Override velocity if specified
+            if velocity is not None:
+                self._write(f'{velocity:.6f} sv')
+
+            self._emit_event(MotorEventType.MOVE_STARTED, {
+                "axes": list(distances.keys()),
+                "distances_um": distances,
+                "targets_um": targets
+            })
+
+            self._move_in_progress = True
+
+            # Execute coordinated move
+            cmd = f"{self._build_triplet(**move_kwargs)} r"
+            self._write(cmd)
+
+            # Wait for completion
+            start_time = time.time()
+            timeout = 60.0
             
-            except Exception as e:
-                print(f"Set acceleration error: {e}")
-                return False
-        return await asyncio.get_event_loop().run_in_executor(self._executor, _set_acc)
-    
-    async def get_config(self):
-        """
-        Get motor configuration
-        """
-        units = "degrees" if self.axis in [AxisType.ROTATION_FIBER, AxisType.ROTATION_CHIP] else "um"
+            while True:
+                try:
+                    status = self._query('st').strip()
+                    moving = (int(status) & 1) == 1
+                    if not moving:
+                        break
+                except Exception:
+                    break
+                
+                if time.time() - start_time > timeout:
+                    self._emit_event(MotorEventType.ERROR_OCCURRED, {"error": "Move timeout"})
+                    self._move_in_progress = False
+                    return False
+                
+                await asyncio.sleep(self._poll_dt)
+
+            # Update positions
+            for axis_idx, target in targets.items():
+                self._position_um[axis_idx] = target
+
+            self._move_in_progress = False
+            self._emit_event(MotorEventType.MOVE_COMPLETE, {"targets_um": targets})
+            
+            return True
+
+        except Exception as e:
+            error_msg = f"Multi-axis move failed: {e}\n{self._get_error()}"
+            print(f"[CorvusEco] {error_msg}")
+            self._emit_event(MotorEventType.ERROR_OCCURRED, {"error": error_msg})
+            self._move_in_progress = False
+            return False
+
+    async def stop(self) -> bool:
+        """Stop motion immediately."""
+        try:
+            # Decelerate to zero velocity
+            self._write('0 sv')
+            
+            # Restore original velocity
+            await asyncio.sleep(0.1)
+            self._write(f'{self._vel:.6f} sv')
+            
+            self._move_in_progress = False
+            self._emit_event(MotorEventType.MOVE_STOPPED, {})
+            return True
+        except Exception as e:
+            self._emit_event(MotorEventType.ERROR_OCCURRED, {"error": f"Stop failed: {e}"})
+            return False
+
+    async def emergency_stop(self) -> bool:
+        """Emergency stop."""
+        return await self.stop()
+
+    async def get_position(self) -> Position:
+        """Query current position for the primary axis."""
+        try:
+            positions = self._read_position_triplet()
+            self._position_um = positions
+            
+            axis_idx = self.AXIS_MAPPING[self.axis]
+            actual = positions[axis_idx]
+            
+            return Position(
+                theoretical=actual,
+                actual=actual,
+                units="um",
+                timestamp=time.time()
+            )
+        except Exception as e:
+            print(f"[CorvusEco] get_position error: {e}")
+            axis_idx = self.AXIS_MAPPING[self.axis]
+            cached = self._position_um[axis_idx]
+            return Position(cached, cached, "um", time.time())
+
+    async def get_all_positions(self) -> Dict[AxisType, float]:
+        """Get positions for all enabled axes."""
+        try:
+            positions = self._read_position_triplet()
+            self._position_um = positions
+            
+            result = {}
+            for axis_type in self._axes:
+                axis_idx = self.AXIS_MAPPING[axis_type]
+                result[axis_type] = positions[axis_idx]
+            
+            return result
+        except Exception as e:
+            print(f"[CorvusEco] get_all_positions error: {e}")
+            return {ax: self._position_um[self.AXIS_MAPPING[ax]] for ax in self._axes}
+
+    def _read_position_triplet(self) -> list[float]:
+        """Read position triplet from controller. Returns [x, y, z] in microns."""
+        self._write('pos')
+        response = self._read().strip()
+        values = list(map(float, response.split()))
         
-        return MotorConfig (
-            max_velocity=self._velocity,
-            max_acceleration=self._acceleration,
-            position_limits=self._position_limits,
-            units=units,
-            **self._step_size
+        # Pad with zeros if needed
+        while len(values) < 3:
+            values.append(0.0)
+        
+        return values[:3]
+
+    async def get_state(self) -> MotorState:
+        """Query motion state."""
+        try:
+            status = self._query('st').strip()
+            moving = (int(status) & 1) == 1
+            return MotorState.MOVING if moving else MotorState.IDLE
+        except Exception:
+            return MotorState.MOVING if self._move_in_progress else MotorState.IDLE
+
+    async def is_moving(self) -> bool:
+        """Check if motor is moving."""
+        return (await self.get_state()) == MotorState.MOVING
+
+    async def set_velocity(self, velocity: float) -> bool:
+        """Set velocity for all axes (global setting)."""
+        try:
+            self._write(f'{velocity:.6f} sv')
+            self._vel = velocity
+            return True
+        except Exception as e:
+            self._emit_event(MotorEventType.ERROR_OCCURRED, {"error": f"set_velocity failed: {e}"})
+            return False
+
+    async def set_acceleration(self, acceleration: float) -> bool:
+        """Set acceleration for all axes (global setting)."""
+        try:
+            self._write(f'{acceleration:.6f} sa')
+            self._acc = acceleration
+            return True
+        except Exception as e:
+            self._emit_event(MotorEventType.ERROR_OCCURRED, {"error": f"set_acceleration failed: {e}"})
+            return False
+
+    async def get_config(self) -> MotorConfig:
+        """Return current motor configuration."""
+        return MotorConfig(
+            max_velocity=self._vel,
+            max_acceleration=self._acc,
+            position_limits=self._limits,
+            units="um",
+            **self._step
         )
-    
-    # Home and limits
-    async def home(self, direction=0):
+
+    async def home(self, direction: int = 0) -> bool:
         """
-        Home the axis
-        """
-        def _home():
-            try:
-                self._emit_event(MotorEventType.MOVE_STARTED, {'operation': 'homing'})
-                self._move_in_progress = True # Set move to true
-                self._is_homed = False # Set homed to false
-                start_time = time.time()
-
-                if direction == 0:
-                    self._send_command(f"{self.AXIS_MAP[self.axis]}MLN")  # Move to negative limit
-                else:
-                    self._send_command(f"{self.AXIS_MAP[self.axis]}MLP")  # Move to positive limit
-                
-                # Wait for completion
-                while True:
-                    response = self._query_command(f"{self.AXIS_MAP[self.axis]}STA?") 
-                    status = int(response)
-                    if status == 1: break
-                    time.sleep(0.3)
-                    if abs(time.time() - start_time) > 30.0:
-                        break
-                
-                # Set zero point
-                if direction == 0:
-                    print("Set zero point")
-                    self._send_command(f"{self.AXIS_MAP[self.axis]}ZRO")
-                    self._is_homed = True # todo: check if homed is for specific axis, check super config may be fine
-                    self._last_position = 0.0   # Reset position tracking
-                else:
-                    # For homing purposes, it should always be the negative limit
-                    print("Set positive limit")
-                    pos = self._query_command(f"{self.AXIS_MAP[self.axis]}POS?")
-                    self._last_position = float(pos[0]) * 1000.0 # mm to um
-                    self._position_limits = (self._position_limits[0], self._last_position)
-                    print(f"last pos: {self._last_position}")
-                    self._is_homed = True
-
-                self._emit_event(MotorEventType.HOMED, {'direction': direction})
-                return True
-                
-            except Exception as e:
-                if self._is_homed == True:
-                    print("Exception caught but homing complete")
-                    return True
-                
-                print(f"Homing error: {e}\n")
-                self._emit_event(MotorEventType.ERROR_OCCURRED, {'error': str(e)})
-                return False
-                
-        return await asyncio.get_event_loop().run_in_executor(self._executor, _home)
-    
-    async def home_limits(self):
-        """
-        Home both ends of this axis, and set self._position_limits accordingly.
-        After this runs, `neg_limit_um` will be 0.0 (since we ZRO there),
-        and `pos_limit_um` will be the travel length in um.
-        """
-        # Declare axis for each private method usage
-        axis_num = self.AXIS_MAP[self.axis]
-        await self.set_velocity(3000.0)
-        def _get_limits():
-            """Get limit positions"""
-            try:
-                # Homing is starting
-                self._emit_event(MotorEventType.MOVE_STARTED, {'operation': 'homing_limits'})
-                
-                # Send MLN to drive until negative limit is hit
-                self._send_command(f"{axis_num}MLN")
-
-                # Wait for completion
-                while True:
-                    response = self._query_command(f"{axis_num}STA?")
-                    status = int(response)
-                    if status == 1:  # Stopped
-                        break
-                    time.sleep(0.1)
-
-                # Zero neg limit, zeros by default so becomes 0 mm
-                self._send_command(f"{axis_num}ZRO")
-
-                # After ZRO, the controller’s internal position registers read zero at this point
-                bottom_zero_um = 0.0 # set bottom limit as controllers iternal position limit register
-                self._last_position = bottom_zero_um 
-
-                # Move pos limit switch
-                self._send_command(f"{axis_num}MLP")
-
-                # Wait for completion
-                while True:
-                    response = self._query_command(f"{axis_num}STA?")
-                    status = int(response)
-                    if status == 1:  # Stopped
-                        break
-                    time.sleep(0.1)
-
-                # Read position at positive end
-                pos_resp2 = self._query_command(f"{axis_num}POS?")
-                theoretical_mm = float(pos_resp2[0])
-                actual_mm = float(pos_resp2[1])
-
-                # Convert mm to um
-                theoretical_um = theoretical_mm * 1000
-                actual_um = actual_mm * 1000
-
-                top_um = theoretical_um
-                self._last_position = top_um
-
-                # Software lims set
-                self._position_limits = (bottom_zero_um, top_um)
-
-                # Notify that homing, limit-finding is complete
-                self._emit_event(MotorEventType.HOMED, {'limits_um': self._position_limits})
-
-                # Clear MMC-100 default error thats appearing
-                self._send_command(f"{axis_num}CER")
-                return True
-
-            except Exception as e:
-                self._emit_event(MotorEventType.ERROR_OCCURRED, {'error': str(e)})
-                return False
-            
-        def _mid_point():
-            """Go to mid point"""
-            try:
-                if axis_num == 4:
-                    # Fiber array
-                    mid_point = self._position_limits[1] * (37.0 / 45.0) # 8 deg
-                else:
-                    mid_point = (self._position_limits[1] - self._position_limits[0]) / 2
-
-                self._emit_event(MotorEventType.MOVE_STARTED, {'operation': 'middling'})
-                self._send_command(f"{axis_num}MVA{(mid_point/1000):.6f}")
-                
-                # Wait for completion
-                while True:
-                    response = self._query_command(f"{axis_num}STA?")
-                    status = int(response)
-                    pos = self._query_command(f"{axis_num}POS?")
-                    pos = float(pos[1])
-                    pos_um = pos * 1000.0 # Convert
-                    
-                    # If position reaches mid point, or movement has stopped and its accurate to 0.001 mm 
-                    if (pos_um == mid_point) or (status == 1): # messy
-                        break
-                    time.sleep(0.1)
-
-                # Get current position
-                self._emit_event(MotorEventType.MOVE_COMPLETE, {'pos': self._position_limits})
-                self._last_position = pos_um
-                return True
+        Home the axis.
         
-            except Exception as e:
-                self._emit_event(MotorEventType.ERROR_OCCURRED, {'error': str(e)})
-                return False
+        Not implemented - Corvus Eco controller does not provide a standard
+        homing command in the command set.
+        """
+        print("[CorvusEco] Homing not supported by Corvus Eco hardware")
+        raise NotImplementedError(
+            "Corvus Eco controller does not provide homing commands. "
+            "Manual homing or physical limit switches may be required."
+        )
+
+    async def home_limits(self) -> bool:
+        """
+        Home to limits.
         
-        def _home_limits():
-            """Get position limits, go to mid point"""
-            try:
-                while not _get_limits():
-                    continue
-                while not _mid_point():
-                    continue
-                self._is_homed = True
-                return True, self._position_limits
-            
-            except Exception as e:
-                self._emit_event(MotorEventType.ERROR_OCCURRED, {'error': str(e)})
-                return False, None
+        Not implemented - Corvus Eco controller does not provide limit
+        homing functionality.
+        """
+        print("[CorvusEco] Limit homing not supported by Corvus Eco hardware")
+        raise NotImplementedError(
+            "Corvus Eco controller does not provide limit homing. "
+            "Use manual positioning or external limit detection."
+        )
 
-        return await asyncio.get_event_loop().run_in_executor(self._executor, _home_limits)
+    async def set_zero(self) -> bool:
+        """Set current position as zero (software only)."""
+        axis_idx = self.AXIS_MAPPING[self.axis]
+        self._position_um[axis_idx] = 0.0
+        print(f"[CorvusEco] Zero position set for {self.axis.name}")
+        return True
 
-    async def set_zero(self):
-        """Set current position as zero"""
-        def _set_zero():
-            try:
-                self._send_command(f"{self.AXIS_MAP[self.axis]}ZRO")
-                self._last_position = 0.0  # Reset position tracking
-                return True
-            except Exception as e:
-                print(f"Set zero error: {e}")
-                return False
-                
-        return await asyncio.get_event_loop().run_in_executor(self._executor, _set_zero)
+    async def set_zero_all(self) -> bool:
+        """Set all axis positions to zero (software only)."""
+        self._position_um = [0.0, 0.0, 0.0]
+        print("[CorvusEco] All positions zeroed")
+        return True
 
-   
+
+# Register driver with factory
 from motors.hal.stage_factory import register_driver
-
-# Register Probe_Stage motor stage
-register_driver("stage_control", StageControl)
+register_driver("CorvusEco_controller", CorvusEcoController)

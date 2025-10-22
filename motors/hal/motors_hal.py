@@ -78,7 +78,6 @@ class MotorHAL(ABC):
     Abstract base class defining the motor HAL interface.
     
     """
-    
     def __init__(self, axis: AxisType):
         self.axis = axis
         self._event_callbacks: List[Callable[[MotorEvent], None]] = []
