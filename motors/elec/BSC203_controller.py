@@ -1,4 +1,4 @@
-from thorlabs_apt_device import BSC
+from thorlabs_apt_device import BSC, list_devices
 import re
 from typing import Optional, Dict, Tuple, List
 from time import monotonic
@@ -30,6 +30,9 @@ class BSC203Motor(MotorHAL):
         AxisType.X: 0,
         AxisType.Y: 1,
         AxisType.Z: 2,
+        "AxisType.X": 0,
+        "AxisType.Y": 1,
+        "AxisType.Z": 2,
     }
 
     def __init__(self, ser_port: str, axes: List[AxisType]):
@@ -47,14 +50,27 @@ class BSC203Motor(MotorHAL):
         # Software limits per axis: (lo, hi). None means "no limit set"
         self._limits: Dict[AxisType, Optional[Tuple[float, float]]] = {ax: None for ax in axes}
 
+    
+    ########################################################################################
+    #  DRV208 on NanoMax300
+    #  Needs to be tuned and configured before the movement is usable
+    #  Documentation:
+    # https://oxxius.ru/upload/iblock/325/xkqz5fo2dl93978eq6rhbhbhusf7e2ik/ETN043208_D02.pdf
+    #
+    ########################################################################################
+    
     # --- Connection ---
 
     def connect(self) -> bool:
         try:
             numbers = re.findall(r"[0-9]+", self.ser_port)
             com_port = "COM" + numbers[0]
-            self.inst = BSC(serial_port=com_port, x=len(self.axes), home=False)
+            self.inst = BSC(serial_port=com_port, x=len(self.axes), serial_number=70317904, home=False)
+            print(self.inst, "\n", type(self.inst), "\n", self.inst.__init__)
             self.inst.identify()
+            print('Listing devices. . .')
+            print(list_devices())
+            print('\n')
             return True
         except Exception as e:
             print(f"[BSC203] Connection failed: {e}")
@@ -98,13 +114,13 @@ class BSC203Motor(MotorHAL):
             raise RuntimeError("Controller not connected")
 
         bay = self._bay(axis)
-        dest_um = self._position[axis] + distance
+        dest_um = self._position[axis].actual + distance
         if not self._within_limits(axis, dest_um):
             return False
 
         try:
             self.inst.move_relative(distance=int(distance * 1000), bay=bay, channel=0)
-            self._position[axis] = dest_um
+            self._position[axis] = Position(dest_um,dest_um,'um',monotonic)
             return True
         except Exception as e:
             print(f"[BSC203] move_relative({axis.name}) failed: {e}")
@@ -164,15 +180,15 @@ class BSC203Motor(MotorHAL):
         try:
             config = {}
             for ax in self.axes:
-                bay = self._bay[ax]
-                config[f"{self.AXIS_MAP[f'{ax}']}"] = self.inst.status_[bay][0]
+                bay = self._bay(ax)
+                config[ax] = self.inst.status_[bay][0]
             return config
         except Exception as e:
             print(f"[BSC20x] get_config error: {e}")
             return None
         
     # Position
-    def get_position(self, axis: AxisType) -> Optional(Position):
+    def get_position(self, axis: AxisType) -> Optional[Position]:
         """
         Return current position in um.
         """
@@ -182,14 +198,9 @@ class BSC203Motor(MotorHAL):
         bay = self._bay(axis)
         try:
             # Get position from status dict
-            self._position = self.inst.status_[bay][0]["position"]
-            return Position(
-                theoretical=self._position,
-                actual=self._position,
-                unit="um",
-                timestamp=monotonic()
-
-            )
+            pos = self.inst.status_[bay][0]["position"]
+            self._position[axis] = Position(pos,pos,'um',monotonic())
+            return self._position[axis]
         except Exception as e:
             # keep cached
             print(f"[BSC203] get_position error: {e}")
@@ -260,3 +271,6 @@ class BSC203Motor(MotorHAL):
     def at_max_limit(self, axis: AxisType) -> bool:
         lim = self._limits[axis]
         return lim is not None and self._position[axis] >= lim[1]
+
+from motors.hal.stage_factory import register_driver
+register_driver("BSC203_motor", BSC203Motor)
