@@ -14,8 +14,9 @@ pyvisa_logger.setLevel(logging.WARNING)
 
 
 class HP816xLambdaScan:
-    def __init__(self):
+    def __init__(self, gpib_addr):
         # Load the HP 816x library
+        self.gpib_addr = gpib_addr
         self.lib = ctypes.WinDLL("C:\\Program Files\\IVI Foundation\\VISA\\Win64\\Bin\\hp816x_64.dll")  # or .lib path
         self.visa_lib = ctypes.WinDLL("visa32.dll")
         self.session = None
@@ -183,7 +184,7 @@ class HP816xLambdaScan:
         try:
             session = c_int32()
             # self.rm = pyvisa.ResourceManager()
-            visa_address = "GPIB0::20::INSTR"
+            visa_address = self.gpib_addr
 
             queryID = 1
             result = self.lib.hp816x_init(
@@ -343,6 +344,7 @@ class HP816xLambdaScan:
             'channels_dbm': channels_dbm,
             'num_points': int(n_target)
         }
+            
     def lambda_scan_mf2(self, start_nm: float = 1490, stop_nm: float = 1600, step_pm: float = 0.5,
                     power_dbm: float = 3.0, num_scans: int = 0, channels: list = (1, 2),
                     args: list = (1, -80.0, None)):

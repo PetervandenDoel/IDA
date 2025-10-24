@@ -299,7 +299,7 @@ class NIR8164(LaserHAL):
         except Exception:
             pass
 
-        hp = HP816xLambdaScan()
+        hp = HP816xLambdaScan(self.addr)
         self.sweep_module = hp
         try:
             ok = hp.connect()
