@@ -517,3 +517,96 @@ Welcome To Probe Stage
 ✓ Process 29808 assigned to job object
 ▶ sub_limit_setting_gui.py started (pid=29808)
 Welcome To Probe Stage
+✓ Windows Job Object created for process tree management
+✓ Console close handler registered
+✓ Process 2068 assigned to job object
+▶ camera_gui.py started (pid=2068)
+⏹ camera_gui.py exited (rc=0)
+✓ Process 8832 assigned to job object
+▶ init_gui.py started (pid=8832)
+✓ Process 8212 assigned to job object
+▶ lib_gui.py started (pid=8212)
+✓ Process 35216 assigned to job object
+▶ main_devices_gui.py started (pid=35216)
+✓ Process 23264 assigned to job object
+▶ main_instruments_gui.py started (pid=23264)
+⏹ init_gui.py exited (rc=0)
+⏹ lib_gui.py exited (rc=0)
+✓ Process 22728 assigned to job object
+▶ main_registration_gui.py started (pid=22728)
+✓ Process 21776 assigned to job object
+▶ main_start_gui.py started (pid=21776)
+✓ Process 34184 assigned to job object
+▶ main_testing_gui.py started (pid=34184)
+✓ Process 13016 assigned to job object
+▶ mainframe_command_gui.py started (pid=13016)
+✓ Process 13244 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=13244)
+✓ Process 20572 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=20572)
+✓ Process 7220 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=7220)
+✓ Process 29572 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=29572)
+✓ Process 24836 assigned to job object
+▶ sub_add_btn_gui.py started (pid=24836)
+✓ Process 24284 assigned to job object
+▶ sub_area_scan_setting_gui.py started (pid=24284)
+✓ Process 25732 assigned to job object
+▶ sub_connect_config_gui.py started (pid=25732)
+✓ Process 30920 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=30920)
+✓ Process 17160 assigned to job object
+▶ sub_fine_align_setting_gui.py started (pid=17160)
+✓ Process 20360 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=20360)
+✓ Process 24152 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=24152)
+Welcome To Probe Stage
+✓ Windows Job Object created for process tree management
+✓ Console close handler registered
+✓ Process 26488 assigned to job object
+▶ camera_gui.py started (pid=26488)
+⏹ camera_gui.py exited (rc=0)
+✓ Process 12892 assigned to job object
+▶ init_gui.py started (pid=12892)
+✓ Process 29636 assigned to job object
+▶ lib_gui.py started (pid=29636)
+✓ Process 24684 assigned to job object
+▶ main_devices_gui.py started (pid=24684)
+✓ Process 10172 assigned to job object
+▶ main_instruments_gui.py started (pid=10172)
+⏹ init_gui.py exited (rc=0)
+✓ Process 4016 assigned to job object
+▶ main_registration_gui.py started (pid=4016)
+⏹ lib_gui.py exited (rc=0)
+✓ Process 22612 assigned to job object
+▶ main_start_gui.py started (pid=22612)
+✓ Process 26248 assigned to job object
+▶ main_testing_gui.py started (pid=26248)
+✓ Process 30508 assigned to job object
+▶ mainframe_command_gui.py started (pid=30508)
+✓ Process 17292 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=17292)
+✓ Process 20676 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=20676)
+✓ Process 15420 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=15420)
+✓ Process 2168 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=2168)
+✓ Process 24560 assigned to job object
+▶ sub_add_btn_gui.py started (pid=24560)
+✓ Process 13532 assigned to job object
+▶ sub_area_scan_setting_gui.py started (pid=13532)
+✓ Process 29348 assigned to job object
+▶ sub_connect_config_gui.py started (pid=29348)
+✓ Process 30100 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=30100)
+✓ Process 20892 assigned to job object
+▶ sub_fine_align_setting_gui.py started (pid=20892)
+✓ Process 12972 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=12972)
+✓ Process 27448 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=27448)
+Welcome To Probe Stage
+No device found!
