@@ -197,7 +197,7 @@ class testing(App):
             if row_idx < needed:
                 global_idx = page_idx_slice[row_idx]
                 cells = list(row.children.values())
-                bg = "#9aa3af" if (start_i + row_idx) % 2 == 0 else "#7b8494"
+                bg = "#ffffff" if (start_i + row_idx) % 2 == 0 else "#f6f7f9"
                 for c in cells:
                     c.style.update({"display": "table-cell", "background-color": bg})
 

@@ -19,8 +19,8 @@ from scipy.ndimage import gaussian_filter
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib, logging
 matplotlib.use("QtAgg")
-web_w = -6
-web_h = -17
+web_w = 0
+web_h = 8
 from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent
 PROGRESS_PATH = BASE_DIR / "database" / "progress.json"
@@ -31,7 +31,6 @@ _ORIG_HTTP_LOG = None
 _SILENCED = False
 
 def _silence_remi_and_http_logs():
-    """静音 remi 相关 logger + HTTP 访问日志（GET / ...）。"""
     global _ORIG_WSGI_LOG, _ORIG_HTTP_LOG, _SILENCED
     if _SILENCED:
         return
@@ -286,7 +285,7 @@ class StyledTable(Table):
                 "height": f"{height}px",
                 "font-weight": "bold",
                 "text-align": "center",
-                "background-color": "#6f7a8a",
+                "background-color": "#e4e9f0",
                 "color": "#1a1a1a",
                 "border-bottom": "2px solid #c8c8c8",
                 "padding": "1px 2px"
@@ -294,7 +293,7 @@ class StyledTable(Table):
         self.append(trh)
         for r in range(row - 1):
             tr = TableRow()
-            bg = "#9aa3af" if r % 2 == 0 else "#7b8494"
+            bg = "#ffffff" if r % 2 == 0 else "#f6f7f9"
             for w in widths:
                 tr.append(TableItem("", style={
                     "width": f"{w}px",

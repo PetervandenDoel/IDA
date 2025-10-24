@@ -91,7 +91,7 @@ class registration(App):
 
             setattr(self, f"device_id_{row_index}", StyledDropDown(
                 container=None, text="N/A", variable_name=f"device_id_{row_index}",
-                bg_color="#9aa3af" if row_index % 2 != 0 else "#7b8494",
+                bg_color="#ffffff" if row_index % 2 != 0 else "#f6f7f9",
                 border="0px", border_radius="0px", left=0, top=0,
                 width=100, height=100, position="inherit", percent=True))
 
