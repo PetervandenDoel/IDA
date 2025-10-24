@@ -20,7 +20,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib, logging
 matplotlib.use("QtAgg")
 web_w = 0
-web_h = 8
+web_h = 0
 from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent
 PROGRESS_PATH = BASE_DIR / "database" / "progress.json"
