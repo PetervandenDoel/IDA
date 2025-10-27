@@ -46,17 +46,34 @@ class elecprobe(App):
         ROW_H = 30
 
         elecprobe_container = StyledContainer(
-            variable_name="instruments_container", left=0, top=0, height=700, width=1000, bg_color=True, color="#F5F5F5"
+            variable_name="instruments_container", left=0, top=0, height=590, width=1100, bg_color=True, color="#F5F5F5"
         )
 
         xyz_container = StyledContainer(
             container=elecprobe_container, variable_name="xyz_container", border=0,
-            left=0, top=510, height=190, width=490  # was narrower
+            left=0, top=400, height=190, width=490
         )
 
         smu_container = StyledContainer(
-            container=elecprobe_container, variable_name="smu_container", border=0,
-            left=500, top=0, height=700, width=500  # was narrower
+            container=elecprobe_container, variable_name="smu_container",
+            left=500, top=0, height=590, width=600
+        )
+
+        smu_control_container = StyledContainer(
+            container=smu_container, variable_name="smu_control_container", border=True,
+            left=8, top=10, height=350, width=584
+        )
+
+        StyledLabel(
+            container=smu_control_container, text="SMU Control", variable_name=f"smu_lb",
+            left=30, top=-12, width=100, height=20, font_size=120, color="#222", position="absolute",
+            flex=True, on_line=True
+        )
+
+        StyledLabel(
+            container=smu_control_container, text="SMU Output", variable_name=f"smu_output_lb",
+            left=5, top=10, width=190, height=30, font_size=110, color="#222", position="absolute",
+            flex=True, justify_content="left"
         )
 
         labels = ["X", "Y", "Z"]
@@ -148,8 +165,8 @@ if __name__ == "__main__":
     webview.create_window(
         "Main Window",
         f"http://{local_ip}:8004",
-        width=1022,
-        height=756,
+        width=1022+100,
+        height=756-110,
         resizable=True,
         hidden=False,
     )

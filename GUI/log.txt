@@ -1,254 +1,3 @@
-✓ Process 27936 assigned to job object
-▶ main_devices_gui.py started (pid=27936)
-⏹ init_gui.py exited (rc=0)
-✓ Process 37360 assigned to job object
-▶ main_instruments_gui.py started (pid=37360)
-⏹ lib_gui.py exited (rc=0)
-✓ Process 18792 assigned to job object
-▶ main_registration_gui.py started (pid=18792)
-✓ Process 30328 assigned to job object
-▶ main_start_gui.py started (pid=30328)
-✓ Process 18264 assigned to job object
-▶ main_testing_gui.py started (pid=18264)
-✓ Process 37376 assigned to job object
-▶ mainframe_command_gui.py started (pid=37376)
-✓ Process 29156 assigned to job object
-▶ mainframe_configuration_gui.py started (pid=29156)
-✓ Process 24744 assigned to job object
-▶ mainframe_sensor_control_gui.py started (pid=24744)
-✓ Process 26884 assigned to job object
-▶ mainframe_stage_control_gui.py started (pid=26884)
-✓ Process 36176 assigned to job object
-▶ mainframe_tec_control_gui.py started (pid=36176)
-✓ Process 35984 assigned to job object
-▶ sub_add_btn_gui.py started (pid=35984)
-✓ Process 35820 assigned to job object
-▶ sub_area_scan_setting_gui.py started (pid=35820)
-Traceback (most recent call last):
-  File "C:\Users\weiji\Desktop\UBC\Porbe_Stage\IDA\GUI\mainframe_stage_control_gui.py", line 7, in <module>
-    from motors.stage_manager import StageManager
-  File "C:\Users\weiji\Desktop\UBC\Porbe_Stage\IDA\motors\stage_manager.py", line 11, in <module>
-    from motors.modern_stage import StageControl as StageController
-ModuleNotFoundError: No module named 'motors.modern_stage'
-✓ Process 28536 assigned to job object
-▶ sub_connect_config_gui.py started (pid=28536)
-⏹ mainframe_stage_control_gui.py exited (rc=1)
-✓ Process 34064 assigned to job object
-▶ sub_data_window_setting_gui.py started (pid=34064)
-Welcome To Probe Stage
-✓ Process 32948 assigned to job object
-▶ sub_fine_align_setting_gui.py started (pid=32948)
-✓ Process 15488 assigned to job object
-▶ sub_laser_sweep_setting_gui.py started (pid=15488)
-✓ Process 38892 assigned to job object
-▶ sub_limit_setting_gui.py started (pid=38892)
-✓ Windows Job Object created for process tree management
-✓ Console close handler registered
-✓ Process 38832 assigned to job object
-▶ camera_gui.py started (pid=38832)
-⏹ camera_gui.py exited (rc=0)
-✓ Process 38240 assigned to job object
-▶ init_gui.py started (pid=38240)
-✓ Process 39944 assigned to job object
-▶ lib_gui.py started (pid=39944)
-✓ Process 33796 assigned to job object
-▶ main_devices_gui.py started (pid=33796)
-⏹ init_gui.py exited (rc=0)
-✓ Process 39384 assigned to job object
-▶ main_instruments_gui.py started (pid=39384)
-⏹ lib_gui.py exited (rc=0)
-✓ Process 41716 assigned to job object
-▶ main_registration_gui.py started (pid=41716)
-✓ Process 12120 assigned to job object
-▶ main_start_gui.py started (pid=12120)
-✓ Process 36884 assigned to job object
-▶ main_testing_gui.py started (pid=36884)
-✓ Process 11524 assigned to job object
-▶ mainframe_command_gui.py started (pid=11524)
-✓ Process 10656 assigned to job object
-▶ mainframe_configuration_gui.py started (pid=10656)
-✓ Process 26548 assigned to job object
-▶ mainframe_sensor_control_gui.py started (pid=26548)
-✓ Process 17368 assigned to job object
-▶ mainframe_stage_control_gui.py started (pid=17368)
-✓ Process 28188 assigned to job object
-▶ mainframe_tec_control_gui.py started (pid=28188)
-✓ Process 572 assigned to job object
-▶ sub_add_btn_gui.py started (pid=572)
-✓ Process 28660 assigned to job object
-▶ sub_area_scan_setting_gui.py started (pid=28660)
-Traceback (most recent call last):
-  File "C:\Users\weiji\Desktop\UBC\Porbe_Stage\IDA\GUI\mainframe_stage_control_gui.py", line 7, in <module>
-    from motors.stage_manager import StageManager
-  File "C:\Users\weiji\Desktop\UBC\Porbe_Stage\IDA\motors\stage_manager.py", line 11, in <module>
-    from motors.modern_stage import StageControl as StageController
-ModuleNotFoundError: No module named 'motors.modern_stage'
-✓ Process 33980 assigned to job object
-▶ sub_connect_config_gui.py started (pid=33980)
-⏹ mainframe_stage_control_gui.py exited (rc=1)
-✓ Process 36656 assigned to job object
-▶ sub_data_window_setting_gui.py started (pid=36656)
-Welcome To Probe Stage
-✓ Process 33152 assigned to job object
-▶ sub_fine_align_setting_gui.py started (pid=33152)
-✓ Process 24268 assigned to job object
-▶ sub_laser_sweep_setting_gui.py started (pid=24268)
-✓ Process 37624 assigned to job object
-▶ sub_limit_setting_gui.py started (pid=37624)
-✓ Windows Job Object created for process tree management
-✓ Console close handler registered
-✓ Process 33612 assigned to job object
-▶ camera_gui.py started (pid=33612)
-⏹ camera_gui.py exited (rc=0)
-✓ Process 39720 assigned to job object
-▶ init_gui.py started (pid=39720)
-✓ Process 39868 assigned to job object
-▶ lib_gui.py started (pid=39868)
-✓ Process 36224 assigned to job object
-▶ main_devices_gui.py started (pid=36224)
-⏹ init_gui.py exited (rc=0)
-✓ Process 39008 assigned to job object
-▶ main_instruments_gui.py started (pid=39008)
-⏹ lib_gui.py exited (rc=0)
-✓ Process 41816 assigned to job object
-▶ main_registration_gui.py started (pid=41816)
-✓ Process 34820 assigned to job object
-▶ main_start_gui.py started (pid=34820)
-✓ Process 31260 assigned to job object
-▶ main_testing_gui.py started (pid=31260)
-✓ Process 41456 assigned to job object
-▶ mainframe_command_gui.py started (pid=41456)
-✓ Process 26340 assigned to job object
-▶ mainframe_configuration_gui.py started (pid=26340)
-✓ Process 24268 assigned to job object
-▶ mainframe_sensor_control_gui.py started (pid=24268)
-✓ Process 39592 assigned to job object
-▶ mainframe_stage_control_gui.py started (pid=39592)
-✓ Process 36540 assigned to job object
-▶ mainframe_tec_control_gui.py started (pid=36540)
-✓ Process 27180 assigned to job object
-▶ sub_add_btn_gui.py started (pid=27180)
-✓ Process 41612 assigned to job object
-▶ sub_area_scan_setting_gui.py started (pid=41612)
-Traceback (most recent call last):
-  File "C:\Users\weiji\Desktop\UBC\Porbe_Stage\IDA\GUI\mainframe_stage_control_gui.py", line 7, in <module>
-    from motors.stage_manager import StageManager
-  File "C:\Users\weiji\Desktop\UBC\Porbe_Stage\IDA\motors\stage_manager.py", line 11, in <module>
-    from motors.modern_stage import StageControl as StageController
-ModuleNotFoundError: No module named 'motors.modern_stage'
-✓ Process 18364 assigned to job object
-▶ sub_connect_config_gui.py started (pid=18364)
-⏹ mainframe_stage_control_gui.py exited (rc=1)
-✓ Process 40376 assigned to job object
-▶ sub_data_window_setting_gui.py started (pid=40376)
-Welcome To Probe Stage
-✓ Process 37228 assigned to job object
-▶ sub_fine_align_setting_gui.py started (pid=37228)
-✓ Process 41604 assigned to job object
-▶ sub_laser_sweep_setting_gui.py started (pid=41604)
-✓ Process 33484 assigned to job object
-▶ sub_limit_setting_gui.py started (pid=33484)
-✓ Windows Job Object created for process tree management
-✓ Console close handler registered
-✓ Process 29276 assigned to job object
-▶ camera_gui.py started (pid=29276)
-⏹ camera_gui.py exited (rc=0)
-✓ Process 2376 assigned to job object
-▶ init_gui.py started (pid=2376)
-✓ Process 27580 assigned to job object
-▶ lib_gui.py started (pid=27580)
-✓ Process 36184 assigned to job object
-▶ main_devices_gui.py started (pid=36184)
-⏹ init_gui.py exited (rc=0)
-✓ Process 16584 assigned to job object
-▶ main_instruments_gui.py started (pid=16584)
-⏹ lib_gui.py exited (rc=0)
-✓ Process 2332 assigned to job object
-▶ main_registration_gui.py started (pid=2332)
-✓ Process 34892 assigned to job object
-▶ main_start_gui.py started (pid=34892)
-✓ Process 26776 assigned to job object
-▶ main_testing_gui.py started (pid=26776)
-✓ Process 18800 assigned to job object
-▶ mainframe_command_gui.py started (pid=18800)
-✓ Process 34052 assigned to job object
-▶ mainframe_configuration_gui.py started (pid=34052)
-✓ Process 39824 assigned to job object
-▶ mainframe_sensor_control_gui.py started (pid=39824)
-✓ Process 39948 assigned to job object
-▶ mainframe_stage_control_gui.py started (pid=39948)
-✓ Process 33484 assigned to job object
-▶ mainframe_tec_control_gui.py started (pid=33484)
-✓ Process 34032 assigned to job object
-▶ sub_add_btn_gui.py started (pid=34032)
-✓ Process 39248 assigned to job object
-▶ sub_area_scan_setting_gui.py started (pid=39248)
-Traceback (most recent call last):
-  File "C:\Users\weiji\Desktop\UBC\Porbe_Stage\IDA\GUI\mainframe_stage_control_gui.py", line 7, in <module>
-    from motors.stage_manager import StageManager
-  File "C:\Users\weiji\Desktop\UBC\Porbe_Stage\IDA\motors\stage_manager.py", line 11, in <module>
-    from motors.modern_stage import StageControl as StageController
-ModuleNotFoundError: No module named 'motors.modern_stage'
-✓ Process 40692 assigned to job object
-▶ sub_connect_config_gui.py started (pid=40692)
-⏹ mainframe_stage_control_gui.py exited (rc=1)
-✓ Process 18520 assigned to job object
-▶ sub_data_window_setting_gui.py started (pid=18520)
-Welcome To Probe Stage
-✓ Process 38376 assigned to job object
-▶ sub_fine_align_setting_gui.py started (pid=38376)
-✓ Process 39096 assigned to job object
-▶ sub_laser_sweep_setting_gui.py started (pid=39096)
-✓ Process 18952 assigned to job object
-▶ sub_limit_setting_gui.py started (pid=18952)
-✓ Windows Job Object created for process tree management
-✓ Console close handler registered
-✓ Process 38236 assigned to job object
-▶ camera_gui.py started (pid=38236)
-⏹ camera_gui.py exited (rc=0)
-✓ Process 39288 assigned to job object
-▶ init_gui.py started (pid=39288)
-✓ Process 23984 assigned to job object
-▶ lib_gui.py started (pid=23984)
-✓ Process 37632 assigned to job object
-▶ main_devices_gui.py started (pid=37632)
-⏹ init_gui.py exited (rc=0)
-✓ Process 30816 assigned to job object
-▶ main_instruments_gui.py started (pid=30816)
-⏹ lib_gui.py exited (rc=0)
-✓ Process 36260 assigned to job object
-▶ main_registration_gui.py started (pid=36260)
-✓ Process 34332 assigned to job object
-▶ main_start_gui.py started (pid=34332)
-✓ Process 32960 assigned to job object
-▶ main_testing_gui.py started (pid=32960)
-✓ Process 42092 assigned to job object
-▶ mainframe_command_gui.py started (pid=42092)
-✓ Process 39028 assigned to job object
-▶ mainframe_configuration_gui.py started (pid=39028)
-✓ Process 20388 assigned to job object
-▶ mainframe_sensor_control_gui.py started (pid=20388)
-✓ Process 40256 assigned to job object
-▶ mainframe_stage_control_gui.py started (pid=40256)
-✓ Process 29764 assigned to job object
-▶ mainframe_tec_control_gui.py started (pid=29764)
-✓ Process 29404 assigned to job object
-▶ sub_add_btn_gui.py started (pid=29404)
-✓ Process 35320 assigned to job object
-▶ sub_area_scan_setting_gui.py started (pid=35320)
-Traceback (most recent call last):
-  File "C:\Users\weiji\Desktop\UBC\Porbe_Stage\IDA\GUI\mainframe_stage_control_gui.py", line 7, in <module>
-    from motors.stage_manager import StageManager
-  File "C:\Users\weiji\Desktop\UBC\Porbe_Stage\IDA\motors\stage_manager.py", line 11, in <module>
-    from motors.modern_stage import StageControl as StageController
-ModuleNotFoundError: No module named 'motors.modern_stage'
-✓ Process 37120 assigned to job object
-▶ sub_connect_config_gui.py started (pid=37120)
-⏹ mainframe_stage_control_gui.py exited (rc=1)
-✓ Process 39304 assigned to job object
-
-▶ sub_data_window_setting_gui.py started (pid=39304)
-✓ Process 11888 assigned to job object
 ▶ sub_fine_align_setting_gui.py started (pid=11888)
 Welcome To Probe Stage
 ✓ Process 35760 assigned to job object
@@ -705,4 +454,100 @@ Welcome To Probe Stage
 ▶ sub_laser_sweep_setting_gui.py started (pid=9272)
 ✓ Process 4920 assigned to job object
 ▶ sub_limit_setting_gui.py started (pid=4920)
+Welcome To Probe Stage
+✓ Windows Job Object created for process tree management
+✓ Console close handler registered
+✓ Process 17280 assigned to job object
+▶ camera_gui.py started (pid=17280)
+⏹ camera_gui.py exited (rc=0)
+✓ Process 12352 assigned to job object
+▶ init_gui.py started (pid=12352)
+✓ Process 7700 assigned to job object
+▶ lib_gui.py started (pid=7700)
+✓ Process 4120 assigned to job object
+▶ main_devices_gui.py started (pid=4120)
+✓ Process 27456 assigned to job object
+▶ main_instruments_gui.py started (pid=27456)
+✓ Process 25620 assigned to job object
+▶ main_registration_gui.py started (pid=25620)
+✓ Process 14140 assigned to job object
+▶ main_start_gui.py started (pid=14140)
+⏹ init_gui.py exited (rc=0)
+⏹ lib_gui.py exited (rc=0)
+✓ Process 11752 assigned to job object
+▶ main_testing_gui.py started (pid=11752)
+✓ Process 14044 assigned to job object
+▶ mainframe_command_gui.py started (pid=14044)
+✓ Process 8948 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=8948)
+✓ Process 23868 assigned to job object
+▶ mainframe_elec_probe_control_gui.py started (pid=23868)
+✓ Process 8984 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=8984)
+✓ Process 28768 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=28768)
+✓ Process 29404 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=29404)
+✓ Process 28904 assigned to job object
+▶ sub_add_btn_gui.py started (pid=28904)
+✓ Process 29980 assigned to job object
+▶ sub_area_scan_setting_gui.py started (pid=29980)
+✓ Process 31060 assigned to job object
+▶ sub_connect_config_gui.py started (pid=31060)
+✓ Process 31740 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=31740)
+✓ Process 32048 assigned to job object
+
+▶ sub_fine_align_setting_gui.py started (pid=32048)
+✓ Process 32932 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=32932)
+✓ Process 33948 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=33948)
+✓ Windows Job Object created for process tree management
+✓ Console close handler registered
+✓ Process 35368 assigned to job object
+▶ camera_gui.py started (pid=35368)
+⏹ camera_gui.py exited (rc=0)
+✓ Process 32212 assigned to job object
+▶ init_gui.py started (pid=32212)
+✓ Process 37208 assigned to job object
+▶ lib_gui.py started (pid=37208)
+✓ Process 30828 assigned to job object
+▶ main_devices_gui.py started (pid=30828)
+⏹ init_gui.py exited (rc=0)
+✓ Process 23152 assigned to job object
+▶ main_instruments_gui.py started (pid=23152)
+⏹ lib_gui.py exited (rc=0)
+✓ Process 29496 assigned to job object
+▶ main_registration_gui.py started (pid=29496)
+✓ Process 30000 assigned to job object
+▶ main_start_gui.py started (pid=30000)
+✓ Process 30500 assigned to job object
+▶ main_testing_gui.py started (pid=30500)
+✓ Process 29868 assigned to job object
+▶ mainframe_command_gui.py started (pid=29868)
+✓ Process 35560 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=35560)
+✓ Process 20648 assigned to job object
+▶ mainframe_elec_probe_control_gui.py started (pid=20648)
+✓ Process 25252 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=25252)
+✓ Process 28596 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=28596)
+✓ Process 36068 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=36068)
+✓ Process 32020 assigned to job object
+▶ sub_add_btn_gui.py started (pid=32020)
+✓ Process 11708 assigned to job object
+▶ sub_area_scan_setting_gui.py started (pid=11708)
+✓ Process 29652 assigned to job object
+▶ sub_connect_config_gui.py started (pid=29652)
+✓ Process 29848 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=29848)
+✓ Process 27564 assigned to job object
+▶ sub_fine_align_setting_gui.py started (pid=27564)
+✓ Process 31840 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=31840)
+✓ Process 8512 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=8512)
 Welcome To Probe Stage
