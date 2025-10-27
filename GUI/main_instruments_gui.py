@@ -123,13 +123,15 @@ class instruments(App):
             variable_name="instruments_container", left=0, top=0
         )
 
-        for idx, key in enumerate(("stage", "sensor", "tec")):
+        for idx, key in enumerate(("stage", "sensor", "tec", "smu", "motor")):
             # Label
             StyledLabel(
                 container=instruments_container, variable_name=f"label_{key}",
                 text={"stage": "Stage:",
                       "sensor": "Laser / Detector:",
-                      "tec": "TEC:"}[key],
+                      "tec": "TEC:",
+                      "smu": "SMU:",
+                      "motor": "Elec Probe:"}[key],
                 left=0, top=15 + idx * 40, width=150, height=20, font_size=100, color="#444", align="right"
             )
 
@@ -138,7 +140,9 @@ class instruments(App):
                 container=instruments_container,
                 text={"stage": ["stage_control", "stage_B", "stage_C"],
                       "sensor": ["stage_control","laser_B","laser_C"],
-                      "tec": ["stage_control","TEC_B","TEC_C"]}[key],
+                      "tec": ["stage_control","TEC_B","TEC_C"],
+                      "smu": ["stage_control","SMU_B","SMU_C"],
+                      "motor": ["stage_control","motor_B","motor_C"]}[key],
                 variable_name=f"set_{key}", left=160, top=10 + idx * 40, width=180, height=30))
 
             # Configure Button

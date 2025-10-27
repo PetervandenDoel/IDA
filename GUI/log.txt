@@ -1,529 +1,553 @@
-2025-10-02 12:42:31,655 - INFO - Centered spiral completed 6x6 at 4 �m pitch
-2025-10-02 12:42:31,655 - INFO - Centered spiral completed 6x6 at 4 �m pitch
-AreaSweep        INFO     Centered spiral completed 6x6 at 4 �m pitch
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-[Tkinter] Dialog closed
-Done Scan
-Done Scan
+▶ sub_fine_align_setting_gui.py started (pid=11888)
+Welcome To Probe Stage
+✓ Process 35760 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=35760)
+✓ Process 37640 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=37640)
 ✓ Windows Job Object created for process tree management
 ✓ Console close handler registered
-✓ Process 7752 assigned to job object
-▶ camera_gui.py started (pid=7752)
+✓ Process 41128 assigned to job object
+▶ camera_gui.py started (pid=41128)
 ⏹ camera_gui.py exited (rc=0)
-✓ Process 7628 assigned to job object
-▶ init_gui.py started (pid=7628)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 20392 assigned to job object
-▶ lib_gui.py started (pid=20392)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 40640 assigned to job object
-▶ main_devices_gui.py started (pid=40640)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 40596 assigned to job object
-▶ main_instruments_gui.py started (pid=40596)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 18152 assigned to job object
-▶ main_registration_gui.py started (pid=18152)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 27660 assigned to job object
+▶ init_gui.py started (pid=27660)
+✓ Process 29636 assigned to job object
+▶ lib_gui.py started (pid=29636)
+✓ Process 36892 assigned to job object
+▶ main_devices_gui.py started (pid=36892)
 ⏹ init_gui.py exited (rc=0)
-✓ Process 13964 assigned to job object
-▶ main_start_gui.py started (pid=13964)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 42848 assigned to job object
+▶ main_instruments_gui.py started (pid=42848)
 ⏹ lib_gui.py exited (rc=0)
-✓ Process 35864 assigned to job object
-▶ main_testing_gui.py started (pid=35864)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 20852 assigned to job object
-▶ mainframe_command_gui.py started (pid=20852)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 8968 assigned to job object
-▶ mainframe_configuration_gui.py started (pid=8968)
-✓ Process 26632 assigned to job object
-▶ mainframe_sensor_control_gui.py started (pid=26632)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 13592 assigned to job object
-▶ mainframe_stage_control_gui.py started (pid=13592)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 42708 assigned to job object
-▶ mainframe_tec_control_gui.py started (pid=42708)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 35488 assigned to job object
+▶ main_registration_gui.py started (pid=35488)
+✓ Process 35876 assigned to job object
+▶ main_start_gui.py started (pid=35876)
+✓ Process 32388 assigned to job object
+▶ main_testing_gui.py started (pid=32388)
+✓ Process 34456 assigned to job object
+▶ mainframe_command_gui.py started (pid=34456)
+✓ Process 27692 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=27692)
+✓ Process 34484 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=34484)
+✓ Process 34848 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=34848)
+✓ Process 25104 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=25104)
+✓ Process 34572 assigned to job object
+▶ sub_add_btn_gui.py started (pid=34572)
+✓ Process 24744 assigned to job object
+▶ sub_area_scan_setting_gui.py started (pid=24744)
+Traceback (most recent call last):
+  File "C:\Users\weiji\Desktop\UBC\Porbe_Stage\IDA\GUI\mainframe_stage_control_gui.py", line 7, in <module>
+    from motors.stage_manager import StageManager
+  File "C:\Users\weiji\Desktop\UBC\Porbe_Stage\IDA\motors\stage_manager.py", line 11, in <module>
+    from motors.modern_stage import StageControl as StageController
+ModuleNotFoundError: No module named 'motors.modern_stage'
+✓ Process 34264 assigned to job object
+▶ sub_connect_config_gui.py started (pid=34264)
+⏹ mainframe_stage_control_gui.py exited (rc=1)
+✓ Process 40748 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=40748)
+Welcome To Probe Stage
+✓ Process 35548 assigned to job object
+▶ sub_fine_align_setting_gui.py started (pid=35548)
+✓ Process 988 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=988)
+✓ Process 30988 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=30988)
+No device found!
+No device found!
+No device found!
+✓ Windows Job Object created for process tree management
+✓ Console close handler registered
+✓ Process 36504 assigned to job object
+▶ camera_gui.py started (pid=36504)
+⏹ camera_gui.py exited (rc=0)
+✓ Process 27384 assigned to job object
+▶ init_gui.py started (pid=27384)
+✓ Process 34184 assigned to job object
+▶ lib_gui.py started (pid=34184)
+✓ Process 416 assigned to job object
+▶ main_devices_gui.py started (pid=416)
+⏹ init_gui.py exited (rc=0)
+✓ Process 30904 assigned to job object
+▶ main_instruments_gui.py started (pid=30904)
+⏹ lib_gui.py exited (rc=0)
+✓ Process 41164 assigned to job object
+▶ main_registration_gui.py started (pid=41164)
+✓ Process 10132 assigned to job object
+▶ main_start_gui.py started (pid=10132)
+✓ Process 41604 assigned to job object
+▶ main_testing_gui.py started (pid=41604)
+✓ Process 5420 assigned to job object
+▶ mainframe_command_gui.py started (pid=5420)
+✓ Process 35672 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=35672)
+✓ Process 40064 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=40064)
+✓ Process 37012 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=37012)
+✓ Process 37232 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=37232)
+✓ Process 40008 assigned to job object
+▶ sub_add_btn_gui.py started (pid=40008)
+✓ Process 29576 assigned to job object
+▶ sub_area_scan_setting_gui.py started (pid=29576)
+Traceback (most recent call last):
+  File "C:\Users\weiji\Desktop\UBC\Porbe_Stage\IDA\GUI\mainframe_stage_control_gui.py", line 7, in <module>
+    from motors.stage_manager import StageManager
+  File "C:\Users\weiji\Desktop\UBC\Porbe_Stage\IDA\motors\stage_manager.py", line 11, in <module>
+    from motors.modern_stage import StageControl as StageController
+ModuleNotFoundError: No module named 'motors.modern_stage'
+✓ Process 26576 assigned to job object
+▶ sub_connect_config_gui.py started (pid=26576)
+⏹ mainframe_stage_control_gui.py exited (rc=1)
+✓ Process 33884 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=33884)
+Welcome To Probe Stage
+✓ Process 31108 assigned to job object
+▶ sub_fine_align_setting_gui.py started (pid=31108)
+✓ Process 42904 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=42904)
+✓ Process 12780 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=12780)
+✓ Windows Job Object created for process tree management
+✓ Console close handler registered
+✓ Process 3228 assigned to job object
+▶ camera_gui.py started (pid=3228)
+⏹ camera_gui.py exited (rc=0)
+✓ Process 10092 assigned to job object
+▶ init_gui.py started (pid=10092)
+✓ Process 9288 assigned to job object
+▶ lib_gui.py started (pid=9288)
+✓ Process 5248 assigned to job object
+▶ main_devices_gui.py started (pid=5248)
+✓ Process 26708 assigned to job object
+▶ main_instruments_gui.py started (pid=26708)
+✓ Process 5972 assigned to job object
+▶ main_registration_gui.py started (pid=5972)
+✓ Process 2672 assigned to job object
+▶ main_start_gui.py started (pid=2672)
+⏹ init_gui.py exited (rc=0)
+⏹ lib_gui.py exited (rc=0)
+✓ Process 16424 assigned to job object
+▶ main_testing_gui.py started (pid=16424)
+✓ Process 25828 assigned to job object
+▶ mainframe_command_gui.py started (pid=25828)
+✓ Process 23648 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=23648)
+✓ Process 12396 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=12396)
+✓ Process 27332 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=27332)
+✓ Process 27748 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=27748)
+✓ Process 28380 assigned to job object
+▶ sub_add_btn_gui.py started (pid=28380)
+✓ Process 28024 assigned to job object
+▶ sub_area_scan_setting_gui.py started (pid=28024)
+✓ Process 29020 assigned to job object
+▶ sub_connect_config_gui.py started (pid=29020)
+✓ Process 29752 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=29752)
+✓ Process 30348 assigned to job object
+▶ sub_fine_align_setting_gui.py started (pid=30348)
+Traceback (most recent call last):
+  File "C:\Users\weiji\Desktop\UBC\Porbe_Stage\IDA\GUI\mainframe_stage_control_gui.py", line 7, in <module>
+    from motors.stage_manager import StageManager
+  File "C:\Users\weiji\Desktop\UBC\Porbe_Stage\IDA\motors\stage_manager.py", line 11, in <module>
+    from motors.modern_stage import StageControl as StageController
+ModuleNotFoundError: No module named 'motors.modern_stage'
+⏹ mainframe_stage_control_gui.py exited (rc=1)
+✓ Process 31140 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=31140)
+✓ Process 31500 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=31500)
+Welcome To Probe Stage
+✓ Windows Job Object created for process tree management
+✓ Console close handler registered
+✓ Process 3704 assigned to job object
+▶ camera_gui.py started (pid=3704)
+⏹ camera_gui.py exited (rc=0)
+✓ Process 21148 assigned to job object
+▶ init_gui.py started (pid=21148)
+✓ Process 3784 assigned to job object
+▶ lib_gui.py started (pid=3784)
 ✓ Process 21724 assigned to job object
-▶ sub_add_btn_gui.py started (pid=21724)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 42552 assigned to job object
-▶ sub_area_scan_setting_gui.py started (pid=42552)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 26644 assigned to job object
-▶ sub_connect_config_gui.py started (pid=26644)
-✓ Process 36440 assigned to job object
-▶ sub_data_window_setting_gui.py started (pid=36440)
-✓ Process 39808 assigned to job object
-▶ sub_fine_align_setting_gui.py started (pid=39808)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 32896 assigned to job object
-▶ sub_laser_sweep_setting_gui.py started (pid=32896)
-✓ Process 19244 assigned to job object
-▶ sub_limit_setting_gui.py started (pid=19244)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-Welcome To Probe Stage
-{'velocities': {'X': 2000.0, 'Y': 2000.0, 'Z': 2000.0, 'ROTATION_FIBER': 2000.0, 'ROTATION_CHIP': 2000.0}, 'accelerations': {'X': 100.0, 'Y': 100.0, 'Z': 100.0, 'ROTATION_FIBER': 100.0, 'ROTATION_CHIP': 100.0}, 'position_limits': {'X': (-100000.0, 100000.0), 'Y': (-100000.0, 100000.0), 'Z': (-100000.0, 100000.0), 'ROTATION_FIBER': (-100000.0, 100000.0), 'ROTATION_CHIP': (-100000.0, 100000.0)}, 'position_tolerance': 1.0, 'status_poll_interval': 0.05, 'move_timeout': 30.0, 'driver_types': {'X': 'stage_control', 'Y': 'stage_control', 'Z': 'stage_control', 'ROTATION_FIBER': 'stage_control', 'ROTATION_CHIP': 'stage_control'}}
-motors.stage_manager INFO     Shared memory initialized
-motors.stage_manager INFO     Stage manager started
-motors.stage_manager INFO     Position monitor started
-motors.stage_manager INFO     Axis X initialized successfully
-motors.stage_manager INFO     Axis Y initialized successfully
-motors.stage_manager INFO     Axis Z initialized successfully
-motors.stage_manager ERROR    Position monitor error: dictionary changed size during iteration
-motors.stage_manager INFO     Axis ROTATION_CHIP initialized successfully
-motors.stage_manager INFO     Axis ROTATION_FIBER initialized successfully
-motors.stage_manager INFO     All axes initialized successfully
-Stage Connection Successful
-2025-10-02 12:43:15,942 - INFO - Initializing NIR device...
-NIRManager       INFO     Initializing NIR device...
-2025-10-02 12:43:16,092 - INFO - Connected to NIR device
-NIRManager       INFO     Connected to NIR device
-2025-10-02 12:43:16,114 - INFO - Device configured with current settings
-NIRManager       INFO     Device configured with current settings
-2025-10-02 12:43:16,114 - INFO - NIR initialized successfully
-NIRManager       INFO     NIR initialized successfully
-2025-10-02 12:43:16,123 - INFO - Wavelength set to 1550.0nm
-NIRManager       INFO     Wavelength set to 1550.0nm
-Sensor Connection Successful
-2025-10-02 12:43:16,248 - INFO - Power set to 1.0dBm
-NIRManager       INFO     Power set to 1.0dBm
-Confirm Area Scan Setting: {'pattern': 'crosshair', 'x_size': 20.0, 'x_step': 4.0, 'y_size': 20.0, 'y_step': 4.0, 'plot': 'New'}
-Start Scan
-2025-10-02 12:43:28,626 - INFO - AreaSweep initialized
-AreaSweep        INFO     AreaSweep initialized
-2025-10-02 12:43:28,633 - INFO - Crosshair sweep: cols=5, rows=5, step=(4.0,4.0)
-AreaSweep        INFO     Crosshair sweep: cols=5, rows=5, step=(4.0,4.0)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-### Waiting ###
-[Dialog Process] Starting with PID 26508
-[Dialog Process] Using tkinter for progress display
-[Tkinter] Creating progress dialog...
-[Tkinter] Starting dialog event loop...
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-2025-10-02 12:43:40,116 - INFO - Crosshair sweep completed. Total rows stored: 5
-AreaSweep        INFO     Crosshair sweep completed. Total rows stored: 5
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-Done Scan
-Done Scan
-[Tkinter] Dialog closed
-Confirm Area Scan Setting: {'pattern': 'spiral', 'x_size': 20.0, 'x_step': 4.0, 'y_size': 20.0, 'y_step': 4.0, 'plot': 'New'}
-Start Scan
-2025-10-02 12:43:54,136 - INFO - AreaSweep initialized
-2025-10-02 12:43:54,136 - INFO - AreaSweep initialized
-AreaSweep        INFO     AreaSweep initialized
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-### Waiting ###
-[Dialog Process] Starting with PID 41636
-[Dialog Process] Using tkinter for progress display
-[Tkinter] Creating progress dialog...
-[Tkinter] Starting dialog event loop...
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-2025-10-02 12:44:09,053 - INFO - Centered spiral completed 6x6 at 4 �m pitch
-2025-10-02 12:44:09,053 - INFO - Centered spiral completed 6x6 at 4 �m pitch
-AreaSweep        INFO     Centered spiral completed 6x6 at 4 �m pitch
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-[Tkinter] Dialog closed
-Done Scan
-Done Scan
-✓ Windows Job Object created for process tree management
-✓ Console close handler registered
-✓ Process 20348 assigned to job object
-▶ camera_gui.py started (pid=20348)
-⏹ camera_gui.py exited (rc=0)
-✓ Process 30180 assigned to job object
-▶ init_gui.py started (pid=30180)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 31056 assigned to job object
-▶ lib_gui.py started (pid=31056)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 4952 assigned to job object
-▶ main_devices_gui.py started (pid=4952)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 20636 assigned to job object
-▶ main_instruments_gui.py started (pid=20636)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 32392 assigned to job object
-▶ main_registration_gui.py started (pid=32392)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 34360 assigned to job object
-▶ main_start_gui.py started (pid=34360)
-⏹ init_gui.py exited (rc=0)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 34624 assigned to job object
-▶ main_testing_gui.py started (pid=34624)
+▶ main_devices_gui.py started (pid=21724)
+✓ Process 6516 assigned to job object
+▶ main_instruments_gui.py started (pid=6516)
+✓ Process 8948 assigned to job object
+▶ main_registration_gui.py started (pid=8948)
+✓ Process 16896 assigned to job object
+▶ main_start_gui.py started (pid=16896)
 ⏹ lib_gui.py exited (rc=0)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 28656 assigned to job object
-▶ mainframe_command_gui.py started (pid=28656)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 2072 assigned to job object
-▶ mainframe_configuration_gui.py started (pid=2072)
+⏹ init_gui.py exited (rc=0)
+✓ Process 8864 assigned to job object
+▶ main_testing_gui.py started (pid=8864)
+✓ Process 11588 assigned to job object
+▶ mainframe_command_gui.py started (pid=11588)
+✓ Process 22656 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=22656)
+✓ Process 23144 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=23144)
+✓ Process 23728 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=23728)
+✓ Process 24196 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=24196)
+✓ Process 23672 assigned to job object
+▶ sub_add_btn_gui.py started (pid=23672)
 ✓ Process 25212 assigned to job object
-▶ mainframe_sensor_control_gui.py started (pid=25212)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 41924 assigned to job object
-▶ mainframe_stage_control_gui.py started (pid=41924)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 26544 assigned to job object
-▶ mainframe_tec_control_gui.py started (pid=26544)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 10416 assigned to job object
-▶ sub_add_btn_gui.py started (pid=10416)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 14312 assigned to job object
-▶ sub_area_scan_setting_gui.py started (pid=14312)
-✓ Process 39444 assigned to job object
-▶ sub_connect_config_gui.py started (pid=39444)
-✓ Process 5588 assigned to job object
-▶ sub_data_window_setting_gui.py started (pid=5588)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 26844 assigned to job object
-▶ sub_fine_align_setting_gui.py started (pid=26844)
-✓ Process 34676 assigned to job object
-
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-✓ Process 39364 assigned to job object
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_limit_setting_gui.py started (pid=39364)
-  from pkg_resources import get_distribution, DistributionNotFound
-▶ sub_laser_sweep_setting_gui.py started (pid=34676)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
+▶ sub_area_scan_setting_gui.py started (pid=25212)
+✓ Process 23676 assigned to job object
+▶ sub_connect_config_gui.py started (pid=23676)
+✓ Process 26004 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=26004)
+✓ Process 27112 assigned to job object
+▶ sub_fine_align_setting_gui.py started (pid=27112)
+Traceback (most recent call last):
+  File "C:\Users\weiji\Desktop\UBC\Porbe_Stage\IDA\GUI\mainframe_stage_control_gui.py", line 7, in <module>
+    from motors.stage_manager import StageManager
+  File "C:\Users\weiji\Desktop\UBC\Porbe_Stage\IDA\motors\stage_manager.py", line 11, in <module>
+    from motors.modern_stage import StageControl as StageController
+ModuleNotFoundError: No module named 'motors.modern_stage'
+⏹ mainframe_stage_control_gui.py exited (rc=1)
+✓ Process 27544 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=27544)
+✓ Process 26812 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=26812)
 Welcome To Probe Stage
-{'velocities': {'X': 2000.0, 'Y': 2000.0, 'Z': 2000.0, 'ROTATION_FIBER': 2000.0, 'ROTATION_CHIP': 2000.0}, 'accelerations': {'X': 100.0, 'Y': 100.0, 'Z': 100.0, 'ROTATION_FIBER': 100.0, 'ROTATION_CHIP': 100.0}, 'position_limits': {'X': (-100000.0, 100000.0), 'Y': (-100000.0, 100000.0), 'Z': (-100000.0, 100000.0), 'ROTATION_FIBER': (-100000.0, 100000.0), 'ROTATION_CHIP': (-100000.0, 100000.0)}, 'position_tolerance': 1.0, 'status_poll_interval': 0.05, 'move_timeout': 30.0, 'driver_types': {'X': 'stage_control', 'Y': 'stage_control', 'Z': 'stage_control', 'ROTATION_FIBER': 'stage_control', 'ROTATION_CHIP': 'stage_control'}}
-motors.stage_manager INFO     Shared memory initialized
-motors.stage_manager INFO     Stage manager started
-motors.stage_manager INFO     Position monitor started
-motors.stage_manager INFO     Axis X initialized successfully
-motors.stage_manager INFO     Axis Y initialized successfully
-motors.stage_manager INFO     Axis Z initialized successfully
-motors.stage_manager ERROR    Position monitor error: dictionary changed size during iteration
-motors.stage_manager INFO     Axis ROTATION_CHIP initialized successfully
-motors.stage_manager INFO     Axis ROTATION_FIBER initialized successfully
-motors.stage_manager INFO     All axes initialized successfully
-Stage Connection Successful
-2025-10-02 12:48:02,851 - INFO - Initializing NIR device...
-NIRManager       INFO     Initializing NIR device...
-2025-10-02 12:48:03,007 - INFO - Connected to NIR device
-NIRManager       INFO     Connected to NIR device
-2025-10-02 12:48:03,026 - INFO - Device configured with current settings
-NIRManager       INFO     Device configured with current settings
-2025-10-02 12:48:03,027 - INFO - NIR initialized successfully
-NIRManager       INFO     NIR initialized successfully
-2025-10-02 12:48:03,045 - INFO - Wavelength set to 1550.0nm
-NIRManager       INFO     Wavelength set to 1550.0nm
-Sensor Connection Successful
-2025-10-02 12:48:03,152 - INFO - Power set to 1.0dBm
-NIRManager       INFO     Power set to 1.0dBm
-Confirm Area Scan Setting: {'pattern': 'crosshair', 'x_size': 20.0, 'x_step': 4.0, 'y_size': 20.0, 'y_step': 4.0, 'plot': 'New'}
-Start Scan
-2025-10-02 12:48:14,276 - INFO - AreaSweep initialized
-AreaSweep        INFO     AreaSweep initialized
-2025-10-02 12:48:14,284 - INFO - Crosshair sweep: cols=5, rows=5, step=(4.0,4.0)
-AreaSweep        INFO     Crosshair sweep: cols=5, rows=5, step=(4.0,4.0)
-### Waiting ###
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-### Waiting ###
-[Dialog Process] Starting with PID 40136
-[Dialog Process] Using tkinter for progress display
-[Tkinter] Creating progress dialog...
-[Tkinter] Starting dialog event loop...
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-2025-10-02 12:48:26,109 - INFO - Crosshair sweep completed. Total rows stored: 5
-AreaSweep        INFO     Crosshair sweep completed. Total rows stored: 5
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-Done Scan
-Done Scan
-[Tkinter] Dialog closed
 ✓ Windows Job Object created for process tree management
 ✓ Console close handler registered
-✓ Process 24948 assigned to job object
-▶ camera_gui.py started (pid=24948)
+✓ Process 22980 assigned to job object
+▶ camera_gui.py started (pid=22980)
 ⏹ camera_gui.py exited (rc=0)
-✓ Process 20040 assigned to job object
-▶ init_gui.py started (pid=20040)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 6348 assigned to job object
-▶ lib_gui.py started (pid=6348)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 23848 assigned to job object
-▶ main_devices_gui.py started (pid=23848)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 29660 assigned to job object
-▶ main_instruments_gui.py started (pid=29660)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 27524 assigned to job object
-▶ main_registration_gui.py started (pid=27524)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 22964 assigned to job object
+▶ init_gui.py started (pid=22964)
+✓ Process 27400 assigned to job object
+▶ lib_gui.py started (pid=27400)
+✓ Process 24072 assigned to job object
+▶ main_devices_gui.py started (pid=24072)
+✓ Process 24608 assigned to job object
+▶ main_instruments_gui.py started (pid=24608)
 ⏹ init_gui.py exited (rc=0)
-✓ Process 18536 assigned to job object
-▶ main_start_gui.py started (pid=18536)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 28760 assigned to job object
+▶ main_registration_gui.py started (pid=28760)
 ⏹ lib_gui.py exited (rc=0)
-✓ Process 19376 assigned to job object
-▶ main_testing_gui.py started (pid=19376)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 22272 assigned to job object
-▶ mainframe_command_gui.py started (pid=22272)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 37932 assigned to job object
-▶ mainframe_configuration_gui.py started (pid=37932)
-✓ Process 36976 assigned to job object
-▶ mainframe_sensor_control_gui.py started (pid=36976)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 22044 assigned to job object
-▶ mainframe_stage_control_gui.py started (pid=22044)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 29924 assigned to job object
-▶ mainframe_tec_control_gui.py started (pid=29924)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 21804 assigned to job object
-▶ sub_add_btn_gui.py started (pid=21804)
-✓ Process 36268 assigned to job object
-▶ sub_area_scan_setting_gui.py started (pid=36268)
-✓ Process 3724 assigned to job object
-▶ sub_connect_config_gui.py started (pid=3724)
-✓ Process 38456 assigned to job object
-▶ sub_data_window_setting_gui.py started (pid=38456)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 18660 assigned to job object
-▶ sub_fine_align_setting_gui.py started (pid=18660)
-✓ Process 28152 assigned to job object
-▶ sub_laser_sweep_setting_gui.py started (pid=28152)
-✓ Process 4688 assigned to job object
-▶ sub_limit_setting_gui.py started (pid=4688)
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-Welcome To Probe Stage
-{'velocities': {'X': 2000.0, 'Y': 2000.0, 'Z': 2000.0, 'ROTATION_FIBER': 2000.0, 'ROTATION_CHIP': 2000.0}, 'accelerations': {'X': 100.0, 'Y': 100.0, 'Z': 100.0, 'ROTATION_FIBER': 100.0, 'ROTATION_CHIP': 100.0}, 'position_limits': {'X': (-100000.0, 100000.0), 'Y': (-100000.0, 100000.0), 'Z': (-100000.0, 100000.0), 'ROTATION_FIBER': (-100000.0, 100000.0), 'ROTATION_CHIP': (-100000.0, 100000.0)}, 'position_tolerance': 1.0, 'status_poll_interval': 0.05, 'move_timeout': 30.0, 'driver_types': {'X': 'stage_control', 'Y': 'stage_control', 'Z': 'stage_control', 'ROTATION_FIBER': 'stage_control', 'ROTATION_CHIP': 'stage_control'}}
-motors.stage_manager INFO     Shared memory initialized
-motors.stage_manager INFO     Stage manager started
-motors.stage_manager INFO     Position monitor started
-motors.stage_manager INFO     Axis X initialized successfully
-motors.stage_manager INFO     Axis Y initialized successfully
-motors.stage_manager INFO     Axis Z initialized successfully
-motors.stage_manager ERROR    Position monitor error: dictionary changed size during iteration
-motors.stage_manager INFO     Axis ROTATION_CHIP initialized successfully
-motors.stage_manager INFO     Axis ROTATION_FIBER initialized successfully
-motors.stage_manager INFO     All axes initialized successfully
-Stage Connection Successful
-2025-10-02 12:52:05,425 - INFO - Initializing NIR device...
-NIRManager       INFO     Initializing NIR device...
-2025-10-02 12:52:05,578 - INFO - Connected to NIR device
-NIRManager       INFO     Connected to NIR device
-2025-10-02 12:52:05,597 - INFO - Device configured with current settings
-NIRManager       INFO     Device configured with current settings
-2025-10-02 12:52:05,597 - INFO - NIR initialized successfully
-NIRManager       INFO     NIR initialized successfully
-2025-10-02 12:52:05,610 - INFO - Wavelength set to 1550.0nm
-NIRManager       INFO     Wavelength set to 1550.0nm
-Sensor Connection Successful
-2025-10-02 12:52:05,724 - INFO - Power set to 1.0dBm
-NIRManager       INFO     Power set to 1.0dBm
-Confirm Area Scan Setting: {'pattern': 'crosshair', 'x_size': 20.0, 'x_step': 4.0, 'y_size': 20.0, 'y_step': 4.0, 'plot': 'New'}
-Start Scan
-2025-10-02 12:52:21,998 - INFO - AreaSweep initialized
-AreaSweep        INFO     AreaSweep initialized
-2025-10-02 12:52:22,004 - INFO - Crosshair sweep: cols=5, rows=5, step=(4.0,4.0)
-AreaSweep        INFO     Crosshair sweep: cols=5, rows=5, step=(4.0,4.0)
-### Waiting ###
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-### Waiting ###
-[Dialog Process] Starting with PID 28844
-[Dialog Process] Using tkinter for progress display
-[Tkinter] Creating progress dialog...
-[Tkinter] Starting dialog event loop...
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-2025-10-02 12:52:34,430 - INFO - Crosshair sweep completed. Total rows stored: 5
-AreaSweep        INFO     Crosshair sweep completed. Total rows stored: 5
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-[Tkinter] Dialog closed
-Confirm Area Scan Setting: {'pattern': 'spiral', 'x_size': 20.0, 'x_step': 5.0, 'y_size': 20.0, 'y_step': 5.0, 'plot': 'New'}
-Start Scan
-2025-10-02 12:52:59,383 - INFO - AreaSweep initialized
-2025-10-02 12:52:59,383 - INFO - AreaSweep initialized
-AreaSweep        INFO     AreaSweep initialized
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-### Waiting ###
-[Dialog Process] Starting with PID 2320
-[Dialog Process] Using tkinter for progress display
-[Tkinter] Creating progress dialog...
-[Tkinter] Starting dialog event loop...
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-### Waiting ###
-2025-10-02 12:53:09,977 - INFO - Centered spiral completed 5x5 at 5 �m pitch
-2025-10-02 12:53:09,977 - INFO - Centered spiral completed 5x5 at 5 �m pitch
-AreaSweep        INFO     Centered spiral completed 5x5 at 5 �m pitch
-C:\Users\347\Desktop\Probe_Stage\.venv\lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-[Tkinter] Dialog closed
-Process Process-4:
-Traceback (most recent call last):
-  File "C:\Users\347\AppData\Local\Programs\Python\Python39\lib\multiprocessing\process.py", line 315, in _bootstrap
-    self.run()
-  File "C:\Users\347\AppData\Local\Programs\Python\Python39\lib\multiprocessing\process.py", line 108, in run
-    self._target(*self._args, **self._kwargs)
-  File "C:\Users\347\Desktop\Probe_Stage\Probe_Stage\GUI\lib_gui.py", line 699, in heat_map
-    print(f"\u2705 Saved heatmap figure: {fig_path}")
-  File "C:\Users\347\AppData\Local\Programs\Python\Python39\lib\encodings\cp1252.py", line 19, in encode
-    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
-UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 0: character maps to <undefined>
-Done Scan
+✓ Process 27912 assigned to job object
+▶ main_start_gui.py started (pid=27912)
+✓ Process 29468 assigned to job object
+▶ main_testing_gui.py started (pid=29468)
+✓ Process 29688 assigned to job object
+▶ mainframe_command_gui.py started (pid=29688)
+✓ Process 34496 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=34496)
+✓ Process 9336 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=9336)
 
-Done Scan
-Process Process-2:
-Traceback (most recent call last):
-  File "C:\Users\347\AppData\Local\Programs\Python\Python39\lib\multiprocessing\process.py", line 315, in _bootstrap
-    self.run()
-  File "C:\Users\347\AppData\Local\Programs\Python\Python39\lib\multiprocessing\process.py", line 108, in run
-    self._target(*self._args, **self._kwargs)
-  File "C:\Users\347\Desktop\Probe_Stage\Probe_Stage\GUI\lib_gui.py", line 699, in heat_map
-    print(f"\u2705 Saved heatmap figure: {fig_path}")
-  File "C:\Users\347\AppData\Local\Programs\Python\Python39\lib\encodings\cp1252.py", line 19, in encode
-    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
-UnicodeEncodeError: 'charmap' codec can't encode character '\u2705' in position 0: character maps to <undefined>
-Done Scan
-Done Scan
-2025-10-02 12:57:54,132 - INFO - Disconnected from NIR device
-NIRManager       INFO     Disconnected from NIR device
-Sensor Disconnected
-C:\Users\347\Desktop\Probe_Stage\Probe_Stage\GUI\mainframe_stage_control_gui.py:301: RuntimeWarning: coroutine 'StageManager.shutdown' was never awaited
-  self.stage_manager.shutdown()
-RuntimeWarning: Enable tracemalloc to get the object allocation traceback
-Stage Disconnected
-2025-10-02 12:57:55,001 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-10-02 12:57:56,019 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-10-02 12:57:57,020 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
-2025-10-02 12:57:58,036 - ERROR - Controller not connected
-NIRManager       ERROR    Controller not connected
+✓ Process 7288 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=7288)
+✓ Process 26032 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=26032)
+✓ Process 17592 assigned to job object
+▶ sub_add_btn_gui.py started (pid=17592)
+✓ Process 13980 assigned to job object
+▶ sub_area_scan_setting_gui.py started (pid=13980)
+✓ Process 30132 assigned to job object
+▶ sub_connect_config_gui.py started (pid=30132)
+✓ Process 29256 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=29256)
+✓ Process 25196 assigned to job object
+▶ sub_fine_align_setting_gui.py started (pid=25196)
+✓ Process 28472 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=28472)
+✓ Process 29808 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=29808)
+Welcome To Probe Stage
+✓ Windows Job Object created for process tree management
+✓ Console close handler registered
+✓ Process 2068 assigned to job object
+▶ camera_gui.py started (pid=2068)
+⏹ camera_gui.py exited (rc=0)
+✓ Process 8832 assigned to job object
+▶ init_gui.py started (pid=8832)
+✓ Process 8212 assigned to job object
+▶ lib_gui.py started (pid=8212)
+✓ Process 35216 assigned to job object
+▶ main_devices_gui.py started (pid=35216)
+✓ Process 23264 assigned to job object
+▶ main_instruments_gui.py started (pid=23264)
+⏹ init_gui.py exited (rc=0)
+⏹ lib_gui.py exited (rc=0)
+✓ Process 22728 assigned to job object
+▶ main_registration_gui.py started (pid=22728)
+✓ Process 21776 assigned to job object
+▶ main_start_gui.py started (pid=21776)
+✓ Process 34184 assigned to job object
+▶ main_testing_gui.py started (pid=34184)
+✓ Process 13016 assigned to job object
+▶ mainframe_command_gui.py started (pid=13016)
+✓ Process 13244 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=13244)
+✓ Process 20572 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=20572)
+✓ Process 7220 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=7220)
+✓ Process 29572 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=29572)
+✓ Process 24836 assigned to job object
+▶ sub_add_btn_gui.py started (pid=24836)
+✓ Process 24284 assigned to job object
+▶ sub_area_scan_setting_gui.py started (pid=24284)
+✓ Process 25732 assigned to job object
+▶ sub_connect_config_gui.py started (pid=25732)
+✓ Process 30920 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=30920)
+✓ Process 17160 assigned to job object
+▶ sub_fine_align_setting_gui.py started (pid=17160)
+✓ Process 20360 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=20360)
+✓ Process 24152 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=24152)
+Welcome To Probe Stage
+✓ Windows Job Object created for process tree management
+✓ Console close handler registered
+✓ Process 26488 assigned to job object
+▶ camera_gui.py started (pid=26488)
+⏹ camera_gui.py exited (rc=0)
+✓ Process 12892 assigned to job object
+▶ init_gui.py started (pid=12892)
+✓ Process 29636 assigned to job object
+▶ lib_gui.py started (pid=29636)
+✓ Process 24684 assigned to job object
+▶ main_devices_gui.py started (pid=24684)
+✓ Process 10172 assigned to job object
+▶ main_instruments_gui.py started (pid=10172)
+⏹ init_gui.py exited (rc=0)
+✓ Process 4016 assigned to job object
+▶ main_registration_gui.py started (pid=4016)
+⏹ lib_gui.py exited (rc=0)
+✓ Process 22612 assigned to job object
+▶ main_start_gui.py started (pid=22612)
+✓ Process 26248 assigned to job object
+▶ main_testing_gui.py started (pid=26248)
+✓ Process 30508 assigned to job object
+▶ mainframe_command_gui.py started (pid=30508)
+✓ Process 17292 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=17292)
+✓ Process 20676 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=20676)
+✓ Process 15420 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=15420)
+✓ Process 2168 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=2168)
+✓ Process 24560 assigned to job object
+▶ sub_add_btn_gui.py started (pid=24560)
+✓ Process 13532 assigned to job object
+▶ sub_area_scan_setting_gui.py started (pid=13532)
+✓ Process 29348 assigned to job object
+▶ sub_connect_config_gui.py started (pid=29348)
+✓ Process 30100 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=30100)
+✓ Process 20892 assigned to job object
+▶ sub_fine_align_setting_gui.py started (pid=20892)
+✓ Process 12972 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=12972)
+✓ Process 27448 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=27448)
+Welcome To Probe Stage
+No device found!
+✓ Windows Job Object created for process tree management
+✓ Console close handler registered
+✓ Process 3912 assigned to job object
+▶ camera_gui.py started (pid=3912)
+⏹ camera_gui.py exited (rc=0)
+✓ Process 18348 assigned to job object
+▶ init_gui.py started (pid=18348)
+✓ Process 11212 assigned to job object
+▶ lib_gui.py started (pid=11212)
+✓ Process 26592 assigned to job object
+▶ main_devices_gui.py started (pid=26592)
+⏹ init_gui.py exited (rc=0)
+✓ Process 37616 assigned to job object
+▶ main_instruments_gui.py started (pid=37616)
+⏹ lib_gui.py exited (rc=0)
+✓ Process 21784 assigned to job object
+▶ main_registration_gui.py started (pid=21784)
+✓ Process 23656 assigned to job object
+▶ main_start_gui.py started (pid=23656)
+✓ Process 8240 assigned to job object
+▶ main_testing_gui.py started (pid=8240)
+✓ Process 26492 assigned to job object
+▶ mainframe_command_gui.py started (pid=26492)
+✓ Process 29472 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=29472)
+✓ Process 22372 assigned to job object
+▶ mainframe_elec_probe_control_gui.py started (pid=22372)
+✓ Process 37336 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=37336)
+✓ Process 31876 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=31876)
+✓ Process 18892 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=18892)
+✓ Process 10156 assigned to job object
+▶ sub_add_btn_gui.py started (pid=10156)
+✓ Process 31328 assigned to job object
+▶ sub_area_scan_setting_gui.py started (pid=31328)
+✓ Process 5756 assigned to job object
+▶ sub_connect_config_gui.py started (pid=5756)
+✓ Process 27724 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=27724)
+✓ Process 36400 assigned to job object
+▶ sub_fine_align_setting_gui.py started (pid=36400)
+✓ Process 12820 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=12820)
+✓ Process 36956 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=36956)
+Welcome To Probe Stage
+✓ Windows Job Object created for process tree management
+✓ Console close handler registered
+✓ Process 25080 assigned to job object
+▶ camera_gui.py started (pid=25080)
+⏹ camera_gui.py exited (rc=0)
+✓ Process 36124 assigned to job object
+▶ init_gui.py started (pid=36124)
+✓ Process 23420 assigned to job object
+▶ lib_gui.py started (pid=23420)
+✓ Process 29312 assigned to job object
+▶ main_devices_gui.py started (pid=29312)
+⏹ init_gui.py exited (rc=0)
+✓ Process 3952 assigned to job object
+▶ main_instruments_gui.py started (pid=3952)
+⏹ lib_gui.py exited (rc=0)
+✓ Process 16148 assigned to job object
+▶ main_registration_gui.py started (pid=16148)
+✓ Process 26892 assigned to job object
+▶ main_start_gui.py started (pid=26892)
+✓ Process 25160 assigned to job object
+▶ main_testing_gui.py started (pid=25160)
+✓ Process 8376 assigned to job object
+▶ mainframe_command_gui.py started (pid=8376)
+✓ Process 13616 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=13616)
+✓ Process 22748 assigned to job object
+▶ mainframe_elec_probe_control_gui.py started (pid=22748)
+✓ Process 12988 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=12988)
+✓ Process 9040 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=9040)
+✓ Process 36728 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=36728)
+✓ Process 28336 assigned to job object
+▶ sub_add_btn_gui.py started (pid=28336)
+✓ Process 27344 assigned to job object
+▶ sub_area_scan_setting_gui.py started (pid=27344)
+✓ Process 20904 assigned to job object
+▶ sub_connect_config_gui.py started (pid=20904)
+✓ Process 36776 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=36776)
+✓ Process 3024 assigned to job object
+▶ sub_fine_align_setting_gui.py started (pid=3024)
+✓ Process 9272 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=9272)
+✓ Process 4920 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=4920)
+Welcome To Probe Stage
+✓ Windows Job Object created for process tree management
+✓ Console close handler registered
+✓ Process 17280 assigned to job object
+▶ camera_gui.py started (pid=17280)
+⏹ camera_gui.py exited (rc=0)
+✓ Process 12352 assigned to job object
+▶ init_gui.py started (pid=12352)
+✓ Process 7700 assigned to job object
+▶ lib_gui.py started (pid=7700)
+✓ Process 4120 assigned to job object
+▶ main_devices_gui.py started (pid=4120)
+✓ Process 27456 assigned to job object
+▶ main_instruments_gui.py started (pid=27456)
+✓ Process 25620 assigned to job object
+▶ main_registration_gui.py started (pid=25620)
+✓ Process 14140 assigned to job object
+▶ main_start_gui.py started (pid=14140)
+⏹ init_gui.py exited (rc=0)
+⏹ lib_gui.py exited (rc=0)
+✓ Process 11752 assigned to job object
+▶ main_testing_gui.py started (pid=11752)
+✓ Process 14044 assigned to job object
+▶ mainframe_command_gui.py started (pid=14044)
+✓ Process 8948 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=8948)
+✓ Process 23868 assigned to job object
+▶ mainframe_elec_probe_control_gui.py started (pid=23868)
+✓ Process 8984 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=8984)
+✓ Process 28768 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=28768)
+✓ Process 29404 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=29404)
+✓ Process 28904 assigned to job object
+▶ sub_add_btn_gui.py started (pid=28904)
+✓ Process 29980 assigned to job object
+▶ sub_area_scan_setting_gui.py started (pid=29980)
+✓ Process 31060 assigned to job object
+▶ sub_connect_config_gui.py started (pid=31060)
+✓ Process 31740 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=31740)
+✓ Process 32048 assigned to job object
+
+▶ sub_fine_align_setting_gui.py started (pid=32048)
+✓ Process 32932 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=32932)
+✓ Process 33948 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=33948)
+✓ Windows Job Object created for process tree management
+✓ Console close handler registered
+✓ Process 35368 assigned to job object
+▶ camera_gui.py started (pid=35368)
+⏹ camera_gui.py exited (rc=0)
+✓ Process 32212 assigned to job object
+▶ init_gui.py started (pid=32212)
+✓ Process 37208 assigned to job object
+▶ lib_gui.py started (pid=37208)
+✓ Process 30828 assigned to job object
+▶ main_devices_gui.py started (pid=30828)
+⏹ init_gui.py exited (rc=0)
+✓ Process 23152 assigned to job object
+▶ main_instruments_gui.py started (pid=23152)
+⏹ lib_gui.py exited (rc=0)
+✓ Process 29496 assigned to job object
+▶ main_registration_gui.py started (pid=29496)
+✓ Process 30000 assigned to job object
+▶ main_start_gui.py started (pid=30000)
+✓ Process 30500 assigned to job object
+▶ main_testing_gui.py started (pid=30500)
+✓ Process 29868 assigned to job object
+▶ mainframe_command_gui.py started (pid=29868)
+✓ Process 35560 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=35560)
+✓ Process 20648 assigned to job object
+▶ mainframe_elec_probe_control_gui.py started (pid=20648)
+✓ Process 25252 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=25252)
+✓ Process 28596 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=28596)
+✓ Process 36068 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=36068)
+✓ Process 32020 assigned to job object
+▶ sub_add_btn_gui.py started (pid=32020)
+✓ Process 11708 assigned to job object
+▶ sub_area_scan_setting_gui.py started (pid=11708)
+✓ Process 29652 assigned to job object
+▶ sub_connect_config_gui.py started (pid=29652)
+✓ Process 29848 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=29848)
+✓ Process 27564 assigned to job object
+▶ sub_fine_align_setting_gui.py started (pid=27564)
+✓ Process 31840 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=31840)
+✓ Process 8512 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=8512)
+Welcome To Probe Stage

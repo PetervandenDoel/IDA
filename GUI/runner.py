@@ -250,7 +250,6 @@ class LastNFileLogger:
             except PermissionError:
                 _t.sleep(0.05)
         else:
-            # 替换始终失败：回退为追加模式避免卡死
             try:
                 os.remove(tmp)
             except Exception:
