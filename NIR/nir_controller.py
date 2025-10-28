@@ -384,4 +384,4 @@ class NIR8164(LaserHAL):
 # Register driver
 from NIR.hal.nir_factory import register_driver
 
-register_driver("347_NIR", NIR8164)
+register_driver("8164B_NIR", NIR8164)

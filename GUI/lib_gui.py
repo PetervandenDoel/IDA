@@ -145,12 +145,10 @@ class StyledButton(Button):
             "font-size": f"{font_size}%"
         })
 
-        # --- 视觉反馈 ---
         self.onmousedown.do(lambda w,*a: w.style.update(
             {"background-color": self.press_color}))
         def _recover_and_call(w,*a):
             w.style.update({"background-color": self.normal_color})
-            # 后台线程跑业务，避免阻塞 UI
             if hasattr(self, "_user_callback"):
                 threading.Thread(
                     target=self._user_callback,
@@ -164,7 +162,6 @@ class StyledButton(Button):
         if container:
             container.append(self, variable_name)
 
-    # 用户用这个注册真正逻辑
     def do_onclick(self, cb):
         #self._user_callback = cb
         self._user_callback = lambda *_: cb()
