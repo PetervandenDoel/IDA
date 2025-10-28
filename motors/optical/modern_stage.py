@@ -723,4 +723,4 @@ class StageControl(MotorHAL):
 from motors.hal.stage_factory import register_driver
 
 # Register Probe_Stage motor stage
-register_driver("stage_control", StageControl)
+register_driver("MMC100_controller", StageControl)
