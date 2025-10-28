@@ -204,65 +204,65 @@ Set-Location $__origLoc
   # throw "No suitable Python $mm found. Install pyenv-win or the Python $mm runtime."
 # }
 
-# $py = Resolve-Python -mm $PyMM
-# $pyExe  = $py.Exe
-# $pyArgs = $py.Args
+# # $py = Resolve-Python -mm $PyMM
+# # $pyExe  = $py.Exe
+# # $pyArgs = $py.Args
 
-Recreate venv if requested or missing
-# if ($Rebuild -and (Test-Path .\venv)) {
-  # Write-Host "Removing existing venv ..."
-  # Remove-Item -Recurse -Force .\venv
-# }
-# if (-not (Test-Path .\venv)) {
-  # Write-Host "Creating venv with $pyExe $($pyArgs -join ' ') ..."
-  # & $pyExe @($pyArgs + @("-m","venv","venv"))
-# }
+# Recreate venv if requested or missing
+# # if ($Rebuild -and (Test-Path .\venv)) {
+#   # Write-Host "Removing existing venv ..."
+#   # Remove-Item -Recurse -Force .\venv
+# # }
+# # if (-not (Test-Path .\venv)) {
+#   # Write-Host "Creating venv with $pyExe $($pyArgs -join ' ') ..."
+#   # & $pyExe @($pyArgs + @("-m","venv","venv"))
+# # }
 
-Activate
-# $activate = ".\venv\Scripts\Activate.ps1"
-# if (-not (Test-Path $activate)) { throw "Activation script not found at $activate" }
-# . $activate
+# Activate
+# # $activate = ".\venv\Scripts\Activate.ps1"
+# # if (-not (Test-Path $activate)) { throw "Activation script not found at $activate" }
+# # . $activate
 
-Robust pip bootstrap (handle interrupted upgrades)
-# Write-Host "Bootstrapping pip and build tools ..."
-# python -m ensurepip --upgrade
-# python -m pip install --upgrade pip setuptools wheel
+# Robust pip bootstrap (handle interrupted upgrades)
+# # Write-Host "Bootstrapping pip and build tools ..."
+# # python -m ensurepip --upgrade
+# # python -m pip install --upgrade pip setuptools wheel
 
-Install/upgrade pip-tools (for compile & sync)
-# python -m pip install --upgrade pip-tools
+# Install/upgrade pip-tools (for compile & sync)
+# # python -m pip install --upgrade pip-tools
 
-If you want to suppress that pkg_resources deprecation in all children, uncomment:
-$env:PYTHONWARNINGS = "ignore::UserWarning:pkg_resources"
+# If you want to suppress that pkg_resources deprecation in all children, uncomment:
+# $env:PYTHONWARNINGS = "ignore::UserWarning:pkg_resources"
 
-Compile from .in files if present; otherwise, just sync from .txt
-# $compiledAny = $false
+# Compile from .in files if present; otherwise, just sync from .txt
+# # $compiledAny = $false
 
-# if (Test-Path .\requirements.in) {
-  # Write-Host "Compiling requirements.in → requirements.txt ..."
-  # pip-compile --upgrade --generate-hashes requirements.in
-  # $compiledAny = $true
-# }
-# if (Test-Path .\requirements-build.in) {
-  # Write-Host "Compiling requirements-build.in → requirements-build.txt ..."
-  # pip-compile --upgrade --generate-hashes requirements-build.in
-  # $compiledAny = $true
-# }
+# # if (Test-Path .\requirements.in) {
+#   # Write-Host "Compiling requirements.in → requirements.txt ..."
+#   # pip-compile --upgrade --generate-hashes requirements.in
+#   # $compiledAny = $true
+# # }
+# # if (Test-Path .\requirements-build.in) {
+#   # Write-Host "Compiling requirements-build.in → requirements-build.txt ..."
+#   # pip-compile --upgrade --generate-hashes requirements-build.in
+#   # $compiledAny = $true
+# # }
 
-Now sync the environment exactly (this solved your earlier inconsistency)
-# if (Test-Path .\requirements.txt) {
-  # if (Test-Path .\requirements-build.txt) {
-    # Write-Host "Syncing venv to requirements.txt + requirements-build.txt ..."
-    # pip-sync requirements.txt requirements-build.txt
-  # } else {
-    # Write-Host "Syncing venv to requirements.txt ..."
-    # pip-sync requirements.txt
-  # }
-# } elseif ($compiledAny) {
-  Shouldn't happen, but just in case compilation created files in a different path
-  # throw "Compilation ran but requirements.txt not found."
-# } else {
-  # Write-Host "No requirements(.in|.txt) found; venv created with base tools only."
-# }
+# Now sync the environment exactly (this solved your earlier inconsistency)
+# # if (Test-Path .\requirements.txt) {
+#   # if (Test-Path .\requirements-build.txt) {
+#     # Write-Host "Syncing venv to requirements.txt + requirements-build.txt ..."
+#     # pip-sync requirements.txt requirements-build.txt
+#   # } else {
+#     # Write-Host "Syncing venv to requirements.txt ..."
+#     # pip-sync requirements.txt
+#   # }
+# # } elseif ($compiledAny) {
+#   Shouldn't happen, but just in case compilation created files in a different path
+#   # throw "Compilation ran but requirements.txt not found."
+# # } else {
+#   # Write-Host "No requirements(.in|.txt) found; venv created with base tools only."
+# # }
 
-# Write-Host "Done! Using $(python --version)"
-# Write-Host 'To reactivate later: .\venv\Scripts\Activate.ps1'
+# # Write-Host "Done! Using $(python --version)"
+# # Write-Host 'To reactivate later: .\venv\Scripts\Activate.ps1'

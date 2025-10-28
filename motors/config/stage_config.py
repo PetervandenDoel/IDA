@@ -21,6 +21,9 @@ class StageConfiguration:
     status_poll_interval: float = 0.05  # seconds
     move_timeout: float = 30.0  # seconds
 
+    # Connection
+    visa_addr = None
+
     # factory config 
     driver_types: Dict[AxisType, str] = field(default_factory=lambda: {
         AxisType.X: "stage_control",

@@ -151,25 +151,29 @@ w = ctl.inst.write
 # for v, i in zip(voltages, currents):
     # print(f"V = {v:.3f} V, I = {i:.6f} A")
 
-# w('smua.source.output = smua.OUTPUT_OFF')
-w('smua.nvbuffer1.clear()')
-w('smua.nvbuffer1.appendmode=1')
-w('smua.nvbuffer1.collectsourcevalues=1')
-w('smua.nvbuffer1.collecttimestamps=1')
+# # w('smua.source.output = smua.OUTPUT_OFF')
+# w('smua.nvbuffer1.clear()')
+# w('smua.nvbuffer1.appendmode=1')
+# w('smua.nvbuffer1.collectsourcevalues=1')
+# w('smua.nvbuffer1.collecttimestamps=1')
 
-w('SweepVLinMeasureI(smua, 0.001, 1, 0.01, 51)')
-w('waitcomplete()')
-q = ctl.inst.query
-n = int(float(q('print(smua.nvbuffer1.n)')))
-i_csv = q('printbuffer(1, smua.nvbuffer1.n, smua.nvbuffer1.readings)')
-v_csv = q('printbuffer(1, smua.nvbuffer1.n, smua.nvbuffer1.sourcevalues)')
-t_csv = q('printbuffer(1, smua.nvbuffer1.n, smua.nvbuffer1.timestamps)')
+# w('SweepVLinMeasureI(smua, 0.001, 1, 0.01, 51)')
+# w('waitcomplete()')
+# q = ctl.inst.query
+# n = int(float(q('print(smua.nvbuffer1.n)')))
+# i_csv = q('printbuffer(1, smua.nvbuffer1.n, smua.nvbuffer1.readings)')
+# v_csv = q('printbuffer(1, smua.nvbuffer1.n, smua.nvbuffer1.sourcevalues)')
+# t_csv = q('printbuffer(1, smua.nvbuffer1.n, smua.nvbuffer1.timestamps)')
 
-I = [float(x) for x in i_csv.strip().split(',') if x]
-V = [float(x) for x in v_csv.strip().split(',') if x]
-t = [float(x) for x in t_csv.strip().split(',') if x]
+# I = [float(x) for x in i_csv.strip().split(',') if x]
+# V = [float(x) for x in v_csv.strip().split(',') if x]
+# t = [float(x) for x in t_csv.strip().split(',') if x]
 
-for i in range(n):
-    print(f'{i}th row: I:{I[i]} | V:{V[i]} | t:{t[i]}')
+# for i in range(n):
+#     print(f'{i}th row: I:{I[i]} | V:{V[i]} | t:{t[i]}')
 
+res = ctl.iv_sweep(0.0,1.0,0.1,["A", "B"], 'Voltage', "LOG")
+print(res)
+res_n = ctl.iv_sweep_list([0.001, 0.01, 0.1, 0.5, 1], ["A"], 'Voltage')
+print(res_n)
 ctl.disconnect()

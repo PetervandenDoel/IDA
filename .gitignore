@@ -11,3 +11,4 @@ __pycache__/
 GUI/UserData/
 GUI/res/spectral_sweep/
 GUI/log.txt
+GUI/database/shared_memory.json

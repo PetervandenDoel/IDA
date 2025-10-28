@@ -272,5 +272,5 @@ class BSC203Motor(MotorHAL):
         lim = self._limits[axis]
         return lim is not None and self._position[axis] >= lim[1]
 
-from motors.hal.stage_factory import register_driver
-register_driver("BSC203_motor", BSC203Motor)
+from motors.hal.emotor_factory import register_driver
+register_driver("BSC203_emotor", BSC203Motor)
