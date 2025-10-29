@@ -1,548 +1,540 @@
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-
-after configuration in instr 
-✓ Windows Job Object created for process tree management
-✓ Console close handler registered
-✓ Process 30488 assigned to job object
-▶ camera_gui.py started (pid=30488)
-⏹ camera_gui.py exited (rc=0)
-✓ Process 31828 assigned to job object
-▶ init_gui.py started (pid=31828)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 38692 assigned to job object
-▶ lib_gui.py started (pid=38692)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 17896 assigned to job object
-▶ main_devices_gui.py started (pid=17896)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 28016 assigned to job object
-▶ main_instruments_gui.py started (pid=28016)
-⏹ init_gui.py exited (rc=0)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 12152 assigned to job object
-▶ main_registration_gui.py started (pid=12152)
-✓ Process 11412 assigned to job object
-▶ main_start_gui.py started (pid=11412)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-⏹ lib_gui.py exited (rc=0)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 1408 assigned to job object
-▶ main_testing_gui.py started (pid=1408)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 28608 assigned to job object
-▶ mainframe_command_gui.py started (pid=28608)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 32256 assigned to job object
-▶ mainframe_configuration_gui.py started (pid=32256)
-✓ Process 35280 assigned to job object
-▶ mainframe_elec_probe_control_gui.py started (pid=35280)
-✓ Process 39328 assigned to job object
-▶ mainframe_sensor_control_gui.py started (pid=39328)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 38088 assigned to job object
-▶ mainframe_stage_control_gui.py started (pid=38088)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 44960 assigned to job object
-▶ mainframe_tec_control_gui.py started (pid=44960)
-✓ Process 43448 assigned to job object
-▶ sub_add_btn_gui.py started (pid=43448)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 37204 assigned to job object
-▶ sub_area_scan_setting_gui.py started (pid=37204)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 29304 assigned to job object
-▶ sub_connect_config_gui.py started (pid=29304)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 44088 assigned to job object
-▶ sub_data_window_setting_gui.py started (pid=44088)
-✓ Process 36052 assigned to job object
-▶ sub_fine_align_setting_gui.py started (pid=36052)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 37288 assigned to job object
-▶ sub_laser_sweep_setting_gui.py started (pid=37288)
-✓ Process 24880 assigned to job object
-▶ sub_limit_setting_gui.py started (pid=24880)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-Welcome To Probe Stage
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
 pre conf check
 Configuraiton check: {'stage': 0, 'sensor': 0, 'tec': 0}
-pre conf check
-Configuraiton check: {'stage': 0, 'sensor': 0, 'tec': 0}
-pre conf check
-Configuraiton check: {'stage': 0, 'sensor': 0, 'tec': 0}
-Connection pressed and conf set to Corvus_controller
-lock all instr
-pre conf check
-Configuraiton check: {'stage': 0, 'sensor': 0, 'tec': 0}
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
+Error scanning ports: 'list' object has no attribute 'value'
