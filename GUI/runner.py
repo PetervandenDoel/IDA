@@ -127,6 +127,7 @@ def is_target(p: pathlib.Path) -> bool:
         "mainframe_sensor_control_gui",
         "mainframe_stage_control_gui",
         "mainframe_tec_control_gui",
+        "mainframe_elec_probe_control_gui"
         "sub_add_btn_gui",
         "sub_area_scan_setting_gui",
         "sub_connect_config_gui",

@@ -110,6 +110,7 @@ class stage_control(App):
                 with open(shared_path, "r", encoding="utf-8") as f:
                     print("hello world")
                     data = json.load(f)
+                    print(data)
                     self.user = data.get("User", "")
                     self.project = data.get("Project", "")
                     self.limit = data.get("Limit", {})
@@ -271,7 +272,7 @@ class stage_control(App):
         file.save()
 
     def after_configuration(self):
-        print("Surely I am here")
+        print('Is this being run')
         if self.configuration["stage"] != "" and self.configuration_stage == 0 and self.configuration_check[
             "stage"] == 0:
             self.gds = lib_coordinates.coordinates(("./res/" + filename), read_file=False,
@@ -290,17 +291,15 @@ class stage_control(App):
             self.configure.driver_types[AxisType.Z] = self.configuration["stage"]
             self.configure.driver_types[AxisType.ROTATION_CHIP] = self.configuration["stage"]
             self.configure.driver_types[AxisType.ROTATION_FIBER] = self.configuration["stage"]
-            print('Hello')
+            import re
+            numb = re.findall(r"\d+", self.port["stage"])[0]
+
             if self.port["stage"][0] != 'A':
                 # Not in visa format
-                import re
-                numb = re.findall(r"\d+", self.port["stage"])[0]
                 self.configure.visa_addr = f'ASRL{numb}::INSTR'
-                print('Hello ?')
             else:
                 self.configure.visa_addr = self.port["stage"]
-                print('hi')
-            self.stage_manager = StageManager(self.configure, create_shm=True, port=self.port["stage"])
+            self.stage_manager = StageManager(self.configure, create_shm=True, port=numb)
             asyncio.run_coroutine_threadsafe(
                 self.stage_manager.startup(),
                 main_loop

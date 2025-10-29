@@ -66,9 +66,9 @@ class CorvusController(MotorHAL):
         axis: AxisType,
         enabled_axes: list[AxisType] = [ax for ax in AXIS_MAPPING.keys()],
         visa_address: str = 'ASRL7::INSTR',
-        default_velocity_um_s: float = 5000.0,
-        default_acceleration_um_s2: float = 20000.0,
-        position_limits_um: Tuple[float, float] = (-50000.0, 50000.0),
+        velocity: float = 5000.0,
+        acceleration: float = 20000.0,
+        position_limits: Tuple[float, float] = (-50000.0, 50000.0),
         step_size: Optional[Dict[str, float]] = None,
         status_poll_interval: float = 0.05,
         enable_closed_loop: bool = True,
@@ -81,9 +81,9 @@ class CorvusController(MotorHAL):
             axis: The axis THIS instance controls (X, Y, or Z)
             enabled_axes: ALL axes physically connected on the controller
             visa_address: VISA resource string (e.g., 'ASRL3::INSTR')
-            default_velocity_um_s: Default velocity in µm/s
-            default_acceleration_um_s2: Default acceleration in µm/s²
-            position_limits_um: Software limits (min, max) in µm
+            velocity: Default velocity in µm/s
+            acceleration: Default acceleration in µm/s²
+            position_limits: Software limits (min, max) in µm
             step_size: Step sizes per axis (optional)
             status_poll_interval: Motion status polling period in seconds
             enable_closed_loop: Enable encoder closed-loop control
@@ -114,9 +114,9 @@ class CorvusController(MotorHAL):
 
         # Configuration
         self._addr = visa_address
-        self._vel = float(default_velocity_um_s)
-        self._acc = float(default_acceleration_um_s2)
-        self._limits = position_limits_um
+        self._vel = float(velocity)
+        self._acc = float(acceleration)
+        self._limits = position_limits
         self._poll_dt = status_poll_interval
         self._closed_loop = enable_closed_loop
         
@@ -503,7 +503,6 @@ class CorvusController(MotorHAL):
         self._position_um[axis_idx] = 0.0
         print(f"[CorvusController] Zero position set for {self.axis.name}")
         return True
-
 
 # Register driver with factory
 from motors.hal.stage_factory import register_driver

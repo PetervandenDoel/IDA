@@ -57,7 +57,9 @@
   "Configuration": {
     "stage": "Corvus_controller",
     "sensor": "",
-    "tec": ""
+    "tec": "",
+    "smu": "",
+    "motor": ""
   },
   "Configuration_check": {
     "stage": 0,
@@ -65,7 +67,7 @@
     "tec": 0
   },
   "Port": {
-    "stage": 4,
+    "stage": 7,
     "sensor": 20,
     "tec": 3
   },

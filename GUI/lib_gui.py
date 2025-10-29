@@ -523,7 +523,7 @@ class File():
             "AutoSweep": 0,
             "Configuration": {"stage": "", "sensor": "", "tec": ""},
             "Configuration_check": {"stage": 0, "sensor": 0, "tec": 0},
-            "Port": {"stage": 4, "sensor": 20, "tec": 3},
+            "Port": {"stage": 7, "sensor": 20, "tec": 3},
             "DeviceName": "Default",
             "DeviceNum": 0
         }

@@ -6,7 +6,7 @@ shared_path = os.path.join("database", "shared_memory.json")
 
 class instruments(App):
     def __init__(self, *args, **kwargs):
-        self.configuration = {"stage": "", "sensor": "", "tec": ""}
+        self.configuration = {"stage": "", "sensor": "", "tec": "", "smu": "", "motor": ""}
         self.configuration_check = {}
         self.stage_connect_btn = None
         self.sensor_connect_btn = None
@@ -24,7 +24,6 @@ class instruments(App):
 
     def idle(self):
         self.terminal.terminal_refresh()
-
         try:
             stime = os.path.getmtime(shared_path)
         except FileNotFoundError:
@@ -33,9 +32,12 @@ class instruments(App):
         if stime != self._user_stime:
             self._user_stime = stime
             try:
+                print('pre conf check')
                 with open(shared_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     self.configuration_check = data.get("Configuration_check", {})
+                    print(f'Configuraiton check: {self.configuration_check}')
+                    self.configuration_check = 1
             except Exception as e:
                 print(f"[Warn] read json failed: {e}")
 
@@ -43,6 +45,7 @@ class instruments(App):
 
     def after_configuration(self):
         if self.configuration_check["stage"] == 1:
+            print(1)
             self.stage_connect_btn.set_text("Connect")
             self.configuration_check["stage"] = 0
             self.configuration["stage"] = ""
@@ -100,6 +103,7 @@ class instruments(App):
             self.lock_all(0)
 
     def lock_all(self, value):
+        print('lock all instr')
         enabled = value == 0
         widgets_to_check = [self.instruments_container]
         while widgets_to_check:
@@ -180,6 +184,7 @@ class instruments(App):
     def onclick_stage_connect_btn(self):
         if self.stage_connect_btn.get_text() == "Connect":
             self.configuration["stage"] = self.stage_dd.get_value()
+            print(f"Connection pressed and conf set to {self.configuration['stage']}")
             file = File("shared_memory", "Configuration", self.configuration)
             file.save()
             self.stage_connect_btn.set_text("Connecting")

@@ -21,7 +21,7 @@ Cameron Basara, 2025
 logger = logging.getLogger(__name__)
 
 class StageManager:
-    def __init__(self, config: StageConfiguration, create_shm: bool = True, port: int = 4):
+    def __init__(self, config: StageConfiguration, create_shm: bool = True, port: int = 7):
         # Core components
         self.config = config
         motors.optical.modern_stage._GLOBAL_COM_PORT = f"COM{port}"
