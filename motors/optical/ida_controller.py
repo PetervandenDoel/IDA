@@ -90,7 +90,7 @@ class CorvusController(MotorHAL):
             resource_manager: Existing VISA ResourceManager to reuse (optional)
         """
         super().__init__(axis)
-
+        
         # Dummy axis for connections
         self.dummy_axis = False
         if axis not in (AxisType.X, AxisType.Y, AxisType.Z):
@@ -191,7 +191,7 @@ class CorvusController(MotorHAL):
             axis_values.get('y', 0.0),
             axis_values.get('z', 0.0)
         ]
-        return f"{triplet[0]:.6f} {triplet[1]:.6f} {triplet[2]:.6f}"
+        return f"{triplet[0]:.6f} {triplet[1]:.6f} {(-1)*triplet[2]:.6f}"
 
     async def connect(self) -> bool:
         """
@@ -207,6 +207,7 @@ class CorvusController(MotorHAL):
             print(f"[CorvusController] {self.axis.name} reusing existing connection")
             self._inst = CorvusController._shared_connections[self._addr]
             self._rm = CorvusController._shared_rm.get(self._addr)
+            print(self._inst, self._rm)
             self._connected = True
             return True
         outstr = ("[CorvusController] {self.axis.name} initializing controller for axes:"

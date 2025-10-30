@@ -28,7 +28,16 @@ if xok:
 else:
     print(f'Tsk tsk tsk')
 
-
+stri = (
+    # '|||||||||||||||||||||||'
+    f'X: {vars(cx)}\n'
+    # '|||||||||||||||||||||||'
+    f'Y: {vars(cy)}\n'
+    # '|||||||||||||||||||||||'
+    f'Y: {vars(cz)}\n'
+    # '|||||||||||||||||||||||'
+    )
+# print(stri)
 yok = asyncio.run(cy.connect())
 
 if yok:
@@ -43,26 +52,6 @@ if zok:
 else:
     print(f'Tsk tsk tsk')
 
-# print('Lets try moving the x-axis now...')
-# print('Corvus does not support homing...')
-# xmove = asyncio.run(cx.move_relative(distance=-5000))
-# if xmove:
-#     print(f'Successfully logged a movement: {xmove}')
-# else:
-#     print('Move rel failure for x axis')
-# print('Lets try moving the y-axis now...')
-# ymove = asyncio.run(cy.move_relative(distance=-5000))
-# if ymove:
-#     print(f'Successfully logged a movement: {ymove}')
-# else:
-#     print('Move rel failure for y axis')
-
-# print('Lets try moving the z-axis now...')
-# zmove = asyncio.run(cz.move_relative(distance=-500))
-# if zmove:
-#     print(f'Successfully logged a movement: {zmove}')
-# else:
-#     print('Move rel failure for x axis')
 axs = [cx,cy,cz]
 
 for ax in axs:
@@ -71,7 +60,7 @@ for ax in axs:
 # Z - (-15,000, 15,000)
 # Z safe under [-15,000, 5,000] cannot hit stage here
 # asyncio.run(cz.move_absolute(-10000))
-asyncio.run(cx.move_relative(-9000))
+asyncio.run(cx.move_relative(-1000))
 
 time.sleep(2)
 asyncio.run(cx.disconnect())

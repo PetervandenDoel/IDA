@@ -66,8 +66,8 @@ class StageManager:
         self._is_running = True
         
         # Start position monitoring
-        # if self.create_shm:
-        #     self._position_task = asyncio.create_task(self._position_monitor_loop())
+        if self.create_shm:
+            self._position_task = asyncio.create_task(self._position_monitor_loop())
             
         logger.info("Stage manager started")
 
@@ -120,11 +120,12 @@ class StageManager:
             
             # Add event callback
             motor.add_callback(self._handle_motor_event)
-            
+           
             # Connect motor
             success = await motor.connect()
             if success:
                 self.motors[axis] = motor
+                print(f'manager:\n {vars(motor)}\n')
                 self._last_positions[axis] = 0.0
                 self._homed_axes[axis] = False
                 logger.info(f"Axis {axis.name} initialized successfully")
