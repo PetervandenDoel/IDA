@@ -1,636 +1,624 @@
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 46244 assigned to job object
+▶ main_devices_gui.py started (pid=46244)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 49584 assigned to job object
+▶ main_instruments_gui.py started (pid=49584)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 34216 assigned to job object
+▶ main_registration_gui.py started (pid=34216)
+⏹ lib_gui.py exited (rc=0)
+✓ Process 15316 assigned to job object
+▶ main_start_gui.py started (pid=15316)
+⏹ init_gui.py exited (rc=0)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 42704 assigned to job object
+▶ main_testing_gui.py started (pid=42704)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 41612 assigned to job object
+▶ mainframe_command_gui.py started (pid=41612)
+✓ Process 26700 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=26700)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 26508 assigned to job object
+▶ mainframe_elec_probe_control_gui.py started (pid=26508)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 33532 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=33532)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 28164 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=28164)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 45952 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=45952)
+✓ Process 52596 assigned to job object
+▶ sub_add_btn_gui.py started (pid=52596)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 42336 assigned to job object
+▶ sub_area_scan_setting_gui.py started (pid=42336)
+✓ Process 56592 assigned to job object
+▶ sub_connect_config_gui.py started (pid=56592)
 pre conf check
 Configuraiton check: {'stage': 0, 'sensor': 0, 'tec': 0}
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 1012 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=1012)
+Welcome To Probe Stage
+✓ Process 25036 assigned to job object
+▶ sub_fine_align_setting_gui.py started (pid=25036)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 45360 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=45360)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 50372 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=50372)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+Connection pressed and conf set to MMC100_controller
+lock all instr
+pre conf check
+Configuraiton check: {'stage': 0, 'sensor': 0, 'tec': 0}
+{'velocities': {'X': 2000.0, 'Y': 2000.0, 'Z': 2000.0, 'ROTATION_FIBER': 2000.0, 'ROTATION_CHIP': 2000.0}, 'accelerations': {'X': 100.0, 'Y': 100.0, 'Z': 100.0, 'ROTATION_FIBER': 100.0, 'ROTATION_CHIP': 100.0}, 'position_limits': {'X': (-100000.0, 100000.0), 'Y': (-100000.0, 100000.0), 'Z': (-100000.0, 100000.0), 'ROTATION_FIBER': (-100000.0, 100000.0), 'ROTATION_CHIP': (-100000.0, 100000.0)}, 'position_tolerance': 1.0, 'status_poll_interval': 0.05, 'move_timeout': 30.0, 'driver_types': {'X': 'MMC100_controller', 'Y': 'MMC100_controller', 'Z': 'MMC100_controller', 'ROTATION_FIBER': 'MMC100_controller', 'ROTATION_CHIP': 'MMC100_controller'}}
+motors.stage_manager INFO     Shared memory initialized
+motors.stage_manager INFO     Stage manager started
+motors.stage_manager INFO     Position monitor started
+Connection unsuccessful 'ascii' codec can't decode byte 0xea in position 0: ordinal not in range(128)
+motors.stage_manager ERROR    Failed to connect axis X
+motors.stage_manager INFO     Axis Y initialized successfully
+Connection unsuccessful 'ascii' codec can't decode byte 0xea in position 0: ordinal not in range(128)
+motors.stage_manager ERROR    Failed to connect axis Z
+Position read error: No data received
+Position read error: No data received
+Connection unsuccessful 'ascii' codec can't decode byte 0xea in position 0: ordinal not in range(128)
+motors.stage_manager ERROR    Failed to connect axis ROTATION_CHIP
+Position read error: No data received
+Position read error: No data received
+motors.stage_manager INFO     Axis ROTATION_FIBER initialized successfully
+motors.stage_manager WARNING  Some axes failed to initialize
+pre conf check
+Configuraiton check: {'stage': 1, 'sensor': 0, 'tec': 0}
+Position read error: No data received
+motors.stage_manager ERROR    Position monitor error: dictionary changed size during iteration
+Position read error: No data received
+Position read error: No data received
+Position read error: No data received
+Position read error: No data received
+Position read error: No data received
+Position read error: No data received
+Position read error: No data received
+Position read error: No data received
+Position read error: No data received
+Position read error: No data received
+Position read error: No data received
+Position read error: No data received
+Position read error: No data received
+Position read error: No data received
+Position read error: No data received
+Position read error: No data received
+Position read error: No data received
+Position read error: No data received
+Position read error: No data received
+✓ Windows Job Object created for process tree management
+✓ Console close handler registered
+✓ Process 872 assigned to job object
+▶ camera_gui.py started (pid=872)
+⏹ camera_gui.py exited (rc=0)
+✓ Process 34896 assigned to job object
+▶ init_gui.py started (pid=34896)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 38580 assigned to job object
+▶ lib_gui.py started (pid=38580)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 11856 assigned to job object
+▶ main_devices_gui.py started (pid=11856)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 37088 assigned to job object
+▶ main_instruments_gui.py started (pid=37088)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+⏹ init_gui.py exited (rc=0)
+✓ Process 40112 assigned to job object
+▶ main_registration_gui.py started (pid=40112)
+⏹ lib_gui.py exited (rc=0)
+✓ Process 17976 assigned to job object
+▶ main_start_gui.py started (pid=17976)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 15312 assigned to job object
+▶ main_testing_gui.py started (pid=15312)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 24140 assigned to job object
+▶ mainframe_command_gui.py started (pid=24140)
+✓ Process 48024 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=48024)
+✓ Process 56296 assigned to job object
+▶ mainframe_elec_probe_control_gui.py started (pid=56296)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 37900 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=37900)
+pre conf check
+Configuraiton check: {'stage': 0, 'sensor': 0, 'tec': 0}
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 51748 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=51748)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 53164 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=53164)
+pre conf check
+Configuraiton check: {'stage': 0, 'sensor': 0, 'tec': 0}
+✓ Process 27756 assigned to job object
+▶ sub_add_btn_gui.py started (pid=27756)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 12920 assigned to job object
+▶ sub_area_scan_setting_gui.py started (pid=12920)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 52304 assigned to job object
+▶ sub_connect_config_gui.py started (pid=52304)
+pre conf check
+Configuraiton check: {'stage': 0, 'sensor': 0, 'tec': 0}
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 4180 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=4180)
+✓ Process 23976 assigned to job object
+▶ sub_fine_align_setting_gui.py started (pid=23976)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 47480 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=47480)
+Welcome To Probe Stage
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 48656 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=48656)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+Connection pressed and conf set to Corvus_controller
+lock all instr
+{'velocities': {'X': 2000.0, 'Y': 2000.0, 'Z': 2000.0, 'ROTATION_FIBER': 2000.0, 'ROTATION_CHIP': 2000.0}, 'accelerations': {'X': 100.0, 'Y': 100.0, 'Z': 100.0, 'ROTATION_FIBER': 100.0, 'ROTATION_CHIP': 100.0}, 'position_limits': {'X': (-100000.0, 100000.0), 'Y': (-100000.0, 100000.0), 'Z': (-100000.0, 100000.0), 'ROTATION_FIBER': (-100000.0, 100000.0), 'ROTATION_CHIP': (-100000.0, 100000.0)}, 'position_tolerance': 1.0, 'status_poll_interval': 0.05, 'move_timeout': 30.0, 'driver_types': {'X': 'Corvus_controller', 'Y': 'Corvus_controller', 'Z': 'Corvus_controller', 'ROTATION_FIBER': 'Corvus_controller', 'ROTATION_CHIP': 'Corvus_controller'}}
+motors.stage_manager INFO     Shared memory initialized
+motors.stage_manager INFO     Stage manager started
+motors.stage_manager INFO     Position monitor started
+[CorvusController] {self.axis.name} initializing controller for axes:['X', 'Y', 'Z']
+pre conf check
+Configuraiton check: {'stage': 0, 'sensor': 0, 'tec': 0}
+[CorvusController] Connected: Corvus Eco 1 456 1 200
+[CorvusController] Enabled 3 axes: ['X', 'Y', 'Z']
+[CorvusController] Units set to microns (um)
+[CorvusController] Closed-loop enabled
+[CorvusController] Velocity: 2000.000000 um/s, Accel: 100.000000 um/s2
+motors.stage_manager INFO     Axis X initialized successfully
+[CorvusController] Y reusing existing connection
+motors.stage_manager INFO     Axis Y initialized successfully
+[CorvusController] Z reusing existing connection
+motors.stage_manager INFO     Axis Z initialized successfully
+CorvusController supports X/Y/Z only, got AxisType.ROTATION_CHIP
+AxisType.ROTATION_CHIP is a dummy axis
+[CorvusController] Dummy axis enabled
+motors.stage_manager INFO     Axis ROTATION_CHIP initialized successfully
+CorvusController supports X/Y/Z only, got AxisType.ROTATION_FIBER
+AxisType.ROTATION_FIBER is a dummy axis
+[CorvusController] Dummy axis enabled
+motors.stage_manager INFO     Axis ROTATION_FIBER initialized successfully
+motors.stage_manager INFO     All axes initialized successfully
+pre conf check
+Configuraiton check: {'stage': 2, 'sensor': 0, 'tec': 0}
+✓ Windows Job Object created for process tree management
 
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
-Error scanning ports: 'list' object has no attribute 'value'
+✓ Console close handler registered
+✓ Process 46380 assigned to job object
+▶ camera_gui.py started (pid=46380)
+⏹ camera_gui.py exited (rc=0)
+✓ Process 51812 assigned to job object
+▶ init_gui.py started (pid=51812)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 33396 assigned to job object
+▶ lib_gui.py started (pid=33396)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 52792 assigned to job object
+▶ main_devices_gui.py started (pid=52792)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 57744 assigned to job object
+▶ main_instruments_gui.py started (pid=57744)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+⏹ init_gui.py exited (rc=0)
+✓ Process 31708 assigned to job object
+▶ main_registration_gui.py started (pid=31708)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 40016 assigned to job object
+▶ main_start_gui.py started (pid=40016)
+⏹ lib_gui.py exited (rc=0)
+✓ Process 51776 assigned to job object
+▶ main_testing_gui.py started (pid=51776)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 21316 assigned to job object
+▶ mainframe_command_gui.py started (pid=21316)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 43784 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=43784)
+✓ Process 26952 assigned to job object
+▶ mainframe_elec_probe_control_gui.py started (pid=26952)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 53228 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=53228)
+✓ Process 55312 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=55312)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 50684 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=50684)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 53040 assigned to job object
+▶ sub_add_btn_gui.py started (pid=53040)
+pre conf check
+Configuraiton check: {'stage': 0, 'sensor': 0, 'tec': 0}
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+pre conf check
+Configuraiton check: {'stage': 0, 'sensor': 0, 'tec': 0}
+✓ Process 56092 assigned to job object
+▶ sub_area_scan_setting_gui.py started (pid=56092)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 1964 assigned to job object
+▶ sub_connect_config_gui.py started (pid=1964)
+pre conf check
+Configuraiton check: {'stage': 0, 'sensor': 0, 'tec': 0}
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 42236 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=42236)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 49880 assigned to job object
+▶ sub_fine_align_setting_gui.py started (pid=49880)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 46196 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=46196)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 42004 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=42004)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+Welcome To Probe Stage
+Connection pressed and conf set to Corvus_controller
+[Warn] read json failed: [Errno 13] Permission denied: 'database\\shared_memory.json'
+lock all instr
+pre conf check
+Configuraiton check: {'stage': 0, 'sensor': 0, 'tec': 0}
+{'velocities': {'X': 2000.0, 'Y': 2000.0, 'Z': 2000.0, 'ROTATION_FIBER': 2000.0, 'ROTATION_CHIP': 2000.0}, 'accelerations': {'X': 100.0, 'Y': 100.0, 'Z': 100.0, 'ROTATION_FIBER': 100.0, 'ROTATION_CHIP': 100.0}, 'position_limits': {'X': (-100000.0, 100000.0), 'Y': (-100000.0, 100000.0), 'Z': (-100000.0, 100000.0), 'ROTATION_FIBER': (-100000.0, 100000.0), 'ROTATION_CHIP': (-100000.0, 100000.0)}, 'position_tolerance': 1.0, 'status_poll_interval': 0.05, 'move_timeout': 30.0, 'driver_types': {'X': 'Corvus_controller', 'Y': 'Corvus_controller', 'Z': 'Corvus_controller', 'ROTATION_FIBER': 'Corvus_controller', 'ROTATION_CHIP': 'Corvus_controller'}}
+motors.stage_manager INFO     Shared memory initialized
+motors.stage_manager INFO     Stage manager started
+[CorvusController] {self.axis.name} initializing controller for axes:['X', 'Y', 'Z']
+[CorvusController] Connected: Corvus Eco 1 456 1 200
+[CorvusController] Enabled 3 axes: ['X', 'Y', 'Z']
+[CorvusController] Units set to microns (um)
+[CorvusController] Closed-loop enabled
+[CorvusController] Velocity: 2000.000000 um/s, Accel: 100.000000 um/s2
+motors.stage_manager INFO     Axis X initialized successfully
+[CorvusController] Y reusing existing connection
+motors.stage_manager INFO     Axis Y initialized successfully
+[CorvusController] Z reusing existing connection
+motors.stage_manager INFO     Axis Z initialized successfully
+CorvusController supports X/Y/Z only, got AxisType.ROTATION_CHIP
+AxisType.ROTATION_CHIP is a dummy axis
+[CorvusController] Dummy axis enabled
+motors.stage_manager INFO     Axis ROTATION_CHIP initialized successfully
+CorvusController supports X/Y/Z only, got AxisType.ROTATION_FIBER
+AxisType.ROTATION_FIBER is a dummy axis
+[CorvusController] Dummy axis enabled
+motors.stage_manager INFO     Axis ROTATION_FIBER initialized successfully
+motors.stage_manager INFO     All axes initialized successfully
+pre conf check
+Configuraiton check: {'stage': 2, 'sensor': 0, 'tec': 0}
+X Right 10.0 um
+X Right 10.0 um
+X Right 1000.0 um
+✓ Windows Job Object created for process tree management
+✓ Console close handler registered
+✓ Process 34688 assigned to job object
+▶ camera_gui.py started (pid=34688)
+⏹ camera_gui.py exited (rc=0)
+✓ Process 44436 assigned to job object
+▶ init_gui.py started (pid=44436)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 18972 assigned to job object
+▶ lib_gui.py started (pid=18972)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 35232 assigned to job object
+▶ main_devices_gui.py started (pid=35232)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 54712 assigned to job object
+▶ main_instruments_gui.py started (pid=54712)
+⏹ init_gui.py exited (rc=0)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 51084 assigned to job object
+▶ main_registration_gui.py started (pid=51084)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 25312 assigned to job object
+▶ main_start_gui.py started (pid=25312)
+✓ Process 42244 assigned to job object
+▶ main_testing_gui.py started (pid=42244)
+⏹ lib_gui.py exited (rc=0)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 18844 assigned to job object
+▶ mainframe_command_gui.py started (pid=18844)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 55980 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=55980)
+✓ Process 57140 assigned to job object
+▶ mainframe_elec_probe_control_gui.py started (pid=57140)
+✓ Process 46396 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=46396)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 2036 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=2036)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 56864 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=56864)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 58032 assigned to job object
+▶ sub_add_btn_gui.py started (pid=58032)
+✓ Process 51592 assigned to job object
+▶ sub_area_scan_setting_gui.py started (pid=51592)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 36924 assigned to job object
+▶ sub_connect_config_gui.py started (pid=36924)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+Welcome To Probe Stage
+✓ Process 47252 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=47252)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 57536 assigned to job object
+▶ sub_fine_align_setting_gui.py started (pid=57536)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 49964 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=49964)
+✓ Process 56880 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=56880)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+Connection pressed and conf set to Corvus_controller
+lock all instr
+{'velocities': {'X': 2000.0, 'Y': 2000.0, 'Z': 2000.0, 'ROTATION_FIBER': 2000.0, 'ROTATION_CHIP': 2000.0}, 'accelerations': {'X': 100.0, 'Y': 100.0, 'Z': 100.0, 'ROTATION_FIBER': 100.0, 'ROTATION_CHIP': 100.0}, 'position_limits': {'X': (-100000.0, 100000.0), 'Y': (-100000.0, 100000.0), 'Z': (-100000.0, 100000.0), 'ROTATION_FIBER': (-100000.0, 100000.0), 'ROTATION_CHIP': (-100000.0, 100000.0)}, 'position_tolerance': 1.0, 'status_poll_interval': 0.05, 'move_timeout': 30.0, 'driver_types': {'X': 'Corvus_controller', 'Y': 'Corvus_controller', 'Z': 'Corvus_controller', 'ROTATION_FIBER': 'Corvus_controller', 'ROTATION_CHIP': 'Corvus_controller'}}
+motors.stage_manager INFO     Shared memory initialized
+motors.stage_manager INFO     Stage manager started
+[CorvusController] {self.axis.name} initializing controller for axes:['X', 'Y', 'Z']
+[CorvusController] Connected: Corvus Eco 1 456 1 200
+[CorvusController] Enabled 3 axes: ['X', 'Y', 'Z']
+[CorvusController] Units set to microns (um)
+[CorvusController] Closed-loop enabled
+[CorvusController] Velocity: 2000.000000 um/s, Accel: 100.000000 um/s2
+motors.stage_manager INFO     Axis X initialized successfully
+[CorvusController] Y reusing existing connection
+motors.stage_manager INFO     Axis Y initialized successfully
+[CorvusController] Z reusing existing connection
+motors.stage_manager INFO     Axis Z initialized successfully
+CorvusController supports X/Y/Z only, got AxisType.ROTATION_CHIP
+AxisType.ROTATION_CHIP is a dummy axis
+[CorvusController] Dummy axis enabled
+motors.stage_manager INFO     Axis ROTATION_CHIP initialized successfully
+CorvusController supports X/Y/Z only, got AxisType.ROTATION_FIBER
+AxisType.ROTATION_FIBER is a dummy axis
+[CorvusController] Dummy axis enabled
+motors.stage_manager INFO     Axis ROTATION_FIBER initialized successfully
+motors.stage_manager INFO     All axes initialized successfully
+X Right 10.0 um
+I AM ATTEMPTING TO MOVE
+✓ Windows Job Object created for process tree management
+✓ Console close handler registered
+✓ Process 58300 assigned to job object
+▶ camera_gui.py started (pid=58300)
+⏹ camera_gui.py exited (rc=0)
+✓ Process 29032 assigned to job object
+▶ init_gui.py started (pid=29032)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+
+✓ Process 2692 assigned to job object
+▶ lib_gui.py started (pid=2692)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 29524 assigned to job object
+▶ main_devices_gui.py started (pid=29524)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 19572 assigned to job object
+▶ main_instruments_gui.py started (pid=19572)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 12240 assigned to job object
+▶ main_registration_gui.py started (pid=12240)
+⏹ init_gui.py exited (rc=0)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 52768 assigned to job object
+▶ main_start_gui.py started (pid=52768)
+⏹ lib_gui.py exited (rc=0)
+✓ Process 53700 assigned to job object
+▶ main_testing_gui.py started (pid=53700)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 39396 assigned to job object
+▶ mainframe_command_gui.py started (pid=39396)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 23332 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=23332)
+✓ Process 44912 assigned to job object
+▶ mainframe_elec_probe_control_gui.py started (pid=44912)
+✓ Process 44776 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=44776)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 54044 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=54044)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 39184 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=39184)
+✓ Process 32596 assigned to job object
+▶ sub_add_btn_gui.py started (pid=32596)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 46992 assigned to job object
+▶ sub_area_scan_setting_gui.py started (pid=46992)
+✓ Process 57700 assigned to job object
+▶ sub_connect_config_gui.py started (pid=57700)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 26228 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=26228)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 52196 assigned to job object
+▶ sub_fine_align_setting_gui.py started (pid=52196)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 27168 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=27168)
+Welcome To Probe Stage
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+✓ Process 40764 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=40764)
+C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import get_distribution, DistributionNotFound
+Connection pressed and conf set to Corvus_controller
+lock all instr
+{'velocities': {'X': 2000.0, 'Y': 2000.0, 'Z': 2000.0, 'ROTATION_FIBER': 2000.0, 'ROTATION_CHIP': 2000.0}, 'accelerations': {'X': 100.0, 'Y': 100.0, 'Z': 100.0, 'ROTATION_FIBER': 100.0, 'ROTATION_CHIP': 100.0}, 'position_limits': {'X': (-100000.0, 100000.0), 'Y': (-100000.0, 100000.0), 'Z': (-100000.0, 100000.0), 'ROTATION_FIBER': (-100000.0, 100000.0), 'ROTATION_CHIP': (-100000.0, 100000.0)}, 'position_tolerance': 1.0, 'status_poll_interval': 0.05, 'move_timeout': 30.0, 'driver_types': {'X': 'Corvus_controller', 'Y': 'Corvus_controller', 'Z': 'Corvus_controller', 'ROTATION_FIBER': 'Corvus_controller', 'ROTATION_CHIP': 'Corvus_controller'}}
+motors.stage_manager INFO     Shared memory initialized
+motors.stage_manager INFO     Stage manager started
+[CorvusController] {self.axis.name} initializing controller for axes:['X', 'Y', 'Z']
+WRITING: identify
+[CorvusController] Connected: Corvus Eco 1 456 1 200
+WRITING: 3 setdim
+WRITING: 1 1 setaxis
+WRITING: 1 2 setaxis
+WRITING: 1 3 setaxis
+[CorvusController] Enabled 3 axes: ['X', 'Y', 'Z']
+WRITING: 1 0 setunit
+WRITING: 1 1 setunit
+WRITING: 1 2 setunit
+WRITING: 1 3 setunit
+[CorvusController] Units set to microns (um)
+WRITING: 0 setaccelfunc
+WRITING: 1 setout
+WRITING: 10 0 1 ot
+WRITING: 1 1 setcloop
+WRITING: 1 2 setcloop
+WRITING: 1 3 setcloop
+[CorvusController] Closed-loop enabled
+WRITING: 2000.000000 sv
+WRITING: 100.000000 sa
+[CorvusController] Velocity: 2000.000000 um/s, Accel: 100.000000 um/s2
+motors.stage_manager INFO     Axis X initialized successfully
+[CorvusController] Y reusing existing connection
+motors.stage_manager INFO     Axis Y initialized successfully
+[CorvusController] Z reusing existing connection
+motors.stage_manager INFO     Axis Z initialized successfully
+CorvusController supports X/Y/Z only, got AxisType.ROTATION_CHIP
+AxisType.ROTATION_CHIP is a dummy axis
+[CorvusController] Dummy axis enabled
+motors.stage_manager INFO     Axis ROTATION_CHIP initialized successfully
+CorvusController supports X/Y/Z only, got AxisType.ROTATION_FIBER
+AxisType.ROTATION_FIBER is a dummy axis
+[CorvusController] Dummy axis enabled
+motors.stage_manager INFO     Axis ROTATION_FIBER initialized successfully
+motors.stage_manager INFO     All axes initialized successfully
+X Right 10.0 um
+I AM ATTEMPTING TO MOVE
+WRITING: 10.000000 0.000000 0.000000 r

@@ -161,7 +161,8 @@ def get_local_ip():
 
 if __name__ == "__main__":
     threading.Thread(target=run_remi, daemon=True).start()
-    local_ip = get_local_ip()
+    # local_ip = get_local_ip()
+    local_ip = '127.0.0.1'
     webview.create_window(
         "Main Window",
         f"http://{local_ip}:8004",

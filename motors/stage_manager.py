@@ -66,8 +66,8 @@ class StageManager:
         self._is_running = True
         
         # Start position monitoring
-        if self.create_shm:
-            self._position_task = asyncio.create_task(self._position_monitor_loop())
+        # if self.create_shm:
+        #     self._position_task = asyncio.create_task(self._position_monitor_loop())
             
         logger.info("Stage manager started")
 
@@ -150,6 +150,10 @@ class StageManager:
         success = all(results)
         if success:
             logger.info("All axes initialized successfully")
+            if self.config.driver_types[AxisType.X] == "Corvus_controller":
+                # Does not support homing, declare it as homed
+                for ax in (AxisType.X, AxisType.Y, AxisType.Z):
+                    self._homed_axes[ax] = True
         else:
             logger.warning("Some axes failed to initialize")
         

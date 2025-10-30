@@ -160,7 +160,8 @@ class Starts(App):
     def onclick_add(self):
         file = File("shared_memory", "User_add", self.user_dd.get_value())
         file.save()
-        local_ip = get_local_ip()
+        # local_ip = get_local_ip()
+        local_ip = '127.0.0.1'
         webview.create_window(
             "Setting",
             f"http://{local_ip}:7000",
@@ -227,7 +228,8 @@ def get_local_ip():
 
 if __name__ == "__main__":
     threading.Thread(target=run_remi, daemon=True).start()
-    local_ip = get_local_ip()
+    # local_ip = get_local_ip()
+    local_ip = '127.0.0.1'
     webview.create_window(
         "Main Window",
         f"http://{local_ip}:9000",

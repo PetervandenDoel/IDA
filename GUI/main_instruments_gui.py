@@ -32,11 +32,9 @@ class instruments(App):
         if stime != self._user_stime:
             self._user_stime = stime
             try:
-                print('pre conf check')
                 with open(shared_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     self.configuration_check = data.get("Configuration_check", {})
-                    print(f'Configuraiton check: {self.configuration_check}')
                     self.configuration_check = 1
             except Exception as e:
                 print(f"[Warn] read json failed: {e}")
@@ -222,7 +220,8 @@ class instruments(App):
             self.tec_connect_btn.set_text("Connect")
 
     def onclick_configure_btn(self):
-        local_ip = get_local_ip()
+        # local_ip = get_local_ip()
+        local_ip = '127.0.0.1'
         webview.create_window(
             'Stage Control',
             f'http://{local_ip}:7005',
@@ -255,7 +254,8 @@ def get_local_ip():
 
 if __name__ == "__main__":
     threading.Thread(target=run_remi, daemon=True).start()
-    local_ip = get_local_ip()
+    # local_ip = get_local_ip()
+    local_ip = '127.0.0.1'
     webview.create_window(
         "Main Window",
         f"http://{local_ip}:9001",

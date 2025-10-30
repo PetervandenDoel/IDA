@@ -2,6 +2,7 @@ from motors.optical.ida_controller import CorvusController
 from motors.hal.motors_hal import AxisType
 import pyvisa as visa
 import asyncio
+import time
 
 rm = visa.ResourceManager()
 print(rm.list_resources())
@@ -18,7 +19,7 @@ cz = CorvusController(
         axis=AxisType.Z,
         enabled_axes=[AxisType.X, AxisType.Y, AxisType.Z],
         visa_address='ASRL7::INSTR',
-        position_limits_um=(-16000,16000))
+        position_limits=(-16000,16000))
 
 xok = asyncio.run(cx.connect())
 
@@ -69,8 +70,10 @@ for ax in axs:
 
 # Z - (-15,000, 15,000)
 # Z safe under [-15,000, 5,000] cannot hit stage here
-asyncio.run(cz.move_absolute(-10000))
+# asyncio.run(cz.move_absolute(-10000))
+asyncio.run(cx.move_relative(-9000))
 
+time.sleep(2)
 asyncio.run(cx.disconnect())
 asyncio.run(cy.disconnect())
 asyncio.run(cz.disconnect())

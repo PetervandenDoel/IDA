@@ -39,12 +39,19 @@ cfg.visa_addr = 'ASRL7::INSTR'
 print(cfg.get_axis_attributes())
 
 # Manager instance
-sm = StageManager(cfg)
-all_ax = [AxisType.X, AxisType.Y, AxisType.Z, AxisType.ROTATION_CHIP, AxisType.ROTATION_FIBER]
-asyncio.run(sm.initialize_all(all_ax))
-all_ax = [AxisType.X, AxisType.Y, AxisType.Z]
-for ax in all_ax:
-    for i in range(10):
-        asyncio.run(sm.move_axis(ax,(1000*(-1)**(i%2)),True))
+sm = StageManager(cfg,create_shm=False)
+# all_ax = [AxisType.X, AxisType.Y, AxisType.Z, AxisType.ROTATION_CHIP, AxisType.ROTATION_FIBER]
+# asyncio.run(sm.initialize_all(all_ax))
+asyncio.run(sm.initialize_axis(AxisType.X))
+asyncio.run(sm.initialize_axis(AxisType.Y))
+asyncio.run(sm.initialize_axis(AxisType.Z))
+# print(asyncio.run(sm.get_all_positions()))
 
+all = [AxisType.X, AxisType.Y]
+for ax in all:
+    for i in range(2):
+        asyncio.run(sm.move_axis(ax,(1000*(-1)**(i%2)),True))
+# asyncio.run(sm.motors[AxisType.X].move_relative(3000))
+sm.motors[AxisType.X]._write('0.000000 -1000.000000 0.000000 r')
+print(asyncio.run(sm.get_all_positions()))
 asyncio.run(sm.disconnect_all())

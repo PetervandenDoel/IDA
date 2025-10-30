@@ -35,7 +35,8 @@ class NIR_Measurment_System(App):
         return self.construct_ui()
 
     def construct_ui(self):
-        ip_address = get_local_ip()
+        # ip_address = get_local_ip()
+        ip_address = '127.0.0.1'
         main = StyledContainer(variable_name="main", left=0, top=0, height=715, width=650)
         #
         # stage = StyledContainer(
@@ -146,8 +147,9 @@ def disable_scroll():
 
 
 if __name__ == '__main__':
-    local_ip = get_local_ip()
-
+    # local_ip = get_local_ip()
+    local_ip = '127.0.0.1'
+    
     threading.Thread(target=run_remi, daemon=True).start()
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 

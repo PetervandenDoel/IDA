@@ -62,7 +62,7 @@
     "motor": ""
   },
   "Configuration_check": {
-    "stage": 0,
+    "stage": 2,
     "sensor": 0,
     "tec": 0
   },
