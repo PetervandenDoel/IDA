@@ -573,7 +573,6 @@ class stage_control(App):
         print(f"[Axis Lock] {prefix} -> {'LOCKED' if self.axis_locked[prefix] else 'UNLOCKED'}")
 
     def lock_all(self, value):
-        print("lock_all")
         enabled = value == 0
         widgets_to_check = [self.stage_control_container]
         while widgets_to_check:
@@ -864,6 +863,8 @@ class stage_control(App):
         # Cancel any active movements like area scan
         if hasattr(self, "_scan_cancel") and self._scan_cancel:
             self._scan_cancel.set()
+        for _, motor_class in self.stage_manager.motors.items():
+            motor_class._stop_requested = True
         if self.nir_manager and self.task_laser:
             self.nir_manager.cancel_sweep()
         if self.area_sweep:
@@ -906,6 +907,8 @@ class stage_control(App):
         chip = home["chip"]
         fiber = home["fiber"]
 
+        for _, motor_class in self.stage_manager.motors.items():
+            motor_class._stop_requested = False
         
         if x == "Yes":
             xok, xlim = asyncio.run(self.stage_manager.home_limits(AxisType.X))
