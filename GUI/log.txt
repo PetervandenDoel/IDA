@@ -1,505 +1,3 @@
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 29524 assigned to job object
-▶ main_devices_gui.py started (pid=29524)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 19572 assigned to job object
-▶ main_instruments_gui.py started (pid=19572)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 12240 assigned to job object
-▶ main_registration_gui.py started (pid=12240)
-⏹ init_gui.py exited (rc=0)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 52768 assigned to job object
-▶ main_start_gui.py started (pid=52768)
-⏹ lib_gui.py exited (rc=0)
-✓ Process 53700 assigned to job object
-▶ main_testing_gui.py started (pid=53700)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 39396 assigned to job object
-▶ mainframe_command_gui.py started (pid=39396)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 23332 assigned to job object
-▶ mainframe_configuration_gui.py started (pid=23332)
-✓ Process 44912 assigned to job object
-▶ mainframe_elec_probe_control_gui.py started (pid=44912)
-✓ Process 44776 assigned to job object
-▶ mainframe_sensor_control_gui.py started (pid=44776)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 54044 assigned to job object
-▶ mainframe_stage_control_gui.py started (pid=54044)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 39184 assigned to job object
-▶ mainframe_tec_control_gui.py started (pid=39184)
-✓ Process 32596 assigned to job object
-▶ sub_add_btn_gui.py started (pid=32596)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 46992 assigned to job object
-▶ sub_area_scan_setting_gui.py started (pid=46992)
-✓ Process 57700 assigned to job object
-▶ sub_connect_config_gui.py started (pid=57700)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 26228 assigned to job object
-▶ sub_data_window_setting_gui.py started (pid=26228)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 52196 assigned to job object
-▶ sub_fine_align_setting_gui.py started (pid=52196)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 27168 assigned to job object
-▶ sub_laser_sweep_setting_gui.py started (pid=27168)
-Welcome To Probe Stage
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 40764 assigned to job object
-▶ sub_limit_setting_gui.py started (pid=40764)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-Connection pressed and conf set to Corvus_controller
-lock all instr
-{'velocities': {'X': 2000.0, 'Y': 2000.0, 'Z': 2000.0, 'ROTATION_FIBER': 2000.0, 'ROTATION_CHIP': 2000.0}, 'accelerations': {'X': 100.0, 'Y': 100.0, 'Z': 100.0, 'ROTATION_FIBER': 100.0, 'ROTATION_CHIP': 100.0}, 'position_limits': {'X': (-100000.0, 100000.0), 'Y': (-100000.0, 100000.0), 'Z': (-100000.0, 100000.0), 'ROTATION_FIBER': (-100000.0, 100000.0), 'ROTATION_CHIP': (-100000.0, 100000.0)}, 'position_tolerance': 1.0, 'status_poll_interval': 0.05, 'move_timeout': 30.0, 'driver_types': {'X': 'Corvus_controller', 'Y': 'Corvus_controller', 'Z': 'Corvus_controller', 'ROTATION_FIBER': 'Corvus_controller', 'ROTATION_CHIP': 'Corvus_controller'}}
-motors.stage_manager INFO     Shared memory initialized
-motors.stage_manager INFO     Stage manager started
-[CorvusController] {self.axis.name} initializing controller for axes:['X', 'Y', 'Z']
-WRITING: identify
-[CorvusController] Connected: Corvus Eco 1 456 1 200
-WRITING: 3 setdim
-WRITING: 1 1 setaxis
-WRITING: 1 2 setaxis
-WRITING: 1 3 setaxis
-[CorvusController] Enabled 3 axes: ['X', 'Y', 'Z']
-WRITING: 1 0 setunit
-WRITING: 1 1 setunit
-WRITING: 1 2 setunit
-WRITING: 1 3 setunit
-[CorvusController] Units set to microns (um)
-WRITING: 0 setaccelfunc
-WRITING: 1 setout
-WRITING: 10 0 1 ot
-WRITING: 1 1 setcloop
-WRITING: 1 2 setcloop
-WRITING: 1 3 setcloop
-[CorvusController] Closed-loop enabled
-WRITING: 2000.000000 sv
-WRITING: 100.000000 sa
-[CorvusController] Velocity: 2000.000000 um/s, Accel: 100.000000 um/s2
-motors.stage_manager INFO     Axis X initialized successfully
-[CorvusController] Y reusing existing connection
-motors.stage_manager INFO     Axis Y initialized successfully
-[CorvusController] Z reusing existing connection
-motors.stage_manager INFO     Axis Z initialized successfully
-CorvusController supports X/Y/Z only, got AxisType.ROTATION_CHIP
-AxisType.ROTATION_CHIP is a dummy axis
-[CorvusController] Dummy axis enabled
-motors.stage_manager INFO     Axis ROTATION_CHIP initialized successfully
-CorvusController supports X/Y/Z only, got AxisType.ROTATION_FIBER
-AxisType.ROTATION_FIBER is a dummy axis
-[CorvusController] Dummy axis enabled
-motors.stage_manager INFO     Axis ROTATION_FIBER initialized successfully
-motors.stage_manager INFO     All axes initialized successfully
-X Right 10.0 um
-I AM ATTEMPTING TO MOVE
-WRITING: 10.000000 0.000000 0.000000 r
-✓ Windows Job Object created for process tree management
-✓ Console close handler registered
-✓ Process 12920 assigned to job object
-▶ camera_gui.py started (pid=12920)
-⏹ camera_gui.py exited (rc=0)
-✓ Process 5076 assigned to job object
-▶ init_gui.py started (pid=5076)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 8580 assigned to job object
-▶ lib_gui.py started (pid=8580)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 12348 assigned to job object
-▶ main_devices_gui.py started (pid=12348)
-✓ Process 13800 assigned to job object
-▶ main_instruments_gui.py started (pid=13800)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 1808 assigned to job object
-▶ main_registration_gui.py started (pid=1808)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-⏹ init_gui.py exited (rc=0)
-⏹ lib_gui.py exited (rc=0)
-✓ Process 2616 assigned to job object
-▶ main_start_gui.py started (pid=2616)
-✓ Process 2692 assigned to job object
-▶ main_testing_gui.py started (pid=2692)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 1896 assigned to job object
-▶ mainframe_command_gui.py started (pid=1896)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 1504 assigned to job object
-▶ mainframe_configuration_gui.py started (pid=1504)
-✓ Process 21740 assigned to job object
-▶ mainframe_elec_probe_control_gui.py started (pid=21740)
-✓ Process 15288 assigned to job object
-▶ mainframe_sensor_control_gui.py started (pid=15288)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 1216 assigned to job object
-▶ mainframe_stage_control_gui.py started (pid=1216)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 22192 assigned to job object
-▶ mainframe_tec_control_gui.py started (pid=22192)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 18068 assigned to job object
-▶ sub_add_btn_gui.py started (pid=18068)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 3380 assigned to job object
-▶ sub_area_scan_setting_gui.py started (pid=3380)
-✓ Process 22556 assigned to job object
-▶ sub_connect_config_gui.py started (pid=22556)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 23360 assigned to job object
-▶ sub_data_window_setting_gui.py started (pid=23360)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-Welcome To Probe Stage
-✓ Process 24224 assigned to job object
-▶ sub_fine_align_setting_gui.py started (pid=24224)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 24756 assigned to job object
-▶ sub_laser_sweep_setting_gui.py started (pid=24756)
-✓ Process 25652 assigned to job object
-▶ sub_limit_setting_gui.py started (pid=25652)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-Connection pressed and conf set to Corvus_controller
-[Warn] read json failed: [Errno 13] Permission denied: 'database\\shared_memory.json'
-lock all instr
-{'velocities': {'X': 10000.0, 'Y': 10000.0, 'Z': 10000.0, 'ROTATION_FIBER': 10000.0, 'ROTATION_CHIP': 10000.0}, 'accelerations': {'X': 20000.0, 'Y': 20000.0, 'Z': 20000.0, 'ROTATION_FIBER': 20000.0, 'ROTATION_CHIP': 20000.0}, 'position_limits': {'X': (-35000, 35000), 'Y': (-35000, 35000), 'Z': (-16000, 16000), 'ROTATION_FIBER': (5000, 5000), 'ROTATION_CHIP': (5000, 5000)}, 'position_tolerance': 1.0, 'status_poll_interval': 0.05, 'move_timeout': 30.0, 'driver_types': {'X': 'Corvus_controller', 'Y': 'Corvus_controller', 'Z': 'Corvus_controller', 'ROTATION_FIBER': 'Corvus_controller', 'ROTATION_CHIP': 'Corvus_controller'}}
-motors.stage_manager INFO     Shared memory initialized
-motors.stage_manager INFO     Stage manager started
-[CorvusController] {self.axis.name} initializing controller for axes:['X', 'Y', 'Z']
-[CorvusController] Connected: Corvus Eco 1 456 1 200
-[CorvusController] Enabled 3 axes: ['X', 'Y', 'Z']
-[CorvusController] Units set to microns (um)
-[CorvusController] Closed-loop enabled
-[CorvusController] Velocity: 7500.000000 um/s, Accel: 20000.000000 um/s2
-manager:
- {'axis': <AxisType.X: 0>, '_event_callbacks': [], '_config': None, 'dummy_axis': False, '_axes': [<AxisType.X: 0>, <AxisType.Y: 1>, <AxisType.Z: 2>], '_num_axes': 3, '_addr': 'ASRL7::INSTR', '_vel': 10000.0, '_acc': 20000.0, '_limits': (-35000, 35000), '_poll_dt': 0.05, '_closed_loop': True, '_step': {'step_size_x': 1.0, 'step_size_y': 1.0, 'step_size_z': 1.0, 'step_size_fr': 0.1, 'step_size_cr': 0.1}, '_external_rm': None, '_rm': <ResourceManager(<IVIVisaLibrary('C:\\WINDOWS\\system32\\visa32.dll')>)>, '_inst': <'SerialInstrument'('ASRL7::INSTR')>, '_connected': True, '_position_um': [0.0, 0.0, 0.0], '_move_in_progress': False, '_callbacks': [<bound method StageManager._handle_motor_event of <motors.stage_manager.StageManager object at 0x000002347004C0E0>>]}
-
-motors.stage_manager INFO     Axis X initialized successfully
-[CorvusController] Y reusing existing connection
-SerialInstrument at ASRL7::INSTR Resource Manager of Visa Library at C:\WINDOWS\system32\visa32.dll
-manager:
- {'axis': <AxisType.Y: 1>, '_event_callbacks': [], '_config': None, 'dummy_axis': False, '_axes': [<AxisType.X: 0>, <AxisType.Y: 1>, <AxisType.Z: 2>], '_num_axes': 3, '_addr': 'ASRL7::INSTR', '_vel': 10000.0, '_acc': 20000.0, '_limits': (-35000, 35000), '_poll_dt': 0.05, '_closed_loop': True, '_step': {'step_size_x': 1.0, 'step_size_y': 1.0, 'step_size_z': 1.0, 'step_size_fr': 0.1, 'step_size_cr': 0.1}, '_external_rm': None, '_rm': <ResourceManager(<IVIVisaLibrary('C:\\WINDOWS\\system32\\visa32.dll')>)>, '_inst': <'SerialInstrument'('ASRL7::INSTR')>, '_connected': True, '_position_um': [0.0, 0.0, 0.0], '_move_in_progress': False, '_callbacks': [<bound method StageManager._handle_motor_event of <motors.stage_manager.StageManager object at 0x000002347004C0E0>>]}
-
-motors.stage_manager INFO     Axis Y initialized successfully
-[CorvusController] Z reusing existing connection
-SerialInstrument at ASRL7::INSTR Resource Manager of Visa Library at C:\WINDOWS\system32\visa32.dll
-manager:
- {'axis': <AxisType.Z: 2>, '_event_callbacks': [], '_config': None, 'dummy_axis': False, '_axes': [<AxisType.X: 0>, <AxisType.Y: 1>, <AxisType.Z: 2>], '_num_axes': 3, '_addr': 'ASRL7::INSTR', '_vel': 10000.0, '_acc': 20000.0, '_limits': (-16000, 16000), '_poll_dt': 0.05, '_closed_loop': True, '_step': {'step_size_x': 1.0, 'step_size_y': 1.0, 'step_size_z': 1.0, 'step_size_fr': 0.1, 'step_size_cr': 0.1}, '_external_rm': None, '_rm': <ResourceManager(<IVIVisaLibrary('C:\\WINDOWS\\system32\\visa32.dll')>)>, '_inst': <'SerialInstrument'('ASRL7::INSTR')>, '_connected': True, '_position_um': [0.0, 0.0, 0.0], '_move_in_progress': False, '_callbacks': [<bound method StageManager._handle_motor_event of <motors.stage_manager.StageManager object at 0x000002347004C0E0>>]}
-
-motors.stage_manager INFO     Axis Z initialized successfully
-CorvusController supports X/Y/Z only, got AxisType.ROTATION_CHIP
-AxisType.ROTATION_CHIP is a dummy axis
-[CorvusController] Dummy axis connected
-manager:
- {'axis': <AxisType.ROTATION_CHIP: 4>, '_event_callbacks': [], '_config': None, 'dummy_axis': True, '_axes': [<AxisType.X: 0>, <AxisType.Y: 1>, <AxisType.Z: 2>], '_num_axes': 3, '_addr': 'ASRL7::INSTR', '_vel': 10000.0, '_acc': 20000.0, '_limits': (5000, 5000), '_poll_dt': 0.05, '_closed_loop': True, '_step': {'step_size_x': 1.0, 'step_size_y': 1.0, 'step_size_z': 1.0, 'step_size_fr': 0.1, 'step_size_cr': 0.1}, '_external_rm': None, '_rm': None, '_inst': None, '_connected': False, '_position_um': [0.0, 0.0, 0.0], '_move_in_progress': False, '_callbacks': [<bound method StageManager._handle_motor_event of <motors.stage_manager.StageManager object at 0x000002347004C0E0>>]}
-
-motors.stage_manager INFO     Axis ROTATION_CHIP initialized successfully
-CorvusController supports X/Y/Z only, got AxisType.ROTATION_FIBER
-AxisType.ROTATION_FIBER is a dummy axis
-[CorvusController] Dummy axis connected
-
-manager:
- {'axis': <AxisType.ROTATION_FIBER: 3>, '_event_callbacks': [], '_config': None, 'dummy_axis': True, '_axes': [<AxisType.X: 0>, <AxisType.Y: 1>, <AxisType.Z: 2>], '_num_axes': 3, '_addr': 'ASRL7::INSTR', '_vel': 10000.0, '_acc': 20000.0, '_limits': (5000, 5000), '_poll_dt': 0.05, '_closed_loop': True, '_step': {'step_size_x': 1.0, 'step_size_y': 1.0, 'step_size_z': 1.0, 'step_size_fr': 0.1, 'step_size_cr': 0.1}, '_external_rm': None, '_rm': None, '_inst': None, '_connected': False, '_position_um': [0.0, 0.0, 0.0], '_move_in_progress': False, '_callbacks': [<bound method StageManager._handle_motor_event of <motors.stage_manager.StageManager object at 0x000002347004C0E0>>]}
-
-motors.stage_manager INFO     Axis ROTATION_FIBER initialized successfully
-motors.stage_manager INFO     All axes initialized successfully
-[Warn] read json failed: [Errno 13] Permission denied: 'database\\shared_memory.json'
-X Right 10.0 um
-X Right 1000.0 um
-X Right 1000.0 um
-X Right 1000.0 um
-X Right 1000.0 um
-X Right 1000.0 um
-X Left 1000.0 um
-X Left 1000.0 um
-X Right 1000.0 um
-Z Down 10.0 um
-Z Down 10.0 um
-Z Down 10.0 um
-Z Down 10.0 um
-Z Down 10.0 um
-Z Down 10.0 um
-Z Down 10.0 um
-Z Down 10.0 um
-Z Down 1000.0 um
-Z Down 1000.0 um
-Z Down 1000.0 um
-Z Down 1000.0 um
-Z Up 1000.0 um
-Z Up 1000.0 um
-✓ Windows Job Object created for process tree management
-✓ Console close handler registered
-✓ Process 25964 assigned to job object
-▶ camera_gui.py started (pid=25964)
-⏹ camera_gui.py exited (rc=0)
-✓ Process 15996 assigned to job object
-▶ init_gui.py started (pid=15996)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 19940 assigned to job object
-▶ lib_gui.py started (pid=19940)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 24528 assigned to job object
-▶ main_devices_gui.py started (pid=24528)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 8412 assigned to job object
-▶ main_instruments_gui.py started (pid=8412)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 13732 assigned to job object
-▶ main_registration_gui.py started (pid=13732)
-⏹ init_gui.py exited (rc=0)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 3148 assigned to job object
-▶ main_start_gui.py started (pid=3148)
-⏹ lib_gui.py exited (rc=0)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 19708 assigned to job object
-▶ main_testing_gui.py started (pid=19708)
-✓ Process 23492 assigned to job object
-▶ mainframe_command_gui.py started (pid=23492)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 8112 assigned to job object
-▶ mainframe_configuration_gui.py started (pid=8112)
-✓ Process 26132 assigned to job object
-▶ mainframe_elec_probe_control_gui.py started (pid=26132)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 23828 assigned to job object
-▶ mainframe_sensor_control_gui.py started (pid=23828)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 26276 assigned to job object
-▶ mainframe_stage_control_gui.py started (pid=26276)
-✓ Process 21424 assigned to job object
-▶ mainframe_tec_control_gui.py started (pid=21424)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 27752 assigned to job object
-▶ sub_add_btn_gui.py started (pid=27752)
-✓ Process 13248 assigned to job object
-▶ sub_area_scan_setting_gui.py started (pid=13248)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 25428 assigned to job object
-▶ sub_connect_config_gui.py started (pid=25428)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 23760 assigned to job object
-▶ sub_data_window_setting_gui.py started (pid=23760)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-Welcome To Probe Stage
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 26468 assigned to job object
-▶ sub_fine_align_setting_gui.py started (pid=26468)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 16276 assigned to job object
-▶ sub_laser_sweep_setting_gui.py started (pid=16276)
-✓ Process 13744 assigned to job object
-▶ sub_limit_setting_gui.py started (pid=13744)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-Connection pressed and conf set to Corvus_controller
-lock all instr
-{'velocities': {'X': 10000.0, 'Y': 10000.0, 'Z': 10000.0, 'ROTATION_FIBER': 10000.0, 'ROTATION_CHIP': 10000.0}, 'accelerations': {'X': 20000.0, 'Y': 20000.0, 'Z': 20000.0, 'ROTATION_FIBER': 20000.0, 'ROTATION_CHIP': 20000.0}, 'position_limits': {'X': (-35000, 35000), 'Y': (-35000, 35000), 'Z': (-16000, 16000), 'ROTATION_FIBER': (5000, 5000), 'ROTATION_CHIP': (5000, 5000)}, 'position_tolerance': 1.0, 'status_poll_interval': 0.05, 'move_timeout': 30.0, 'driver_types': {'X': 'Corvus_controller', 'Y': 'Corvus_controller', 'Z': 'Corvus_controller', 'ROTATION_FIBER': 'Corvus_controller', 'ROTATION_CHIP': 'Corvus_controller'}}
-motors.stage_manager INFO     Shared memory initialized
-motors.stage_manager INFO     Stage manager started
-[CorvusController] {self.axis.name} initializing controller for axes:['X', 'Y', 'Z']
-[CorvusController] Connected: Corvus Eco 1 456 1 200
-[CorvusController] Enabled 3 axes: ['X', 'Y', 'Z']
-[CorvusController] Units set to microns (um)
-[CorvusController] Closed-loop enabled
-[CorvusController] Velocity: 7500.000000 um/s, Accel: 20000.000000 um/s2
-manager:
- {'axis': <AxisType.X: 0>, '_event_callbacks': [], '_config': None, 'dummy_axis': False, '_axes': [<AxisType.X: 0>, <AxisType.Y: 1>, <AxisType.Z: 2>], '_num_axes': 3, '_addr': 'ASRL7::INSTR', '_vel': 10000.0, '_acc': 20000.0, '_limits': (-35000, 35000), '_poll_dt': 0.05, '_closed_loop': True, '_step': {'step_size_x': 1.0, 'step_size_y': 1.0, 'step_size_z': 1.0, 'step_size_fr': 0.1, 'step_size_cr': 0.1}, '_external_rm': None, '_rm': <ResourceManager(<IVIVisaLibrary('C:\\WINDOWS\\system32\\visa32.dll')>)>, '_inst': <'SerialInstrument'('ASRL7::INSTR')>, '_connected': True, '_position_um': [0.0, 0.0, 0.0], '_move_in_progress': False, '_callbacks': [<bound method StageManager._handle_motor_event of <motors.stage_manager.StageManager object at 0x00000232EF2A7D70>>]}
-
-motors.stage_manager INFO     Axis X initialized successfully
-[CorvusController] Y reusing existing connection
-SerialInstrument at ASRL7::INSTR Resource Manager of Visa Library at C:\WINDOWS\system32\visa32.dll
-manager:
- {'axis': <AxisType.Y: 1>, '_event_callbacks': [], '_config': None, 'dummy_axis': False, '_axes': [<AxisType.X: 0>, <AxisType.Y: 1>, <AxisType.Z: 2>], '_num_axes': 3, '_addr': 'ASRL7::INSTR', '_vel': 10000.0, '_acc': 20000.0, '_limits': (-35000, 35000), '_poll_dt': 0.05, '_closed_loop': True, '_step': {'step_size_x': 1.0, 'step_size_y': 1.0, 'step_size_z': 1.0, 'step_size_fr': 0.1, 'step_size_cr': 0.1}, '_external_rm': None, '_rm': <ResourceManager(<IVIVisaLibrary('C:\\WINDOWS\\system32\\visa32.dll')>)>, '_inst': <'SerialInstrument'('ASRL7::INSTR')>, '_connected': True, '_position_um': [0.0, 0.0, 0.0], '_move_in_progress': False, '_callbacks': [<bound method StageManager._handle_motor_event of <motors.stage_manager.StageManager object at 0x00000232EF2A7D70>>]}
-
-motors.stage_manager INFO     Axis Y initialized successfully
-[CorvusController] Z reusing existing connection
-SerialInstrument at ASRL7::INSTR Resource Manager of Visa Library at C:\WINDOWS\system32\visa32.dll
-manager:
- {'axis': <AxisType.Z: 2>, '_event_callbacks': [], '_config': None, 'dummy_axis': False, '_axes': [<AxisType.X: 0>, <AxisType.Y: 1>, <AxisType.Z: 2>], '_num_axes': 3, '_addr': 'ASRL7::INSTR', '_vel': 10000.0, '_acc': 20000.0, '_limits': (-16000, 16000), '_poll_dt': 0.05, '_closed_loop': True, '_step': {'step_size_x': 1.0, 'step_size_y': 1.0, 'step_size_z': 1.0, 'step_size_fr': 0.1, 'step_size_cr': 0.1}, '_external_rm': None, '_rm': <ResourceManager(<IVIVisaLibrary('C:\\WINDOWS\\system32\\visa32.dll')>)>, '_inst': <'SerialInstrument'('ASRL7::INSTR')>, '_connected': True, '_position_um': [0.0, 0.0, 0.0], '_move_in_progress': False, '_callbacks': [<bound method StageManager._handle_motor_event of <motors.stage_manager.StageManager object at 0x00000232EF2A7D70>>]}
-
-motors.stage_manager INFO     Axis Z initialized successfully
-CorvusController supports X/Y/Z only, got AxisType.ROTATION_CHIP
-AxisType.ROTATION_CHIP is a dummy axis
-[CorvusController] Dummy axis connected
-manager:
- {'axis': <AxisType.ROTATION_CHIP: 4>, '_event_callbacks': [], '_config': None, 'dummy_axis': True, '_axes': [<AxisType.X: 0>, <AxisType.Y: 1>, <AxisType.Z: 2>], '_num_axes': 3, '_addr': 'ASRL7::INSTR', '_vel': 10000.0, '_acc': 20000.0, '_limits': (5000, 5000), '_poll_dt': 0.05, '_closed_loop': True, '_step': {'step_size_x': 1.0, 'step_size_y': 1.0, 'step_size_z': 1.0, 'step_size_fr': 0.1, 'step_size_cr': 0.1}, '_external_rm': None, '_rm': None, '_inst': None, '_connected': False, '_position_um': [0.0, 0.0, 0.0], '_move_in_progress': False, '_callbacks': [<bound method StageManager._handle_motor_event of <motors.stage_manager.StageManager object at 0x00000232EF2A7D70>>]}
-
-motors.stage_manager INFO     Axis ROTATION_CHIP initialized successfully
-CorvusController supports X/Y/Z only, got AxisType.ROTATION_FIBER
-AxisType.ROTATION_FIBER is a dummy axis
-[CorvusController] Dummy axis connected
-manager:
- {'axis': <AxisType.ROTATION_FIBER: 3>, '_event_callbacks': [], '_config': None, 'dummy_axis': True, '_axes': [<AxisType.X: 0>, <AxisType.Y: 1>, <AxisType.Z: 2>], '_num_axes': 3, '_addr': 'ASRL7::INSTR', '_vel': 10000.0, '_acc': 20000.0, '_limits': (5000, 5000), '_poll_dt': 0.05, '_closed_loop': True, '_step': {'step_size_x': 1.0, 'step_size_y': 1.0, 'step_size_z': 1.0, 'step_size_fr': 0.1, 'step_size_cr': 0.1}, '_external_rm': None, '_rm': None, '_inst': None, '_connected': False, '_position_um': [0.0, 0.0, 0.0], '_move_in_progress': False, '_callbacks': [<bound method StageManager._handle_motor_event of <motors.stage_manager.StageManager object at 0x00000232EF2A7D70>>]}
-
-motors.stage_manager INFO     Axis ROTATION_FIBER initialized successfully
-motors.stage_manager INFO     All axes initialized successfully
-Z Up 1000.0 um
-Z Up 1000.0 um
-X Right 1000.0 um
-X Right 1000.0 um
-X Right 1000.0 um
-X Right 1000.0 um
-X Right 1000.0 um
-X Right 1000.0 um
-X Right 1000.0 um
-Start Fine Align
-[Info] Starting fine alignment process...
-2025-10-30 10:38:14,218 - INFO - FineAlign initialized with detector: ch1
-FineAlign        INFO     FineAlign initialized with detector: ch1
-2025-10-30 10:38:14,221 - INFO - Fine alignment starting�
-FineAlign        INFO     Fine alignment starting�
-2025-10-30 10:38:14,226 - ERROR - Fine alignment failed: 'NoneType' object has no attribute 'set_wavelength'
-FineAlign        ERROR    Fine alignment failed: 'NoneType' object has no attribute 'set_wavelength'
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-[Dialog Process] Starting with PID 13384
-[Dialog Process] Using tkinter for progress display
-[Tkinter] Creating progress dialog...
-[Tkinter] Starting dialog event loop...
-Fine Align Finished
-[Tkinter] Dialog closed
-X Right 1000.0 um
-X Left 1000.0 um
-X Right 1000.0 um
-X Right 1000.0 um
-[CorvusController] Zero position set for X
-motors.stage_manager INFO     Axis X zeroed successfully
-[CorvusController] Zero position set for X
-motors.stage_manager INFO     Axis X zeroed successfully
-X Right 1000.0 um
-X Left 1000.0 um
-Y Left 10.0 um
-✓ Windows Job Object created for process tree management
-✓ Console close handler registered
-✓ Process 30520 assigned to job object
-▶ camera_gui.py started (pid=30520)
-⏹ camera_gui.py exited (rc=0)
-✓ Process 25256 assigned to job object
-▶ init_gui.py started (pid=25256)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 28628 assigned to job object
-▶ lib_gui.py started (pid=28628)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 29796 assigned to job object
-▶ main_devices_gui.py started (pid=29796)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 25228 assigned to job object
-▶ main_instruments_gui.py started (pid=25228)
-⏹ init_gui.py exited (rc=0)
-✓ Process 12124 assigned to job object
-▶ main_registration_gui.py started (pid=12124)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-⏹ lib_gui.py exited (rc=0)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 28396 assigned to job object
-▶ main_start_gui.py started (pid=28396)
-✓ Process 26108 assigned to job object
-▶ main_testing_gui.py started (pid=26108)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 22768 assigned to job object
-▶ mainframe_command_gui.py started (pid=22768)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 19704 assigned to job object
-▶ mainframe_configuration_gui.py started (pid=19704)
-✓ Process 25788 assigned to job object
-▶ mainframe_elec_probe_control_gui.py started (pid=25788)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 17616 assigned to job object
-▶ mainframe_sensor_control_gui.py started (pid=17616)
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
-✓ Process 27824 assigned to job object
-▶ mainframe_stage_control_gui.py started (pid=27824)
-✓ Process 24144 assigned to job object
-▶ mainframe_tec_control_gui.py started (pid=24144)
-
-C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  from pkg_resources import get_distribution, DistributionNotFound
 ✓ Process 25624 assigned to job object
 ▶ sub_add_btn_gui.py started (pid=25624)
 C:\Users\SiEPIC_Kaiser\Desktop\IDA\venv\Lib\site-packages\remi\__init__.py:34: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
@@ -578,3 +76,654 @@ X Right 10.0 um
 Z Up 10.0 um
 Z Down 10.0 um
 Z Down 10.0 um
+✓ Windows Job Object created for process tree management
+✓ Console close handler registered
+✓ Process 2304 assigned to job object
+▶ camera_gui.py started (pid=2304)
+⏹ camera_gui.py exited (rc=0)
+✓ Process 19536 assigned to job object
+▶ init_gui.py started (pid=19536)
+✓ Process 27796 assigned to job object
+▶ lib_gui.py started (pid=27796)
+✓ Process 3044 assigned to job object
+▶ main_devices_gui.py started (pid=3044)
+✓ Process 17448 assigned to job object
+▶ main_instruments_gui.py started (pid=17448)
+⏹ init_gui.py exited (rc=0)
+✓ Process 3140 assigned to job object
+▶ main_registration_gui.py started (pid=3140)
+⏹ lib_gui.py exited (rc=0)
+✓ Process 10656 assigned to job object
+▶ main_start_gui.py started (pid=10656)
+✓ Process 6960 assigned to job object
+▶ main_testing_gui.py started (pid=6960)
+✓ Process 28428 assigned to job object
+▶ mainframe_command_gui.py started (pid=28428)
+✓ Process 26348 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=26348)
+✓ Process 28072 assigned to job object
+▶ mainframe_elec_probe_control_gui.py started (pid=28072)
+✓ Process 2328 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=2328)
+✓ Process 27212 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=27212)
+✓ Process 26312 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=26312)
+✓ Process 29020 assigned to job object
+▶ sub_add_btn_gui.py started (pid=29020)
+✓ Process 29364 assigned to job object
+▶ sub_area_scan_setting_gui.py started (pid=29364)
+✓ Process 12324 assigned to job object
+▶ sub_connect_config_gui.py started (pid=12324)
+✓ Process 30192 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=30192)
+✓ Process 31476 assigned to job object
+▶ sub_fine_align_setting_gui.py started (pid=31476)
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+✓ Process 31860 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=31860)
+command gui idle?
+command gui idle?
+✓ Process 32372 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=32372)
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+Welcome To Probe Stage
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+✓ Windows Job Object created for process tree management
+✓ Console close handler registered
+✓ Process 38808 assigned to job object
+▶ camera_gui.py started (pid=38808)
+⏹ camera_gui.py exited (rc=0)
+✓ Process 38860 assigned to job object
+▶ init_gui.py started (pid=38860)
+✓ Process 38096 assigned to job object
+▶ lib_gui.py started (pid=38096)
+✓ Process 36716 assigned to job object
+▶ main_devices_gui.py started (pid=36716)
+✓ Process 32092 assigned to job object
+▶ main_instruments_gui.py started (pid=32092)
+⏹ init_gui.py exited (rc=0)
+✓ Process 36284 assigned to job object
+▶ main_registration_gui.py started (pid=36284)
+⏹ lib_gui.py exited (rc=0)
+✓ Process 36920 assigned to job object
+▶ main_start_gui.py started (pid=36920)
+✓ Process 29916 assigned to job object
+▶ main_testing_gui.py started (pid=29916)
+✓ Process 34828 assigned to job object
+▶ mainframe_command_gui.py started (pid=34828)
+✓ Process 34444 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=34444)
+✓ Process 36880 assigned to job object
+▶ mainframe_elec_probe_control_gui.py started (pid=36880)
+✓ Process 30240 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=30240)
+✓ Process 31348 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=31348)
+✓ Process 25560 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=25560)
+✓ Process 24848 assigned to job object
+▶ sub_add_btn_gui.py started (pid=24848)
+✓ Process 29632 assigned to job object
+▶ sub_area_scan_setting_gui.py started (pid=29632)
+✓ Process 36624 assigned to job object
+▶ sub_connect_config_gui.py started (pid=36624)
+✓ Process 33868 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=33868)
+✓ Process 30096 assigned to job object
+▶ sub_fine_align_setting_gui.py started (pid=30096)
+command gui idle?
+command gui idle?
+command gui idle?
+✓ Process 2172 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=2172)
+command gui idle?
+command gui idle?
+command gui idle?
+✓ Process 3448 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=3448)
+command gui idle?
+Welcome To Probe Stage
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+✓ Windows Job Object created for process tree management
+✓ Console close handler registered
+✓ Process 28424 assigned to job object
+▶ camera_gui.py started (pid=28424)
+⏹ camera_gui.py exited (rc=0)
+✓ Process 26640 assigned to job object
+▶ init_gui.py started (pid=26640)
+✓ Process 9720 assigned to job object
+▶ lib_gui.py started (pid=9720)
+✓ Process 31288 assigned to job object
+▶ main_devices_gui.py started (pid=31288)
+✓ Process 29976 assigned to job object
+▶ main_instruments_gui.py started (pid=29976)
+✓ Process 10220 assigned to job object
+▶ main_registration_gui.py started (pid=10220)
+⏹ init_gui.py exited (rc=0)
+⏹ lib_gui.py exited (rc=0)
+✓ Process 35312 assigned to job object
+▶ main_start_gui.py started (pid=35312)
+✓ Process 37696 assigned to job object
+▶ main_testing_gui.py started (pid=37696)
+✓ Process 32696 assigned to job object
+▶ mainframe_command_gui.py started (pid=32696)
+✓ Process 33964 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=33964)
+✓ Process 4452 assigned to job object
+▶ mainframe_elec_probe_control_gui.py started (pid=4452)
+✓ Process 34604 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=34604)
+✓ Process 32388 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=32388)
+✓ Process 38376 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=38376)
+✓ Process 5388 assigned to job object
+▶ sub_add_btn_gui.py started (pid=5388)
+✓ Process 32888 assigned to job object
+▶ sub_area_scan_setting_gui.py started (pid=32888)
+✓ Process 29776 assigned to job object
+
+▶ sub_connect_config_gui.py started (pid=29776)
+✓ Process 27548 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=27548)
+command gui idle?
+✓ Process 31616 assigned to job object
+▶ sub_fine_align_setting_gui.py started (pid=31616)
+command gui idle?
+command gui idle?
+command gui idle?
+✓ Process 35568 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=35568)
+command gui idle?
+command gui idle?
+command gui idle?
+✓ Process 32656 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=32656)
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+Welcome To Probe Stage
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+✓ Windows Job Object created for process tree management
+✓ Console close handler registered
+✓ Process 35232 assigned to job object
+▶ camera_gui.py started (pid=35232)
+⏹ camera_gui.py exited (rc=0)
+✓ Process 38748 assigned to job object
+▶ init_gui.py started (pid=38748)
+✓ Process 31340 assigned to job object
+▶ lib_gui.py started (pid=31340)
+✓ Process 33276 assigned to job object
+▶ main_devices_gui.py started (pid=33276)
+✓ Process 33604 assigned to job object
+▶ main_instruments_gui.py started (pid=33604)
+⏹ init_gui.py exited (rc=0)
+✓ Process 38320 assigned to job object
+▶ main_registration_gui.py started (pid=38320)
+⏹ lib_gui.py exited (rc=0)
+✓ Process 22272 assigned to job object
+▶ main_start_gui.py started (pid=22272)
+✓ Process 34656 assigned to job object
+▶ main_testing_gui.py started (pid=34656)
+✓ Process 32232 assigned to job object
+▶ mainframe_command_gui.py started (pid=32232)
+✓ Process 30000 assigned to job object
+▶ mainframe_configuration_gui.py started (pid=30000)
+✓ Process 37104 assigned to job object
+▶ mainframe_elec_probe_control_gui.py started (pid=37104)
+✓ Process 3320 assigned to job object
+▶ mainframe_sensor_control_gui.py started (pid=3320)
+✓ Process 34456 assigned to job object
+▶ mainframe_stage_control_gui.py started (pid=34456)
+✓ Process 29200 assigned to job object
+▶ mainframe_tec_control_gui.py started (pid=29200)
+✓ Process 34104 assigned to job object
+▶ sub_add_btn_gui.py started (pid=34104)
+✓ Process 36296 assigned to job object
+▶ sub_area_scan_setting_gui.py started (pid=36296)
+✓ Process 13184 assigned to job object
+▶ sub_connect_config_gui.py started (pid=13184)
+✓ Process 36480 assigned to job object
+▶ sub_data_window_setting_gui.py started (pid=36480)
+command gui idle?
+✓ Process 5688 assigned to job object
+▶ sub_fine_align_setting_gui.py started (pid=5688)
+command gui idle?
+command gui idle?
+command gui idle?
+✓ Process 25748 assigned to job object
+▶ sub_laser_sweep_setting_gui.py started (pid=25748)
+command gui idle?
+command gui idle?
+command gui idle?
+✓ Process 31160 assigned to job object
+▶ sub_limit_setting_gui.py started (pid=31160)
+command gui idle?
+command gui idle?
+command gui idle?
+Welcome To Probe Stage
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?
+command gui idle?

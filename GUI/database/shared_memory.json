@@ -10,7 +10,7 @@
     "png": 1,
     "pdf": 1
   },
-  "FilePath": "C:\\Users\\SiEPIC_Kaiser\\Desktop",
+  "FilePath": "C:\\Users\\weiji\\Desktop",
   "Limit": {
     "x": "Yes",
     "y": "Yes",
@@ -55,14 +55,12 @@
   },
   "AutoSweep": 0,
   "Configuration": {
-    "stage": "Corvus_controller",
+    "stage": "",
     "sensor": "",
-    "tec": "",
-    "smu": "",
-    "motor": ""
+    "tec": ""
   },
   "Configuration_check": {
-    "stage": 2,
+    "stage": 0,
     "sensor": 0,
     "tec": 0
   },
