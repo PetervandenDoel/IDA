@@ -338,7 +338,7 @@ class stage_control(App):
             if self.stage_window:
                 self.stage_window.destroy()
                 self.stage_window = None
-            self.stage_manager.shutdown()
+            asyncio.run(self.stage_manager.shutdown())
             print("Stage Disconnected")
 
         if self.configuration["sensor"] != "" and self.configuration_sensor == 0 and self.configuration_check[
@@ -573,22 +573,21 @@ class stage_control(App):
         print(f"[Axis Lock] {prefix} -> {'LOCKED' if self.axis_locked[prefix] else 'UNLOCKED'}")
 
     def lock_all(self, value):
+        print("lock_all")
         enabled = value == 0
         widgets_to_check = [self.stage_control_container]
         while widgets_to_check:
             widget = widgets_to_check.pop()
             
-            # Don't lock stop button
-            if hasattr(widget, "variable_name") and widget.variable_name == "onclick_stop":
-                continue
             # keep global lock and per-axis lock checkboxes enabled
             if hasattr(widget, "variable_name"):
                 vn = widget.variable_name
-                if vn == "lock_box" or (isinstance(vn, str) and vn.endswith("_lock")):
-                    pass
+                if vn in ("lock_box", "stop_button") or (isinstance(vn, str) and vn.endswith("_lock")):
+                    widget.set_enabled(True)
+                    continue
                 elif isinstance(widget, (Button, SpinBox, CheckBox, DropDown)):
                     widget.set_enabled(enabled)
-            elif isinstance(widget, (Button, SpinBox, CheckBox, DropDown)):
+            if isinstance(widget, (Button, SpinBox, CheckBox, DropDown)):
                 widget.set_enabled(enabled)
 
             if hasattr(widget, "children"):
@@ -859,7 +858,25 @@ class stage_control(App):
 
     def onclick_stop(self):
         print("Stopping stage control")
+
         asyncio.run(self.stage_manager.emergency_stop())
+        
+        # Cancel any active movements like area scan
+        if hasattr(self, "_scan_cancel") and self._scan_cancel:
+            self._scan_cancel.set()
+        if self.nir_manager and self.task_laser:
+            self.nir_manager.cancel_sweep()
+        if self.area_sweep:
+            self.area_sweep.stop_sweep()
+        if self.fine_align:
+            self.fine_align.stop_alignment()    
+        
+        # Reset state
+        with self._scan_done.get_lock():
+            self._scan_done.value = -1
+        self.task_start = 0
+        self.lock_all(0)
+        self.lock_box.set_value(0)
         print("Stop")
 
     def onclick_home(self):
@@ -1321,6 +1338,7 @@ class stage_control(App):
                 self._scan_done.value = 1       # only after begin_fine_align() returns
                 self.task_start = 0
             self.lock_all(0)
+
     def onclick_move(self):
         selected_device = self.move_dd.get_value()
         print(f"Selected device: {selected_device}")
@@ -1350,19 +1368,28 @@ class stage_control(App):
             print(f"[Error] Failed to move to device {selected_device}: {e}")
 
     def onchange_lock_box(self, emitter, value):
+        print("onchange_lock_box")
         enabled = value == 0
         widgets_to_check = [self.stage_control_container]
         while widgets_to_check:
             widget = widgets_to_check.pop()
 
-            if hasattr(widget, "variable_name") and widget.variable_name == "lock_box":
-                continue
+            # if hasattr(widget, "variable_name") and widget.variable_name == "lock_box":
+            #     continue
 
-            # keep per-axis lock checkboxes enabled
-            if hasattr(widget, "variable_name") and isinstance(widget.variable_name,
-                                                               str) and widget.variable_name.endswith("_lock"):
-                pass
-            elif isinstance(widget, (Button, DropDown, SpinBox)):
+            # # keep per-axis lock checkboxes enabled
+            # if hasattr(widget, "variable_name") and isinstance(widget.variable_name,
+            #                                                    str) and widget.variable_name.endswith("_lock"):
+            #     pass
+            if hasattr(widget, "variable_name"):
+                vn = widget.variable_name
+                case1 = vn in ("lock_box", "stop_button")
+                case2 = (isinstance(vn, str) and vn.endswith("_lock"))
+                if case1 or case2:
+                    widget.set_enabled(True)
+                    continue
+            
+            if isinstance(widget, (Button, DropDown, SpinBox)):
                 widget.set_enabled(enabled)
 
             if hasattr(widget, "children"):

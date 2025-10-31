@@ -43,7 +43,6 @@ class instruments(App):
 
     def after_configuration(self):
         if self.configuration_check["stage"] == 1:
-            print(1)
             self.stage_connect_btn.set_text("Connect")
             self.configuration_check["stage"] = 0
             self.configuration["stage"] = ""
@@ -186,7 +185,7 @@ class instruments(App):
             file = File("shared_memory", "Configuration", self.configuration)
             file.save()
             self.stage_connect_btn.set_text("Connecting")
-            self.lock_all(1)
+            # self.lock_all(1)
         else:
             self.configuration["stage"] = ""
             file = File("shared_memory", "Configuration", self.configuration)
@@ -199,7 +198,7 @@ class instruments(App):
             file = File("shared_memory", "Configuration", self.configuration)
             file.save()
             self.sensor_connect_btn.set_text("Connecting")
-            self.lock_all(1)
+            # self.lock_all(1)
         else:
             self.configuration["sensor"] = ""
             file = File("shared_memory", "Configuration", self.configuration)
@@ -212,7 +211,7 @@ class instruments(App):
             file = File("shared_memory", "Configuration", self.configuration)
             file.save()
             self.tec_connect_btn.set_text("Connecting")
-            self.lock_all(1)
+            # self.lock_all(1)
         else:
             self.configuration["tec"] = ""
             file = File("shared_memory", "Configuration", self.configuration)

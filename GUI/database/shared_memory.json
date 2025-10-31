@@ -10,7 +10,7 @@
     "png": 1,
     "pdf": 1
   },
-  "FilePath": "C:\\Users\\SiEPIC_Kaiser\\Desktop",
+  "FilePath": "C:\\Users\\347\\Desktop",
   "Limit": {
     "x": "Yes",
     "y": "Yes",
@@ -55,7 +55,7 @@
   },
   "AutoSweep": 0,
   "Configuration": {
-    "stage": "Corvus_controller",
+    "stage": "",
     "sensor": "",
     "tec": "",
     "smu": "",
@@ -67,9 +67,9 @@
     "tec": 0
   },
   "Port": {
-    "stage": 7,
+    "stage": 4,
     "sensor": 20,
-    "tec": 3
+    "tec": 4
   },
   "DeviceName": "Default",
   "DeviceNum": 0

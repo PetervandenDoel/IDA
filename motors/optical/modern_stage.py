@@ -94,6 +94,7 @@ class StageControl(MotorHAL):
         self._status_poll_interval = status_poll_interval  # seconds
         
         # State tracking
+        self.stop_called = False
         self._last_position = 0.0 
         self._is_homed = False
         self._move_in_progress = False
@@ -126,6 +127,7 @@ class StageControl(MotorHAL):
                 time.sleep(0.1)
                 self._send_command(f"{self.AXIS_MAP[self.axis]}VEL{self._velocity * 0.001}")  # Set velocity
                 time.sleep(0.1)
+                self._send_command(f"{self.AXIS_MAP[self.ais]}CER")  # Clear errors
 
                 # Connection successful
                 self._is_connected = True 
@@ -366,9 +368,13 @@ class StageControl(MotorHAL):
         """
         def _estop():
             try:
-                self._send_command(f"{self.AXIS_MAP[self.axis]}EST")  # Stop axes
+                self.stop_called = True
+                print(f"Stop requested : {self.stop_called}")
+                time.sleep(0.5)
+                self._send_command(f"{self.AXIS_MAP[AxisType.ALL]}EST")  # Stop axes
                 self._move_in_progress = False
                 self._target_position = None
+                self.stop_called = False
                 return True
             except Exception as e:
                 print(f"Emergency stop error: {e}")
@@ -555,138 +561,245 @@ class StageControl(MotorHAL):
                 
         return await asyncio.get_event_loop().run_in_executor(self._executor, _home)
     
+    # async def home_limits(self):
+    #     """
+    #     Home both ends of this axis, and set self._position_limits accordingly.
+    #     After this runs, `neg_limit_um` will be 0.0 (since we ZRO there),
+    #     and `pos_limit_um` will be the travel length in um.
+    #     """
+    #     # Declare axis for each private method usage
+    #     axis_num = self.AXIS_MAP[self.axis]
+    #     await self.set_velocity(3000.0)
+    #     def _get_limits():
+    #         """Get limit positions"""
+    #         try:
+    #             # Homing is starting
+    #             self._emit_event(MotorEventType.MOVE_STARTED, {'operation': 'homing_limits'})
+                
+    #             # Send MLN to drive until negative limit is hit
+    #             self._send_command(f"{axis_num}MLN")
+
+    #             # Wait for completion
+    #             while not self.stop_called:
+    #                 response = self._query_command(f"{axis_num}STA?")
+    #                 status = int(response)
+    #                 if status == 1:  # Stopped
+    #                     break
+    #                 time.sleep(0.1)
+
+    #             # Zero neg limit, zeros by default so becomes 0 mm
+    #             self._send_command(f"{axis_num}ZRO")
+
+    #             # After ZRO, the controller’s internal position registers read zero at this point
+    #             bottom_zero_um = 0.0 # set bottom limit as controllers iternal position limit register
+    #             self._last_position = bottom_zero_um 
+
+    #             # Move pos limit switch
+    #             self._send_command(f"{axis_num}MLP")
+
+    #             # Wait for completion
+    #             while not self.stop_called:
+    #                 response = self._query_command(f"{axis_num}STA?")
+    #                 status = int(response)
+    #                 if status == 1:  # Stopped
+    #                     break
+    #                 time.sleep(0.1)
+
+    #             # Read position at positive end
+    #             pos_resp2 = self._query_command(f"{axis_num}POS?")
+    #             theoretical_mm = float(pos_resp2[0])
+    #             actual_mm = float(pos_resp2[1])
+
+    #             # Convert mm to um
+    #             theoretical_um = theoretical_mm * 1000
+    #             actual_um = actual_mm * 1000
+
+    #             top_um = theoretical_um
+    #             self._last_position = top_um
+
+    #             # Software lims set
+    #             self._position_limits = (bottom_zero_um, top_um)
+
+    #             # Notify that homing, limit-finding is complete
+    #             self._emit_event(MotorEventType.HOMED, {'limits_um': self._position_limits})
+
+    #             # Clear MMC-100 default error thats appearing
+    #             self._send_command(f"{axis_num}CER")
+    #             return True
+
+    #         except Exception as e:
+    #             self._emit_event(MotorEventType.ERROR_OCCURRED, {'error': str(e)})
+    #             return False
+            
+    #     def _mid_point():
+    #         """Go to mid point"""
+    #         try:
+    #             if axis_num == 4:
+    #                 # Fiber array
+    #                 mid_point = self._position_limits[1] * (37.0 / 45.0) # 8 deg
+    #             else:
+    #                 mid_point = (self._position_limits[1] - self._position_limits[0]) / 2
+
+    #             self._emit_event(MotorEventType.MOVE_STARTED, {'operation': 'middling'})
+    #             self._send_command(f"{axis_num}MVA{(mid_point/1000):.6f}")
+                
+    #             # Wait for completion
+    #             while not self.stop_called:
+    #                 response = self._query_command(f"{axis_num}STA?")
+    #                 status = int(response)
+    #                 pos = self._query_command(f"{axis_num}POS?")
+    #                 pos = float(pos[1])
+    #                 pos_um = pos * 1000.0 # Convert
+                    
+    #                 # If position reaches mid point, or movement has stopped and its accurate to 0.001 mm 
+    #                 if (pos_um == mid_point) or (status == 1): # messy
+    #                     break
+    #                 time.sleep(0.1)
+
+    #             # Get current position
+    #             self._emit_event(MotorEventType.MOVE_COMPLETE, {'pos': self._position_limits})
+    #             self._last_position = pos_um
+    #             return True
+        
+    #         except Exception as e:
+    #             self._emit_event(MotorEventType.ERROR_OCCURRED, {'error': str(e)})
+    #             return False
+        
+    #     def _home_limits():
+    #         """Get position limits, go to mid point"""
+    #         try:
+    #             while not _get_limits():
+    #                 continue
+    #             while not _mid_point():
+    #                 continue
+    #             self._is_homed = True
+    #             return True, self._position_limits
+            
+    #         except Exception as e:
+    #             self._emit_event(MotorEventType.ERROR_OCCURRED, {'error': str(e)})
+    #             return False, None
+
+    #     return await asyncio.get_event_loop().run_in_executor(self._executor, _home_limits)
+
+    # async def set_zero(self):
+    #     """Set current position as zero"""
+    #     def _set_zero():
+    #         try:
+    #             self._send_command(f"{self.AXIS_MAP[self.axis]}ZRO")
+    #             self._last_position = 0.0  # Reset position tracking
+    #             return True
+    #         except Exception as e:
+    #             print(f"Set zero error: {e}")
+    #             return False
+                
+    #     return await asyncio.get_event_loop().run_in_executor(self._executor, _set_zero)
+    
     async def home_limits(self):
         """
         Home both ends of this axis, and set self._position_limits accordingly.
         After this runs, `neg_limit_um` will be 0.0 (since we ZRO there),
         and `pos_limit_um` will be the travel length in um.
         """
-        # Declare axis for each private method usage
         axis_num = self.AXIS_MAP[self.axis]
         await self.set_velocity(3000.0)
-        def _get_limits():
-            """Get limit positions"""
-            try:
-                # Homing is starting
-                self._emit_event(MotorEventType.MOVE_STARTED, {'operation': 'homing_limits'})
-                
-                # Send MLN to drive until negative limit is hit
-                self._send_command(f"{axis_num}MLN")
-
-                # Wait for completion
-                while True:
-                    response = self._query_command(f"{axis_num}STA?")
-                    status = int(response)
-                    if status == 1:  # Stopped
-                        break
-                    time.sleep(0.1)
-
-                # Zero neg limit, zeros by default so becomes 0 mm
-                self._send_command(f"{axis_num}ZRO")
-
-                # After ZRO, the controller’s internal position registers read zero at this point
-                bottom_zero_um = 0.0 # set bottom limit as controllers iternal position limit register
-                self._last_position = bottom_zero_um 
-
-                # Move pos limit switch
-                self._send_command(f"{axis_num}MLP")
-
-                # Wait for completion
-                while True:
-                    response = self._query_command(f"{axis_num}STA?")
-                    status = int(response)
-                    if status == 1:  # Stopped
-                        break
-                    time.sleep(0.1)
-
-                # Read position at positive end
-                pos_resp2 = self._query_command(f"{axis_num}POS?")
-                theoretical_mm = float(pos_resp2[0])
-                actual_mm = float(pos_resp2[1])
-
-                # Convert mm to um
-                theoretical_um = theoretical_mm * 1000
-                actual_um = actual_mm * 1000
-
-                top_um = theoretical_um
-                self._last_position = top_um
-
-                # Software lims set
-                self._position_limits = (bottom_zero_um, top_um)
-
-                # Notify that homing, limit-finding is complete
-                self._emit_event(MotorEventType.HOMED, {'limits_um': self._position_limits})
-
-                # Clear MMC-100 default error thats appearing
-                self._send_command(f"{axis_num}CER")
-                return True
-
-            except Exception as e:
-                self._emit_event(MotorEventType.ERROR_OCCURRED, {'error': str(e)})
-                return False
-            
-        def _mid_point():
-            """Go to mid point"""
-            try:
-                if axis_num == 4:
-                    # Fiber array
-                    mid_point = self._position_limits[1] * (37.0 / 45.0) # 8 deg
-                else:
-                    mid_point = (self._position_limits[1] - self._position_limits[0]) / 2
-
-                self._emit_event(MotorEventType.MOVE_STARTED, {'operation': 'middling'})
-                self._send_command(f"{axis_num}MVA{(mid_point/1000):.6f}")
-                
-                # Wait for completion
-                while True:
-                    response = self._query_command(f"{axis_num}STA?")
-                    status = int(response)
-                    pos = self._query_command(f"{axis_num}POS?")
-                    pos = float(pos[1])
-                    pos_um = pos * 1000.0 # Convert
-                    
-                    # If position reaches mid point, or movement has stopped and its accurate to 0.001 mm 
-                    if (pos_um == mid_point) or (status == 1): # messy
-                        break
-                    time.sleep(0.1)
-
-                # Get current position
-                self._emit_event(MotorEventType.MOVE_COMPLETE, {'pos': self._position_limits})
-                self._last_position = pos_um
-                return True
+    
+        try:
+            # GET LIMITS
+            # Homing is starting
+            self._emit_event(MotorEventType.MOVE_STARTED, {'operation': 'homing_limits'})
         
-            except Exception as e:
-                self._emit_event(MotorEventType.ERROR_OCCURRED, {'error': str(e)})
-                return False
+            # Send MLN to drive until negative limit is hit
+            await asyncio.to_thread(self._send_command, f"{axis_num}MLN")
+
+            # Wait for completion
+            while True:
+                response = await asyncio.to_thread(self._query_command, f"{axis_num}STA?")
+                status = int(response)
+                if status == 1:  # Stopped
+                    break
+                await asyncio.sleep(0.1)  # Non-blocking sleep
+
+            # Zero neg limit
+            await asyncio.to_thread(self._send_command, f"{axis_num}ZRO")
+
+            # After ZRO, the controller's internal position registers read zero
+            bottom_zero_um = 0.0
+            self._last_position = bottom_zero_um
+
+            # Move to positive limit switch
+            await asyncio.to_thread(self._send_command, f"{axis_num}MLP")
+
+            # Wait for completion
+            while True:
+                response = await asyncio.to_thread(self._query_command, f"{axis_num}STA?")
+                status = int(response)
+                if status == 1:  # Stopped
+                    break
+                await asyncio.sleep(0.1)
+
+            # Read position at positive end
+            pos_resp2 = await asyncio.to_thread(self._query_command, f"{axis_num}POS?")
+            theoretical_mm = float(pos_resp2[0])
+            actual_mm = float(pos_resp2[1])
+
+            # Convert mm to um
+            theoretical_um = theoretical_mm * 1000
+            actual_um = actual_mm * 1000
+
+            top_um = theoretical_um
+            self._last_position = top_um
+
+            # Software limits set
+            self._position_limits = (bottom_zero_um, top_um)
+
+            # Notify that homing, limit-finding is complete
+            self._emit_event(MotorEventType.HOMED, {'limits_um': self._position_limits})
+
+            # Clear MMC-100 default error
+            await asyncio.to_thread(self._send_command, f"{axis_num}CER")
+
+            # GO TO MID POINT
+            if axis_num == 4:
+                # Fiber array
+                mid_point = self._position_limits[1] * (37.0 / 45.0)  # 8 deg
+            else:
+                mid_point = (self._position_limits[1] - self._position_limits[0]) / 2
+
+            self._emit_event(MotorEventType.MOVE_STARTED, {'operation': 'middling'})
+            await asyncio.to_thread(self._send_command, f"{axis_num}MVA{(mid_point/1000):.6f}")
         
-        def _home_limits():
-            """Get position limits, go to mid point"""
-            try:
-                while not _get_limits():
-                    continue
-                while not _mid_point():
-                    continue
-                self._is_homed = True
-                return True, self._position_limits
+            # Wait for completion
+            while True:
+                response = await asyncio.to_thread(self._query_command, f"{axis_num}STA?")
+                status = int(response)
+                pos = await asyncio.to_thread(self._query_command, f"{axis_num}POS?")
+                pos = float(pos[1])
+                pos_um = pos * 1000.0  # Convert
             
-            except Exception as e:
-                self._emit_event(MotorEventType.ERROR_OCCURRED, {'error': str(e)})
-                return False, None
+                # If position reaches mid point, or movement has stopped
+                if (pos_um == mid_point) or (status == 1):
+                    break
+                await asyncio.sleep(0.1)
 
-        return await asyncio.get_event_loop().run_in_executor(self._executor, _home_limits)
-
-    async def set_zero(self):
-        """Set current position as zero"""
-        def _set_zero():
+            # Get current position
+            self._emit_event(MotorEventType.MOVE_COMPLETE, {'pos': self._position_limits})
+            self._last_position = pos_um
+        
+            self._is_homed = True
+            return True, self._position_limits
+    
+        except asyncio.CancelledError:
+            # Stop the motor if cancelled
             try:
-                self._send_command(f"{self.AXIS_MAP[self.axis]}ZRO")
-                self._last_position = 0.0  # Reset position tracking
-                return True
-            except Exception as e:
-                print(f"Set zero error: {e}")
-                return False
-                
-        return await asyncio.get_event_loop().run_in_executor(self._executor, _set_zero)
+                await asyncio.to_thread(self._send_command, f"{axis_num}STP")
+            except Exception:
+                pass  # Best effort to stop
+            self._emit_event(MotorEventType.ERROR_OCCURRED, {'error': 'Homing cancelled'})
+            raise
+    
+        except Exception as e:
+            self._emit_event(MotorEventType.ERROR_OCCURRED, {'error': str(e)})
+            return False, None
 
     # Additional utility methods
     async def wait_for_move_completion(self, timeout: float = 30.0) -> bool:

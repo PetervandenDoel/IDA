@@ -18,7 +18,6 @@ class stage_control(App):
             super(stage_control, self).__init__(*args, **{"static_file_path": {"my_res": "./res/"}})
 
     def idle(self):
-        print('command gui idle?')
         try:
             stime = os.path.getmtime(shared_path)
         except FileNotFoundError:
