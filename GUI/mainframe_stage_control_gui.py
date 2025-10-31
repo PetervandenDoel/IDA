@@ -575,7 +575,10 @@ class stage_control(App):
         widgets_to_check = [self.stage_control_container]
         while widgets_to_check:
             widget = widgets_to_check.pop()
-
+            
+            # Don't lock stop button
+            if hasattr(widget, "variable_name") and widget.variable_name == "onclick_stop":
+                continue
             # keep global lock and per-axis lock checkboxes enabled
             if hasattr(widget, "variable_name"):
                 vn = widget.variable_name
