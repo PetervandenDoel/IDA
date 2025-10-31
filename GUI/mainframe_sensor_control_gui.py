@@ -216,7 +216,8 @@ class stage_control(App):
         return sensor_control_container
 
     def onclick_configure(self):
-        local_ip = get_local_ip()
+        # local_ip = get_local_ip()
+        local_ip = '127.0.0.1'
         webview.create_window(
             "Setting",
             f"http://{local_ip}:7001",
@@ -228,7 +229,8 @@ class stage_control(App):
         )
 
     def onclick_data_window(self):
-        local_ip = get_local_ip()
+        # local_ip = get_local_ip()
+        local_ip = '127.0.0.1'
         webview.create_window(
             "Detector Window Settings",
             f"http://{local_ip}:7006",
@@ -492,7 +494,8 @@ def disable_scroll():
 if __name__ == '__main__':
     threading.Thread(target=run_remi, daemon=True).start()
     signal.signal(signal.SIGINT, signal.SIG_DFL)
-    local_ip = get_local_ip()
+    # local_ip = get_local_ip()
+    local_ip = '127.0.0.1'
     webview.create_window(
         'Sensor Control',
         f'http://{local_ip}:8001',

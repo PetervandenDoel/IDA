@@ -21,12 +21,13 @@ class connect_config(App):
             ports = list(serial.tools.list_ports.comports())
             com_names = [p.device for p in ports]
 
-            # rm = pyvisa.ResourceManager()
-            # visa_resources = rm.list_resources()
-            # asrl_resources = [r for r in visa_resources if "ASRL" in r]
-
+            rm = pyvisa.ResourceManager()
+            visa_resources = rm.list_resources()
+            asrl_resources = [r for r in visa_resources if "ASRL" in r]
+            gpib_resources = [r for r in visa_resources if "GPIB" in r]
+            rm.close()
             if com_names != self._last_ports:
-                self._last_ports = com_names
+                self._last_ports = com_names + asrl_resources + gpib_resources
 
                 self.refresh_dropdown(self.stage_dd, com_names)
                 self.refresh_dropdown(self.tec_dd, com_names)
@@ -100,7 +101,8 @@ class connect_config(App):
         selected_tec = self.tec_dd.get_value()
         stage_num = int(re.search(r'\d+', selected_stage).group()) if selected_stage else None
         sensor_num = int(re.search(r'\d+', selected_sensor).group()) if selected_sensor else None
-        tec_num = int(re.search(r'\d+', selected_tec).group()) if selected_tec else None
+        tec_inbetween = re.search(r'\d+', selected_tec) if selected_tec else None
+        tec_num = int(tec_inbetween.group()) if tec_inbetween else None
         print("Stage COM:", stage_num)
         print("Sensor COM:", sensor_num)
         print("TEC COM:", tec_num)

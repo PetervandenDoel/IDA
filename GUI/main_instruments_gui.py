@@ -6,7 +6,7 @@ shared_path = os.path.join("database", "shared_memory.json")
 
 class instruments(App):
     def __init__(self, *args, **kwargs):
-        self.configuration = {"stage": "", "sensor": "", "tec": ""}
+        self.configuration = {"stage": "", "sensor": "", "tec": "", "smu": "", "motor": ""}
         self.configuration_check = {}
         self.stage_connect_btn = None
         self.sensor_connect_btn = None
@@ -24,7 +24,6 @@ class instruments(App):
 
     def idle(self):
         self.terminal.terminal_refresh()
-
         try:
             stime = os.path.getmtime(shared_path)
         except FileNotFoundError:
@@ -36,6 +35,7 @@ class instruments(App):
                 with open(shared_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     self.configuration_check = data.get("Configuration_check", {})
+                    self.configuration_check = 1
             except Exception as e:
                 print(f"[Warn] read json failed: {e}")
 
@@ -43,6 +43,7 @@ class instruments(App):
 
     def after_configuration(self):
         if self.configuration_check["stage"] == 1:
+            print(1)
             self.stage_connect_btn.set_text("Connect")
             self.configuration_check["stage"] = 0
             self.configuration["stage"] = ""
@@ -100,6 +101,7 @@ class instruments(App):
             self.lock_all(0)
 
     def lock_all(self, value):
+        print('lock all instr')
         enabled = value == 0
         widgets_to_check = [self.instruments_container]
         while widgets_to_check:
@@ -180,6 +182,7 @@ class instruments(App):
     def onclick_stage_connect_btn(self):
         if self.stage_connect_btn.get_text() == "Connect":
             self.configuration["stage"] = self.stage_dd.get_value()
+            print(f"Connection pressed and conf set to {self.configuration['stage']}")
             file = File("shared_memory", "Configuration", self.configuration)
             file.save()
             self.stage_connect_btn.set_text("Connecting")
@@ -217,7 +220,8 @@ class instruments(App):
             self.tec_connect_btn.set_text("Connect")
 
     def onclick_configure_btn(self):
-        local_ip = get_local_ip()
+        # local_ip = get_local_ip()
+        local_ip = '127.0.0.1'
         webview.create_window(
             'Stage Control',
             f'http://{local_ip}:7005',
@@ -250,7 +254,8 @@ def get_local_ip():
 
 if __name__ == "__main__":
     threading.Thread(target=run_remi, daemon=True).start()
-    local_ip = get_local_ip()
+    # local_ip = get_local_ip()
+    local_ip = '127.0.0.1'
     webview.create_window(
         "Main Window",
         f"http://{local_ip}:9001",

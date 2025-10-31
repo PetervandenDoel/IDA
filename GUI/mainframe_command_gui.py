@@ -18,6 +18,7 @@ class stage_control(App):
             super(stage_control, self).__init__(*args, **{"static_file_path": {"my_res": "./res/"}})
 
     def idle(self):
+        print('command gui idle?')
         try:
             stime = os.path.getmtime(shared_path)
         except FileNotFoundError:
@@ -181,7 +182,8 @@ def disable_scroll():
 if __name__ == "__main__":
     threading.Thread(target=run_remi, daemon=True).start()
     signal.signal(signal.SIGINT, signal.SIG_DFL)
-    local_ip = get_local_ip()
+    # local_ip = get_local_ip()
+    local_ip = '127.0.0.1'
     webview.create_window(
         "Command",
         f"http://{local_ip}:8003",

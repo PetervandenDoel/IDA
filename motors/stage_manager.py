@@ -21,7 +21,7 @@ Cameron Basara, 2025
 logger = logging.getLogger(__name__)
 
 class StageManager:
-    def __init__(self, config: StageConfiguration, create_shm: bool = True, port: int = 4):
+    def __init__(self, config: StageConfiguration, create_shm: bool = True, port: int = 7):
         # Core components
         self.config = config
         motors.optical.modern_stage._GLOBAL_COM_PORT = f"COM{port}"
@@ -120,11 +120,12 @@ class StageManager:
             
             # Add event callback
             motor.add_callback(self._handle_motor_event)
-            
+           
             # Connect motor
             success = await motor.connect()
             if success:
                 self.motors[axis] = motor
+                print(f'manager:\n {vars(motor)}\n')
                 self._last_positions[axis] = 0.0
                 self._homed_axes[axis] = False
                 logger.info(f"Axis {axis.name} initialized successfully")
@@ -150,6 +151,10 @@ class StageManager:
         success = all(results)
         if success:
             logger.info("All axes initialized successfully")
+            if self.config.driver_types[AxisType.X] == "Corvus_controller":
+                # Does not support homing, declare it as homed
+                for ax in (AxisType.X, AxisType.Y, AxisType.Z):
+                    self._homed_axes[ax] = True
         else:
             logger.warning("Some axes failed to initialize")
         

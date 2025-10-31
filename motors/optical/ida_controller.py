@@ -35,7 +35,7 @@ Aided by Claude for integration and formatting
 import asyncio
 import time
 from typing import Optional, Dict, Tuple, ClassVar, Any
-
+from numpy import nan
 import pyvisa as visa
 
 from motors.hal.motors_hal import (
@@ -66,9 +66,9 @@ class CorvusController(MotorHAL):
         axis: AxisType,
         enabled_axes: list[AxisType] = [ax for ax in AXIS_MAPPING.keys()],
         visa_address: str = 'ASRL7::INSTR',
-        default_velocity_um_s: float = 5000.0,
-        default_acceleration_um_s2: float = 20000.0,
-        position_limits_um: Tuple[float, float] = (-50000.0, 50000.0),
+        velocity: float = 5000.0,
+        acceleration: float = 20000.0,
+        position_limits: Tuple[float, float] = (-50000.0, 50000.0),
         step_size: Optional[Dict[str, float]] = None,
         status_poll_interval: float = 0.05,
         enable_closed_loop: bool = True,
@@ -81,16 +81,16 @@ class CorvusController(MotorHAL):
             axis: The axis THIS instance controls (X, Y, or Z)
             enabled_axes: ALL axes physically connected on the controller
             visa_address: VISA resource string (e.g., 'ASRL3::INSTR')
-            default_velocity_um_s: Default velocity in µm/s
-            default_acceleration_um_s2: Default acceleration in µm/s²
-            position_limits_um: Software limits (min, max) in µm
+            velocity: Default velocity in um/s
+            acceleration: Default acceleration in um/s²
+            position_limits: Software limits (min, max) in um
             step_size: Step sizes per axis (optional)
             status_poll_interval: Motion status polling period in seconds
             enable_closed_loop: Enable encoder closed-loop control
             resource_manager: Existing VISA ResourceManager to reuse (optional)
         """
         super().__init__(axis)
-
+        
         # Dummy axis for connections
         self.dummy_axis = False
         if axis not in (AxisType.X, AxisType.Y, AxisType.Z):
@@ -114,9 +114,9 @@ class CorvusController(MotorHAL):
 
         # Configuration
         self._addr = visa_address
-        self._vel = float(default_velocity_um_s)
-        self._acc = float(default_acceleration_um_s2)
-        self._limits = position_limits_um
+        self._vel = float(velocity)
+        self._acc = float(acceleration)
+        self._limits = position_limits
         self._poll_dt = status_poll_interval
         self._closed_loop = enable_closed_loop
         
@@ -191,7 +191,7 @@ class CorvusController(MotorHAL):
             axis_values.get('y', 0.0),
             axis_values.get('z', 0.0)
         ]
-        return f"{triplet[0]:.6f} {triplet[1]:.6f} {triplet[2]:.6f}"
+        return f"{triplet[0]:.6f} {triplet[1]:.6f} {(-1)*triplet[2]:.6f}"
 
     async def connect(self) -> bool:
         """
@@ -201,11 +201,13 @@ class CorvusController(MotorHAL):
         Subsequent instances reuse the existing VISA connection.
         """
         if self.dummy_axis:
+            print(f"[CorvusController] Dummy axis connected")
             return True
         if self._addr in CorvusController._shared_connections:
             print(f"[CorvusController] {self.axis.name} reusing existing connection")
             self._inst = CorvusController._shared_connections[self._addr]
             self._rm = CorvusController._shared_rm.get(self._addr)
+            print(self._inst, self._rm)
             self._connected = True
             return True
         outstr = ("[CorvusController] {self.axis.name} initializing controller for axes:"
@@ -227,7 +229,6 @@ class CorvusController(MotorHAL):
                 print(f"[CorvusController] Connected: {id_response.strip()}")
             except Exception:
                 print("[CorvusController] Identify command sent")
-
             # Set dimension and enable axes
             self._write(f'{self._num_axes} setdim')
             
@@ -244,7 +245,7 @@ class CorvusController(MotorHAL):
             # Set units to microns
             for axis_num in range(0, 4):
                 self._write(f'1 {axis_num} setunit')
-            print("[CorvusController] Units set to microns (µm)")
+            print("[CorvusController] Units set to microns (um)")
 
             # Configure acceleration function
             self._write('0 setaccelfunc')
@@ -264,7 +265,7 @@ class CorvusController(MotorHAL):
             try:
                 vel_readback = self._query('gv').strip()
                 acc_readback = self._query('ga').strip()
-                print(f"[CorvusController] Velocity: {vel_readback} µm/s, Accel: {acc_readback} µm/s2")
+                print(f"[CorvusController] Velocity: {vel_readback} um/s, Accel: {acc_readback} um/s2")
             except Exception:
                 pass
 
@@ -297,6 +298,7 @@ class CorvusController(MotorHAL):
         """
         try:
             if self.dummy_axis:
+                print(f"[CorvusController] Dummy axis disconnected")
                 return True
             self._connected = False
             print(f"[CorvusController] {self.axis.name} disconnected (shared connection remains)")
@@ -309,15 +311,21 @@ class CorvusController(MotorHAL):
             self, position: float, velocity: Optional[float] = None,
             wait_for_completion = None) -> bool:
         """Move to absolute position."""
+        if self.dummy_axis:
+            print(f"[CorvusController] Dummy axis m_a")
+            return True
         current_pos = await self.get_position()
         delta = position - current_pos.actual
-        return await self.move_relative(delta, velocity)
+        return await self.move_relative(delta, velocity, wait_for_completion=None)
 
     async def move_relative(
             self, distance: float, velocity: Optional[float] = None,
             wait_for_completion = None) -> bool:
-        """Move relative distance."""
-        """ POS Z down, NEG Z up"""
+        """Move relative distance.
+            POS Z down, NEG Z up"""
+        if self.dummy_axis:
+            print(f"[CorvusController] Dummy axis m_r")
+            return True
         try:
             axis_idx = self.AXIS_MAPPING[self.axis]
             current = self._position_um[axis_idx]
@@ -326,7 +334,7 @@ class CorvusController(MotorHAL):
             # Check software limits
             lo, hi = self._limits
             if not (lo <= target <= hi):
-                error_msg = f"Move to {target:.2f} µm violates limits [{lo}, {hi}]"
+                error_msg = f"Move to {target:.2f} um violates limits [{lo}, {hi}]"
                 self._emit_event(MotorEventType.ERROR_OCCURRED, {"error": error_msg})
                 return False
 
@@ -390,6 +398,9 @@ class CorvusController(MotorHAL):
 
     async def stop(self) -> bool:
         """Stop motion immediately."""
+        if self.dummy_axis:
+            print(f"[CorvusController] Dummy axis stop")
+            return True
         try:
             self._write('0 sv')
             await asyncio.sleep(0.1)
@@ -404,10 +415,21 @@ class CorvusController(MotorHAL):
 
     async def emergency_stop(self) -> bool:
         """Emergency stop."""
+        if self.dummy_axis:
+            print(f"[CorvusController] Dummy axis estop")
+            return True
         return await self.stop()
 
     async def get_position(self) -> Position:
         """Get current position for this axis."""
+        if self.dummy_axis:
+            # print(f"[CorvusController] Dummy axis enabled")
+            return Position(
+                theoretical=nan,
+                actual=nan,
+                units='um',
+                timestamp=time.time()
+            )
         try:
             positions = self._read_position_triplet()
             self._position_um = positions
@@ -422,7 +444,7 @@ class CorvusController(MotorHAL):
                 timestamp=time.time()
             )
         except Exception as e:
-            print(f"[CorvusController] get_position error: {e}")
+            print(f"[CorvusController] get_position error ({self.axis}): {e}")
             axis_idx = self.AXIS_MAPPING[self.axis]
             cached = self._position_um[axis_idx]
             return Position(cached, cached, "um", time.time())
@@ -503,7 +525,6 @@ class CorvusController(MotorHAL):
         self._position_um[axis_idx] = 0.0
         print(f"[CorvusController] Zero position set for {self.axis.name}")
         return True
-
 
 # Register driver with factory
 from motors.hal.stage_factory import register_driver

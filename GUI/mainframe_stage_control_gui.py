@@ -87,7 +87,6 @@ class stage_control(App):
             super(stage_control, self).__init__(*args, **{"static_file_path": {"my_res": "./res/"}})
 
     def idle(self):
-        print("am I idle")
         try:
             mtime = os.path.getmtime(command_path)
             stime = os.path.getmtime(shared_path)
@@ -108,7 +107,6 @@ class stage_control(App):
             self._user_stime = stime
             try:
                 with open(shared_path, "r", encoding="utf-8") as f:
-                    print("hello world")
                     data = json.load(f)
                     self.user = data.get("User", "")
                     self.project = data.get("Project", "")
@@ -271,7 +269,6 @@ class stage_control(App):
         file.save()
 
     def after_configuration(self):
-        print("Surely I am here")
         if self.configuration["stage"] != "" and self.configuration_stage == 0 and self.configuration_check[
             "stage"] == 0:
             self.gds = lib_coordinates.coordinates(("./res/" + filename), read_file=False,
@@ -282,7 +279,7 @@ class stage_control(App):
             self.wavelength = self.gds.listdeviceparam("wavelength")
             self.type = self.gds.listdeviceparam("type")
             self.devices = [f"{name} ({num})" for name, num in zip(self.gds.listdeviceparam("devicename"), self.number)]
-
+            # print('yesyes')
             self.memory = Memory()
             self.configure = StageConfiguration()
             self.configure.driver_types[AxisType.X] = self.configuration["stage"]
@@ -290,17 +287,20 @@ class stage_control(App):
             self.configure.driver_types[AxisType.Z] = self.configuration["stage"]
             self.configure.driver_types[AxisType.ROTATION_CHIP] = self.configuration["stage"]
             self.configure.driver_types[AxisType.ROTATION_FIBER] = self.configuration["stage"]
-            print('Hello')
-            if self.port["stage"][0] != 'A':
-                # Not in visa format
+            if str(type(self.port["stage"])) == "<class 'str'>":
                 import re
                 numb = re.findall(r"\d+", self.port["stage"])[0]
-                self.configure.visa_addr = f'ASRL{numb}::INSTR'
-                print('Hello ?')
+                print(numb)
+                if self.port["stage"][0] != 'A':
+                    # Not in visa format
+                    self.configure.visa_addr = f'ASRL{numb}::INSTR'
+                else:
+                    self.configure.visa_addr = self.port["stage"]
             else:
-                self.configure.visa_addr = self.port["stage"]
-                print('hi')
-            self.stage_manager = StageManager(self.configure, create_shm=True, port=self.port["stage"])
+                # Type is already a number
+                numb = self.port["stage"]
+                pass
+            self.stage_manager = StageManager(self.configure, create_shm=True, port=numb)
             asyncio.run_coroutine_threadsafe(
                 self.stage_manager.startup(),
                 main_loop
@@ -309,6 +309,8 @@ class stage_control(App):
                 [AxisType.X, AxisType.Y, AxisType.Z, AxisType.ROTATION_CHIP, AxisType.ROTATION_FIBER])
             )
             if success_stage:
+                if self.stage_manager.config.driver_types[AxisType.X] == "Corvus_controller":
+                    self.onclick_home()  # Run "fake" home to get lims
                 self.configuration_stage = 1
                 self.configuration_check["stage"] = 2
                 file = File(
@@ -861,6 +863,20 @@ class stage_control(App):
         print("Stop")
 
     def onclick_home(self):
+        # Non homable case
+        if self.stage_manager.config.driver_types[AxisType.X] == "Corvus_controller":
+            pslims = self.stage_manager.config.position_limits
+            self.x_limit_lb.set_text(
+                f"lim: {round(pslims[AxisType.X][0], 2)}~{round(pslims[AxisType.X][1], 2)}"
+                )
+            self.y_limit_lb.set_text(
+                f"lim: {round(pslims[AxisType.Y][0], 2)}~{round(pslims[AxisType.Y][1], 2)}"
+                )
+            self.z_limit_lb.set_text(
+                f"lim: {round(pslims[AxisType.Z][0], 2)}~{round(pslims[AxisType.Z][1], 2)}"
+                )
+            return None
+        
         print("Start Home")
         self.busy_dialog()
         self.lock_all(1)
@@ -873,6 +889,7 @@ class stage_control(App):
         chip = home["chip"]
         fiber = home["fiber"]
 
+        
         if x == "Yes":
             xok, xlim = asyncio.run(self.stage_manager.home_limits(AxisType.X))
             if xok:
@@ -893,6 +910,7 @@ class stage_control(App):
             fok, flim = asyncio.run(self.stage_manager.home_limits(AxisType.ROTATION_FIBER))
             if fok:
                 self.fiber_limit_lb.set_text(f"lim: 0~45")
+
         with self._scan_done.get_lock():
             self._scan_done.value = 1
             self.task_start = 0
@@ -1366,7 +1384,8 @@ class stage_control(App):
         self.move_dd.attributes["title"] = value
 
     def onclick_limit_setting_btn(self):
-        local_ip = get_local_ip()
+        # local_ip = get_local_ip()
+        local_ip = '127.0.0.1'
         webview.create_window(
             "Setting",
             f"http://{local_ip}:7002",
@@ -1378,7 +1397,8 @@ class stage_control(App):
         )
 
     def onclick_fine_align_setting_btn(self):
-        local_ip = get_local_ip()
+        # local_ip = get_local_ip()
+        local_ip = '127.0.0.1'
         webview.create_window(
             "Setting",
             f"http://{local_ip}:7003",
@@ -1390,7 +1410,8 @@ class stage_control(App):
         )
 
     def onclick_scan_setting_btn(self):
-        local_ip = get_local_ip()
+        # local_ip = get_local_ip()
+        local_ip = '127.0.0.1'
         webview.create_window(
             "Setting",
             f"http://{local_ip}:7004",
@@ -1613,7 +1634,8 @@ if __name__ == '__main__':
 
     threading.Thread(target=run_remi, daemon=True).start()
     signal.signal(signal.SIGINT, signal.SIG_DFL)
-    local_ip = get_local_ip()
+    # local_ip = get_local_ip()
+    local_ip = '127.0.0.1'
 
     webview.create_window(
         "Setting",

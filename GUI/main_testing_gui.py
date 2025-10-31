@@ -602,7 +602,8 @@ class testing(App):
             file.save()
 
     def laser_sweep_setting(self):
-        local_ip = get_local_ip()
+        # local_ip = get_local_ip()
+        local_ip = '127.0.0.1'
         webview.create_window(
             "Setting",
             f"http://{local_ip}:7001",
@@ -638,7 +639,8 @@ def get_local_ip():
     # --------------------------------------------------------------------------- MAIN
 if __name__ == "__main__":
     threading.Thread(target=run_remi, daemon=True).start()
-    local_ip = get_local_ip()
+    # local_ip = get_local_ip()
+    local_ip = '127.0.0.1'
     webview.create_window(
         "Main Window",
         f"http://{local_ip}:9004",
