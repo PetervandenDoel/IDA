@@ -156,6 +156,16 @@ class area_scan(App):
                     font_size=100, flex=True, justify_content="left", color="#222")
         y += ROW
 
+        # Primary channel selector
+        StyledLabel(container=area_scan_setting_container, text="Primary Detector",
+                    variable_name="primary_ch_lb", left=LBL_X, top=y, width=LBL_W, height=24,
+                    font_size=100, flex=True, justify_content="right", color="#222")
+        self.primary_detector_dd = StyledDropDown(
+            container=area_scan_setting_container, variable_name="primary_detector_dd",
+            text=["CH1", "CH2", "MAX"], left=INP_X, top=y, width=INP_W+UNIT_W, height=24, position="absolute"
+        )
+        y += ROW
+
         # Plot selector
         StyledLabel(container=area_scan_setting_container, text="Plot",
                     variable_name="plot_lb", left=LBL_X, top=y, width=LBL_W, height=24,
@@ -229,13 +239,14 @@ class area_scan(App):
             "x_step": float(x_step_out),
             "y_size": float(self.y_size.get_value()),
             "y_step": float(y_step_out),
+            "primary_detector": str(self.primary_detector_dd.get_value().lower()),
             "plot": self.plot_dd.get_value(),
         }
         file = File("shared_memory", "AreaS", value)
         file.save()
         print("Confirm Area Scan Setting:", value)
 
-    # ---------------- Commands (unchanged) ----------------
+    # ---------------- Commands ----------------
     def execute_command(self, path=command_path):
         area = 0
         record = 0
@@ -265,6 +276,12 @@ class area_scan(App):
                 self.y_size.set_value(val)
             elif key == "as_y_step":
                 self.y_step.set_value(val)
+            elif key == "as_primary_detector":
+                if isinstance(val, str):
+                    v = val.upper()
+                    if v not in ("CH1", "CH2", "MAX"):
+                        v = "MAX"
+                    self.primary_detector_dd.set_value(v)    
             elif key == "as_plot":
                 if isinstance(val, str):
                     low = val.lower()

@@ -297,7 +297,9 @@ class StageControl(MotorHAL):
                     distance_mm = distance_temp * 0.001
                 elif self.axis == AxisType.ROTATION_CHIP:
                     # Map from deg to mm
-                    distance_temp =  10* distance * (lim / 3.6)
+                    # These numbers are kinda random because we just needed to convert to degrees somehow.
+                    #  the values are not 1:1 but thats okay we just need course
+                    distance_temp =  10* distance * (lim / 3.6) * 500 / 12 
                     distance_mm = distance_temp * 0.001
 
                 else:
@@ -582,7 +584,8 @@ class StageControl(MotorHAL):
         axis_num = self.AXIS_MAP[self.axis]
         await self.set_velocity(3000.0)
         if self.AXIS_MAP[self.axis] == AxisType.ROTATION_CHIP:
-            self._position_limits = (-10000.0, 10000.0)
+            self._position_limits = (-100000.0, 100000.0)
+            self._last_position = 0.0
             return
         try:
             # GET LIMITS

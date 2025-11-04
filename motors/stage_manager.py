@@ -202,7 +202,6 @@ class StageManager:
             return False
         
         try:
-            print("MOVING MOVING MOVING")
             motor = self.motors[axis]
             
             if relative:
@@ -211,7 +210,6 @@ class StageManager:
                     velocity=velocity,
                     wait_for_completion=wait_for_completion
                 )
-                print(f"SUCCESSFUL MOVE (?) : {'yes' if success else 'no'}")
                 if success:
                     self._last_positions[axis] += position
             else:

@@ -1138,6 +1138,7 @@ class stage_control(App):
             config.x_step = int(self.area_s["x_step"])
             config.y_size = int(self.area_s["y_size"])
             config.y_step = int(self.area_s["y_step"])
+            config.primary_detector = str(self.area_s["primary_detector"])
             self.area_sweep = AreaSweep(
                 config, self.stage_manager, self.nir_manager,
                 progress=self._as_progress,
