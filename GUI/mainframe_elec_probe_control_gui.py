@@ -70,6 +70,38 @@ class elecprobe(App):
             flex=True, on_line=True
         )
 
+        smu_sweep_container = StyledContainer(
+            container=smu_container, variable_name="smu_sweep_container", border=True,
+            left=8, top=225, height=200, width=584
+        )
+
+        StyledLabel(
+            container=smu_sweep_container, text="Sweep Setting", variable_name=f"smu_lb",
+            left=30, top=-12, width=112, height=20, font_size=120, color="#222", position="absolute",
+            flex=True, on_line=True
+        )
+# Sweep Setting --------------------------------------------------------------------------------------------------------
+        StyledLabel(
+            container=smu_sweep_container, text="Independent Variable", variable_name=f"set_sweep_var_lb",
+            left=5, top=10, width=150, height=25, font_size=110, color="#222", position="absolute",
+            flex=True, justify_content="left"
+        )
+
+        self.set_sweep_var = StyledDropDown(
+            container=smu_sweep_container, variable_name="set_sweep_var", text=["V", "I"],
+            left=158, top=10, width=142, height=25
+        )
+
+        StyledLabel(
+            container=smu_sweep_container, text="SMU Output", variable_name=f"set_sweep_output_lb",
+            left=340, top=10, width=85, height=25, font_size=110, color="#222", position="absolute",
+            flex=True, justify_content="left"
+        )
+
+        self.set_sweep_output = StyledDropDown(
+            container=smu_sweep_container, variable_name="set_sweep_output", text=["A", "B"],
+            left=432, top=10, width=142, height=25
+        )
 # Display --------------------------------------------------------------------------------------------------------------
         StyledContainer(
             container=smu_control_container, variable_name="smu_line", left=310, top=10, width=0, height=180,
@@ -95,15 +127,51 @@ class elecprobe(App):
         )
 
         StyledLabel(
-            container=smu_control_container, text="I (mA)", variable_name=f"read_i_lb",
+            container=smu_control_container, text="I (µA)", variable_name=f"read_i_lb",
             left=320, top=70, width=50, height=25, font_size=110, color="#222", position="absolute",
             flex=True, justify_content="left"
         )
 
         StyledLabel(
-            container=smu_control_container, text="R (Ω)", variable_name=f"read_o_lb",
+            container=smu_control_container, text="R (KΩ)", variable_name=f"read_o_lb",
             left=320, top=100, width=50, height=25, font_size=110, color="#222", position="absolute",
             flex=True, justify_content="left"
+        )
+
+        self.chl_a_v = StyledLabel(
+            container=smu_control_container, text="0.0", variable_name=f"chl_a_v",
+            left=360, top=40, width=110, height=25, font_size=110, color="#222", position="absolute",
+            flex=True
+        )
+
+        self.chl_b_v = StyledLabel(
+            container=smu_control_container, text="0.0", variable_name=f"chl_b_v",
+            left=470, top=40, width=110, height=25, font_size=110, color="#222", position="absolute",
+            flex=True
+        )
+
+        self.chl_a_i = StyledLabel(
+            container=smu_control_container, text="0.0", variable_name=f"chl_a_i",
+            left=360, top=70, width=110, height=25, font_size=110, color="#222", position="absolute",
+            flex=True
+        )
+
+        self.chl_b_i = StyledLabel(
+            container=smu_control_container, text="0.0", variable_name=f"chl_b_i",
+            left=470, top=70, width=110, height=25, font_size=110, color="#222", position="absolute",
+            flex=True
+        )
+
+        self.chl_a_o = StyledLabel(
+            container=smu_control_container, text="0.0", variable_name=f"chl_a_o",
+            left=360, top=100, width=110, height=25, font_size=110, color="#222", position="absolute",
+            flex=True
+        )
+
+        self.chl_b_o = StyledLabel(
+            container=smu_control_container, text="0.0", variable_name=f"chl_b_o",
+            left=470, top=100, width=110, height=25, font_size=110, color="#222", position="absolute",
+            flex=True
         )
 
 # Setting --------------------------------------------------------------------------------------------------------------
@@ -130,9 +198,9 @@ class elecprobe(App):
 
         labels = [
             "Set Voltage (V)",
-            "Set Current (mA)",
+            "Set Current (µA)",
             "Set Voltage Lim (V)",
-            "Set Current Lim (mA)",
+            "Set Current Lim (µA)",
             "Set Power Lim (mW)"
         ]
         names = ["voltage", "current", "v_limit", "i_limit", "p_limit"]
