@@ -61,7 +61,7 @@ class elecprobe(App):
 
         smu_control_container = StyledContainer(
             container=smu_container, variable_name="smu_control_container", border=True,
-            left=8, top=10, height=350, width=584
+            left=8, top=10, height=200, width=584
         )
 
         StyledLabel(
@@ -70,12 +70,107 @@ class elecprobe(App):
             flex=True, on_line=True
         )
 
+# Display --------------------------------------------------------------------------------------------------------------
+        StyledContainer(
+            container=smu_control_container, variable_name="smu_line", left=310, top=10, width=0, height=180,
+            border=True, line="1.5px dashed #ccc"
+        )
+
         StyledLabel(
-            container=smu_control_container, text="SMU Output", variable_name=f"smu_output_lb",
-            left=5, top=10, width=190, height=30, font_size=110, color="#222", position="absolute",
+            container=smu_control_container, text="Channel A", variable_name=f"chl_a_lb",
+            left=360, top=10, width=110, height=25, font_size=110, color="#222", position="absolute",
+            flex=True
+        )
+
+        StyledLabel(
+            container=smu_control_container, text="Channel B", variable_name=f"chl_b_lb",
+            left=470, top=10, width=110, height=25, font_size=110, color="#222", position="absolute",
+            flex=True
+        )
+
+        StyledLabel(
+            container=smu_control_container, text="V (V)", variable_name=f"read_v_lb",
+            left=320, top=40, width=50, height=25, font_size=110, color="#222", position="absolute",
             flex=True, justify_content="left"
         )
 
+        StyledLabel(
+            container=smu_control_container, text="I (mA)", variable_name=f"read_i_lb",
+            left=320, top=70, width=50, height=25, font_size=110, color="#222", position="absolute",
+            flex=True, justify_content="left"
+        )
+
+        StyledLabel(
+            container=smu_control_container, text="R (Ω)", variable_name=f"read_o_lb",
+            left=320, top=100, width=50, height=25, font_size=110, color="#222", position="absolute",
+            flex=True, justify_content="left"
+        )
+
+# Setting --------------------------------------------------------------------------------------------------------------
+        StyledLabel(
+            container=smu_control_container, text="SMU Output", variable_name=f"smu_output_lb",
+            left=5, top=10, width=100, height=25, font_size=110, color="#222", position="absolute",
+            flex=True, justify_content="left"
+        )
+
+        self.set_output = StyledDropDown(
+            container=smu_control_container, variable_name="set_output", text=["A", "B"],
+            left=105, top=10, width=80, height=25
+        )
+
+        self.set_output_on = StyledButton(
+            container=smu_control_container, variable_name="set_output_on", text="ON",
+            left=195, top=10, width=50, height=25
+        )
+
+        self.set_output_off = StyledButton(
+            container=smu_control_container, variable_name="set_output_off", text="OFF",
+            left=250, top=10, width=50, height=25
+        )
+
+        labels = [
+            "Set Voltage (V)",
+            "Set Current (mA)",
+            "Set Voltage Lim (V)",
+            "Set Current Lim (mA)",
+            "Set Power Lim (mW)"
+        ]
+        names = ["voltage", "current", "v_limit", "i_limit", "p_limit"]
+
+        base_top = 40
+        spacing = 30
+
+        for i, (label, name) in enumerate(zip(labels, names)):
+            top_pos = base_top + i * spacing
+
+            StyledLabel(
+                container=smu_control_container,
+                text=label,
+                variable_name=f"set_lb_{i}",
+                left=5, top=top_pos, width=145, height=25,
+                font_size=110, color="#222", position="absolute",
+                flex=True, justify_content="left"
+            )
+
+            setattr(self, f"set_{name}_sb",
+                StyledSpinBox(
+                    container=smu_control_container,
+                    variable_name=f"{name}_sb",
+                    max_value=30, min_value=0, value=0.0, step=0.1,
+                    left=158, top=top_pos, width=70, height=24
+                )
+            )
+
+            setattr(self, f"set_{name}_bt",
+                StyledButton(
+                    container=smu_control_container,
+                    variable_name=f"{name}_bt",
+                    text="SET",
+                    left=250, top=top_pos, width=50, height=25
+                )
+            )
+
+# Movement Control -----------------------------------------------------------------------------------------------------
         labels = ["X", "Y", "Z"]
         left_arrows = ["⮜", "⮟", "Down"]
         right_arrows = ["⮞", "⮝", "Up"]
@@ -161,7 +256,8 @@ def get_local_ip():
 
 if __name__ == "__main__":
     threading.Thread(target=run_remi, daemon=True).start()
-    local_ip = get_local_ip()
+    #local_ip = get_local_ip()
+    local_ip = "127.0.0.1"
     webview.create_window(
         "Main Window",
         f"http://{local_ip}:8004",

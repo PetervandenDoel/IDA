@@ -87,7 +87,6 @@ class stage_control(App):
             super(stage_control, self).__init__(*args, **{"static_file_path": {"my_res": "./res/"}})
 
     def idle(self):
-        print("am I idle")
         try:
             mtime = os.path.getmtime(command_path)
             stime = os.path.getmtime(shared_path)
@@ -108,7 +107,6 @@ class stage_control(App):
             self._user_stime = stime
             try:
                 with open(shared_path, "r", encoding="utf-8") as f:
-                    print("hello world")
                     data = json.load(f)
                     self.user = data.get("User", "")
                     self.project = data.get("Project", "")
@@ -271,7 +269,6 @@ class stage_control(App):
         file.save()
 
     def after_configuration(self):
-        print("Surely I am here")
         if self.configuration["stage"] != "" and self.configuration_stage == 0 and self.configuration_check[
             "stage"] == 0:
             self.gds = lib_coordinates.coordinates(("./res/" + filename), read_file=False,
@@ -282,7 +279,7 @@ class stage_control(App):
             self.wavelength = self.gds.listdeviceparam("wavelength")
             self.type = self.gds.listdeviceparam("type")
             self.devices = [f"{name} ({num})" for name, num in zip(self.gds.listdeviceparam("devicename"), self.number)]
-
+            # print('yesyes')
             self.memory = Memory()
             self.configure = StageConfiguration()
             self.configure.driver_types[AxisType.X] = self.configuration["stage"]
@@ -290,17 +287,20 @@ class stage_control(App):
             self.configure.driver_types[AxisType.Z] = self.configuration["stage"]
             self.configure.driver_types[AxisType.ROTATION_CHIP] = self.configuration["stage"]
             self.configure.driver_types[AxisType.ROTATION_FIBER] = self.configuration["stage"]
-            print('Hello')
-            if self.port["stage"][0] != 'A':
-                # Not in visa format
+            if str(type(self.port["stage"])) == "<class 'str'>":
                 import re
                 numb = re.findall(r"\d+", self.port["stage"])[0]
-                self.configure.visa_addr = f'ASRL{numb}::INSTR'
-                print('Hello ?')
+                print(numb)
+                if self.port["stage"][0] != 'A':
+                    # Not in visa format
+                    self.configure.visa_addr = f'ASRL{numb}::INSTR'
+                else:
+                    self.configure.visa_addr = self.port["stage"]
             else:
-                self.configure.visa_addr = self.port["stage"]
-                print('hi')
-            self.stage_manager = StageManager(self.configure, create_shm=True, port=self.port["stage"])
+                # Type is already a number
+                numb = self.port["stage"]
+                pass
+            self.stage_manager = StageManager(self.configure, create_shm=True, port=numb)
             asyncio.run_coroutine_threadsafe(
                 self.stage_manager.startup(),
                 main_loop
@@ -309,6 +309,8 @@ class stage_control(App):
                 [AxisType.X, AxisType.Y, AxisType.Z, AxisType.ROTATION_CHIP, AxisType.ROTATION_FIBER])
             )
             if success_stage:
+                if self.stage_manager.config.driver_types[AxisType.X] == "Corvus_controller":
+                    self.onclick_home()  # Run "fake" home to get lims
                 self.configuration_stage = 1
                 self.configuration_check["stage"] = 2
                 file = File(
@@ -336,7 +338,7 @@ class stage_control(App):
             if self.stage_window:
                 self.stage_window.destroy()
                 self.stage_window = None
-            self.stage_manager.shutdown()
+            asyncio.run(self.stage_manager.shutdown())
             print("Stage Disconnected")
 
         if self.configuration["sensor"] != "" and self.configuration_sensor == 0 and self.configuration_check[
@@ -575,15 +577,16 @@ class stage_control(App):
         widgets_to_check = [self.stage_control_container]
         while widgets_to_check:
             widget = widgets_to_check.pop()
-
+            
             # keep global lock and per-axis lock checkboxes enabled
             if hasattr(widget, "variable_name"):
                 vn = widget.variable_name
-                if vn == "lock_box" or (isinstance(vn, str) and vn.endswith("_lock")):
-                    pass
+                if vn in ("lock_box", "stop_button") or (isinstance(vn, str) and vn.endswith("_lock")):
+                    widget.set_enabled(True)
+                    continue
                 elif isinstance(widget, (Button, SpinBox, CheckBox, DropDown)):
                     widget.set_enabled(enabled)
-            elif isinstance(widget, (Button, SpinBox, CheckBox, DropDown)):
+            if isinstance(widget, (Button, SpinBox, CheckBox, DropDown)):
                 widget.set_enabled(enabled)
 
             if hasattr(widget, "children"):
@@ -854,10 +857,44 @@ class stage_control(App):
 
     def onclick_stop(self):
         print("Stopping stage control")
+
         asyncio.run(self.stage_manager.emergency_stop())
+        
+        # Cancel any active movements like area scan
+        if hasattr(self, "_scan_cancel") and self._scan_cancel:
+            self._scan_cancel.set()
+        for _, motor_class in self.stage_manager.motors.items():
+            motor_class._stop_requested = True
+        if self.nir_manager and self.task_laser:
+            self.nir_manager.cancel_sweep()
+        if self.area_sweep:
+            self.area_sweep.stop_sweep()
+        if self.fine_align:
+            self.fine_align.stop_alignment()    
+        
+        # Reset state
+        with self._scan_done.get_lock():
+            self._scan_done.value = -1
+        self.task_start = 0
+        self.lock_all(0)
+        self.lock_box.set_value(0)
         print("Stop")
 
     def onclick_home(self):
+        # Non homable case
+        if self.stage_manager.config.driver_types[AxisType.X] == "Corvus_controller":
+            pslims = self.stage_manager.config.position_limits
+            self.x_limit_lb.set_text(
+                f"lim: {round(pslims[AxisType.X][0], 2)}~{round(pslims[AxisType.X][1], 2)}"
+                )
+            self.y_limit_lb.set_text(
+                f"lim: {round(pslims[AxisType.Y][0], 2)}~{round(pslims[AxisType.Y][1], 2)}"
+                )
+            self.z_limit_lb.set_text(
+                f"lim: {round(pslims[AxisType.Z][0], 2)}~{round(pslims[AxisType.Z][1], 2)}"
+                )
+            return None
+        
         print("Start Home")
         self.busy_dialog()
         self.lock_all(1)
@@ -870,6 +907,9 @@ class stage_control(App):
         chip = home["chip"]
         fiber = home["fiber"]
 
+        for _, motor_class in self.stage_manager.motors.items():
+            motor_class._stop_requested = False
+        
         if x == "Yes":
             xok, xlim = asyncio.run(self.stage_manager.home_limits(AxisType.X))
             if xok:
@@ -890,6 +930,7 @@ class stage_control(App):
             fok, flim = asyncio.run(self.stage_manager.home_limits(AxisType.ROTATION_FIBER))
             if fok:
                 self.fiber_limit_lb.set_text(f"lim: 0~45")
+
         with self._scan_done.get_lock():
             self._scan_done.value = 1
             self.task_start = 0
@@ -1097,6 +1138,7 @@ class stage_control(App):
             config.x_step = int(self.area_s["x_step"])
             config.y_size = int(self.area_s["y_size"])
             config.y_step = int(self.area_s["y_step"])
+            config.primary_detector = str(self.area_s["primary_detector"])
             self.area_sweep = AreaSweep(
                 config, self.stage_manager, self.nir_manager,
                 progress=self._as_progress,
@@ -1300,6 +1342,7 @@ class stage_control(App):
                 self._scan_done.value = 1       # only after begin_fine_align() returns
                 self.task_start = 0
             self.lock_all(0)
+
     def onclick_move(self):
         selected_device = self.move_dd.get_value()
         print(f"Selected device: {selected_device}")
@@ -1329,19 +1372,28 @@ class stage_control(App):
             print(f"[Error] Failed to move to device {selected_device}: {e}")
 
     def onchange_lock_box(self, emitter, value):
+        print("onchange_lock_box")
         enabled = value == 0
         widgets_to_check = [self.stage_control_container]
         while widgets_to_check:
             widget = widgets_to_check.pop()
 
-            if hasattr(widget, "variable_name") and widget.variable_name == "lock_box":
-                continue
+            # if hasattr(widget, "variable_name") and widget.variable_name == "lock_box":
+            #     continue
 
-            # keep per-axis lock checkboxes enabled
-            if hasattr(widget, "variable_name") and isinstance(widget.variable_name,
-                                                               str) and widget.variable_name.endswith("_lock"):
-                pass
-            elif isinstance(widget, (Button, DropDown, SpinBox)):
+            # # keep per-axis lock checkboxes enabled
+            # if hasattr(widget, "variable_name") and isinstance(widget.variable_name,
+            #                                                    str) and widget.variable_name.endswith("_lock"):
+            #     pass
+            if hasattr(widget, "variable_name"):
+                vn = widget.variable_name
+                case1 = vn in ("lock_box", "stop_button")
+                case2 = (isinstance(vn, str) and vn.endswith("_lock"))
+                if case1 or case2:
+                    widget.set_enabled(True)
+                    continue
+            
+            if isinstance(widget, (Button, DropDown, SpinBox)):
                 widget.set_enabled(enabled)
 
             if hasattr(widget, "children"):
@@ -1363,7 +1415,8 @@ class stage_control(App):
         self.move_dd.attributes["title"] = value
 
     def onclick_limit_setting_btn(self):
-        local_ip = get_local_ip()
+        # local_ip = get_local_ip()
+        local_ip = '127.0.0.1'
         webview.create_window(
             "Setting",
             f"http://{local_ip}:7002",
@@ -1375,7 +1428,8 @@ class stage_control(App):
         )
 
     def onclick_fine_align_setting_btn(self):
-        local_ip = get_local_ip()
+        # local_ip = get_local_ip()
+        local_ip = '127.0.0.1'
         webview.create_window(
             "Setting",
             f"http://{local_ip}:7003",
@@ -1387,7 +1441,8 @@ class stage_control(App):
         )
 
     def onclick_scan_setting_btn(self):
-        local_ip = get_local_ip()
+        # local_ip = get_local_ip()
+        local_ip = '127.0.0.1'
         webview.create_window(
             "Setting",
             f"http://{local_ip}:7004",
@@ -1610,7 +1665,8 @@ if __name__ == '__main__':
 
     threading.Thread(target=run_remi, daemon=True).start()
     signal.signal(signal.SIGINT, signal.SIG_DFL)
-    local_ip = get_local_ip()
+    # local_ip = get_local_ip()
+    local_ip = '127.0.0.1'
 
     webview.create_window(
         "Setting",

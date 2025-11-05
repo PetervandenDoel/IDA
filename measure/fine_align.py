@@ -77,7 +77,7 @@ class FineAlign:
 
     async def begin_fine_align(self) -> bool:
         """
-        Gradient -> (optional) Spiral.
+        Spiral => Gradient descent
         """
         self.is_running = True
         try:
@@ -362,6 +362,7 @@ class FineAlign:
             return loss_slave
         else:
             # Default to best (highest power)
+            # TODO: add all detected CHs
             return max(loss_master, loss_slave)
 
     def stop_alignment(self):

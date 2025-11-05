@@ -35,10 +35,10 @@ class AreaSweep:
         self.nir_manager = nir_manager
         self.config = area_sweep_config
         self.debug = debug
-        self.primary_detector = None # Max is fine for area sweeps
+        self.primary_detector = self.config 
         self.spiral = None
         self._stop_requested = False
-        self._cancel_event = cancel_event  # external cancel (multiprocessing.Event)
+        self._cancel_event = cancel_event  
         self._progress = progress
         
         # Setup logger
@@ -62,11 +62,6 @@ class AreaSweep:
             self.logger.error(message)
         else:
             raise ValueError("Invalid log level")
-        
-    def _select_detector_channel(self, loss_master: float, loss_slave: float) -> float:
-        """Select detector channel based on config"""
-        # Select max by default (area sweep doesn't enforce a primary detector)
-        return max(loss_master, loss_slave)
 
     async def begin_sweep(self) -> np.ndarray:
         """
@@ -138,7 +133,6 @@ class AreaSweep:
             x_data = [first_val]
 
             # serpentine X across rows; move Y between rows
-            # parity determines sign (+/-) of X stepping per col
             def parity(step, n):
                 return step if (n % 2) != 0 else -step
 
@@ -318,11 +312,14 @@ class AreaSweep:
 
     def _select_detector_channel(self, loss_master: float, loss_slave: float) -> float:
         """Select detector channel based on config"""
-        if loss_master is None or loss_slave is None:
-            self._log("Warning: non-numeric detector values; returning 0.0", "error")
-            return 0.0
-        # Max power (area sweep)
-        return max(loss_master, loss_slave)
+        if self.primary_detector == "ch1":
+            return loss_master
+        elif self.primary_detector == "ch2":
+            return loss_slave
+        else:
+            # Default to best (highest power)
+            # TODO: add all detected CHs
+            return max(loss_master, loss_slave)
 
     def stop_sweep(self):
         """Public stop hook used by GUI Cancel (legacy internal stop)"""

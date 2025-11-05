@@ -258,7 +258,8 @@ def disable_scroll():
 if __name__ == '__main__':
     threading.Thread(target=run_remi, daemon=True).start()
     signal.signal(signal.SIGINT, signal.SIG_DFL)
-    local_ip = get_local_ip()
+    # local_ip = get_local_ip()
+    local_ip = '127.0.0.1'
     webview.create_window(
         'TEC Control',
         f'http://{local_ip}:8002',

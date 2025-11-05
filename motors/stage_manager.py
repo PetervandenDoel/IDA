@@ -21,7 +21,7 @@ Cameron Basara, 2025
 logger = logging.getLogger(__name__)
 
 class StageManager:
-    def __init__(self, config: StageConfiguration, create_shm: bool = True, port: int = 4):
+    def __init__(self, config: StageConfiguration, create_shm: bool = True, port: int = 7):
         # Core components
         self.config = config
         motors.optical.modern_stage._GLOBAL_COM_PORT = f"COM{port}"
@@ -48,7 +48,7 @@ class StageManager:
         # Background tasks
         self._position_task = None
 
-    # === Context Management ===
+    # --- Context Management ---
     
     async def __aenter__(self):
         """Async context manager entry"""
@@ -103,7 +103,7 @@ class StageManager:
         
         logger.info("Stage manager shutdown complete")
 
-    # === Motor Lifecycle ===
+    # --- Motor Lifecycle ---
     
     async def initialize_axis(self, axis: AxisType) -> bool:
         """Initialize a single axis"""
@@ -120,7 +120,7 @@ class StageManager:
             
             # Add event callback
             motor.add_callback(self._handle_motor_event)
-            
+           
             # Connect motor
             success = await motor.connect()
             if success:
@@ -150,6 +150,10 @@ class StageManager:
         success = all(results)
         if success:
             logger.info("All axes initialized successfully")
+            if self.config.driver_types[AxisType.X] == "Corvus_controller":
+                # Does not support homing, declare it as homed
+                for ax in (AxisType.X, AxisType.Y, AxisType.Z):
+                    self._homed_axes[ax] = True
         else:
             logger.warning("Some axes failed to initialize")
         
@@ -182,7 +186,7 @@ class StageManager:
         
         return all(results)
 
-    # === Movement Commands ===
+    # --- Movement Commands ---
     
     async def move_axis(
         self,
@@ -290,7 +294,7 @@ class StageManager:
                 results.append(False)
         return all(results)
 
-    # === Homing ===
+    # --- Homing ---
     
     async def home_axis(self, axis: AxisType, direction: int = 0) -> bool:
         """Home a single axis"""
@@ -351,7 +355,7 @@ class StageManager:
             self._homed_axes[axis] = False
             return False, None
 
-    # === Status and Position ===
+    # --- Status and Position ---
     
     async def get_position(self, axis: AxisType) -> Optional[Position]:
         """Get position of a single axis"""
@@ -440,7 +444,7 @@ class StageManager:
             await asyncio.sleep(0.1)
         return False
 
-    # === Event Handling ===
+    # --- Event Handling ---
     
     def add_event_callback(self, callback: Callable[[MotorEvent], None]):
         """Add event callback"""
@@ -466,7 +470,7 @@ class StageManager:
             except Exception as e:
                 logger.error(f"Event callback error: {e}")
 
-    # === Background Tasks ===
+    # --- Background Tasks ---
     
     async def _position_monitor_loop(self):
         """Background task to monitor positions and update shared memory"""
@@ -481,6 +485,7 @@ class StageManager:
                 # Update positions in shared memory
                 for axis, motor in self.motors.items():
                     try:
+                        await motor.clear_all_errors()
                         pos = await motor.get_position()
                         if pos:
                             self._last_positions[axis] = pos.actual
@@ -504,7 +509,7 @@ class StageManager:
                 await asyncio.sleep(1.0)
         logger.info("Position monitor stopped")
 
-    # === Status and Info ===
+    # --- Status and Info ---
     
     def get_status(self) -> Dict[str, Any]:
         """Get manager status"""
