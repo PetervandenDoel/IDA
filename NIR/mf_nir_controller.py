@@ -4,6 +4,7 @@ from ctypes import (c_int32,
                     c_uint16,
                     c_uint32,
                     c_double,
+                    c_char,
                     c_char_p,
                     byref,
                     POINTER,
@@ -62,36 +63,22 @@ class MF_NIR_controller(LaserHAL):
         '8166': 18,  # 8166A/B
     }
     
-    def __init__(self, gpib_addr: int = 20,
-                 laser_slot: Optional[int] = None,            # None = auto-detect
-                 detector_slots: Optional[List[int]] = None,  # None = auto-detect
-                 timeout: int = 30000,
-                 ):
-        
-        self.gpib_addr = gpib_addr
-        self.addr = f'GPIB0::{gpib_addr}::INSTR'
-        self.timeout = timeout
+    def __init__(self, visa_addr List[],):
         
         # Load DLL
         self.lib = ctypes.WinDLL("C:\\Program Files\\IVI Foundation\\VISA\\Win64\\Bin\\hp816x_64.dll")
-        self.session = None
+        self.sessions = []
         self._is_connected = False
         self._cancel = False
         
         # Setup function prototypes
         self._setup_function_prototypes()
         
-        # Enumeration results
-        self.mainframe_model = None  # e.g., '8164B'
-        self.num_slots = 0
-        self.discovered_modules = {
-            'lasers': [],      # List of {'slot': int, 'type': int, 'type_name': str}
-            'detectors': []    # List of {'slot': int, 'type': int, 'type_name': str, 'channels': int}
-        }
-        
-        # Active configuration (set after enumeration)
-        self.laser_slot = laser_slot          # None = use first discovered
-        self.detector_slots = detector_slots  # None = use all discovered
+        # Active configuration setup
+        self.slots = 0               # Total number of slots enabled
+        self.laser_slot = 0          # Number of laser slots enabled
+        self.detector_slots = 0      # Number of detector slots enabled
+        self.laser_channels = []     # List of slots for where the laser is located
         self.detector_channels = []  # List of (slot, channel) tuples for all detector channels
         
         # Lambda-scan state
@@ -125,6 +112,10 @@ class MF_NIR_controller(LaserHAL):
         self.lib.hp816x_error_query.restype = c_int32
         
         # Enumeration
+        self.lib.hp816x_getInstrumentId_Q.argtypes = [
+            c_char_p, c_char
+        ]
+        self.lib.hp816x_getInstrumentId_Q.restype = c_int32
         self.lib.hp816x_getSlotInformation_Q.argtypes = [
             c_int32, c_int32, POINTER(c_int32)
         ]
@@ -277,27 +268,37 @@ class MF_NIR_controller(LaserHAL):
     def connect(self) -> bool:
         """Connect to instrument and auto-enumerate all modules"""
         try:
-            session = c_int32()
-            result = self.lib.hp816x_init(
-                self.addr.encode(),
-                c_int32(1),  # queryID
-                c_int32(0),  # reset
-                byref(session)
-            )
+            # Register all mainframes
+            sessions = []
+            results  = []
+            for addr in self.visa_addr:
+                # Have ss be session
+                ss = c_int32()
+                result = self.lib.hp816x_init(
+                    addr.encode(),
+                    c_int32(1),  # queryID
+                    c_int32(0),  # reset
+                    byref(ss)
+                )
+                sessions.append(ss)
+                results.append(results)
             
-            if result != 0:
-                error_msg = create_string_buffer(256)
-                self.lib.hp816x_error_message(session.value, result, error_msg)
-                logging.error(f"Connection failed: {error_msg.value.decode('utf-8')}")
-                return False
+            for i, result in enumerate(results):
+                if result != 0:
+                    error_msg = create_string_buffer(256)
+                    self.lib.hp816x_error_message(sessions[i].value, result, error_msg)
+                    logging.error(f"Connection failed for {self.visa_addr[i]}: {error_msg.value.decode('utf-8')}")
+                    return False
             
-            self.session = session.value
-            self.lib.hp816x_errorQueryDetect(self.session, 1)  # Enable error checking
+            for s in sessions:
+                self.sessions.append(s.value)
+                self.lib.hp816x_errorQueryDetect(self.s, 1)  # Enable error checking
             
             # Register mainframe(s)
-            reg_result = self.lib.hp816x_registerMainframe(self.session)
-            if reg_result != 0:
-                logging.warning(f"registerMainframe returned {reg_result}, continuing anyway")
+            for s in self.sessions:
+                reg_result = self.lib.hp816x_registerMainframe(s)
+                if reg_result != 0:
+                    logging.warning(f"registerMainframe returned {reg_result}, continuing anyway")
             
             # Enumerate all modules
             self._enumerate_modules()
@@ -332,63 +333,81 @@ class MF_NIR_controller(LaserHAL):
 
     def _enumerate_modules(self) -> None:
         """Enumerate all modules in the mainframe"""
-        # Try to identify mainframe model by querying IDN
-        # For now, assume 8164B with 5 slots (most common)
-        self.num_slots = 5
-        self.mainframe_model = '8164B'
-        
-        # Allocate array for slot information
-        slot_info_array = (c_int32 * self.num_slots)()
-        
-        result = self.lib.hp816x_getSlotInformation_Q(
-            self.session,
-            c_int32(self.num_slots),
-            slot_info_array
-        )
-        
-        if result != 0:
-            logging.warning(f"getSlotInformation_Q failed with status {result}, using defaults")
-            return
-        
-        # Parse slot information
+        # Enumerate all "mainframes" to determine the slots, channels
+        # And types of devices (ie lasers/detectors)
         self.discovered_modules = {'lasers': [], 'detectors': []}
-        
-        for slot_idx in range(self.num_slots):
-            module_type = slot_info_array[slot_idx]
+        for i, addr in enumerate(self.visa_address):
+            # Get device IDN string
+            idn_buf = create_string_buffer(256)
+            self.lib.hp816x_getInstrumentId_Q(
+                self.addr.encode(), idn_buf
+            )
+            if "8164" in idn_buf.decode():
+                num_slots = 5
+            elif "8163" in idn_buf.decode():
+                num_slots = 3
+            elif "8166" in idn_buf.decode():
+                num_slots = 18
+            elif "N7744" in idn_buf.decode():
+                num_slots = 4
+            elif "N7745" in idn_buf.decode():
+                num_slots = 8
+            else:
+                print(f"Instrument found {addr} not currently supported")
+                print(f"Add it in module mf_nir_controller.py if needed")
+                continue 
+            self.num_slots += num_slots
             
-            if module_type == self.MODULE_EMPTY:
-                continue
+            # Allocate array for slot information
+            slot_info_array = (c_int32 * num_slots)()
             
-            type_name = self.MODULE_TYPE_NAMES.get(module_type, f'UNKNOWN_{module_type}')
+            result = self.lib.hp816x_getSlotInformation_Q(
+                self.sessions[i],
+                c_int32(self.num_slots),
+                slot_info_array
+            )
             
-            # Categorize module
-            if module_type in [self.MODULE_TUNABLE_SOURCE, 
-                              self.MODULE_FIXED_SINGLE_SOURCE,
-                              self.MODULE_FIXED_DUAL_SOURCE]:
-                self.discovered_modules['lasers'].append({
-                    'slot': slot_idx,
-                    'type': module_type,
-                    'type_name': type_name
-                })
-                logging.info(f"Slot {slot_idx}: Laser ({type_name})")
+            if result != 0:
+                logging.warning(f"getSlotInformation_Q failed with status {result}, using defaults")
+                return
+
+            # Parse slot information
+            for slot_idx in range(num_slots):
+                module_type = slot_info_array[slot_idx]
                 
-            elif module_type in [self.MODULE_SINGLE_SENSOR, self.MODULE_DUAL_SENSOR]:
-                channels = 2 if module_type == self.MODULE_DUAL_SENSOR else 1
-                self.discovered_modules['detectors'].append({
-                    'slot': slot_idx,
-                    'type': module_type,
-                    'type_name': type_name,
-                    'channels': channels
-                })
-                logging.info(f"Slot {slot_idx}: Detector ({type_name}, {channels} channel(s))")
+                if module_type == self.MODULE_EMPTY:
+                    continue
                 
-                # Disable slave channel check for dual sensors (allow auto-correction)
-                if module_type == self.MODULE_DUAL_SENSOR:
-                    self.lib.hp816x_PWM_slaveChannelCheck(
-                        self.session,
-                        c_int32(slot_idx),
-                        c_int32(0)  # VI_FALSE = Off (auto-correct)
-                    )
+                type_name = self.MODULE_TYPE_NAMES.get(module_type, f'UNKNOWN_{module_type}')
+                
+                # Categorize module
+                if module_type in [self.MODULE_TUNABLE_SOURCE, 
+                                self.MODULE_FIXED_SINGLE_SOURCE,
+                                self.MODULE_FIXED_DUAL_SOURCE]:
+                    self.discovered_modules['lasers'].append({
+                        'slot': slot_idx,
+                        'type': module_type,
+                        'type_name': type_name
+                    })
+                    logging.info(f"Slot {slot_idx}: Laser ({type_name})")
+                    
+                elif module_type in [self.MODULE_SINGLE_SENSOR, self.MODULE_DUAL_SENSOR]:
+                    channels = 2 if module_type == self.MODULE_DUAL_SENSOR else 1
+                    self.discovered_modules['detectors'].append({
+                        'slot': slot_idx,
+                        'type': module_type,
+                        'type_name': type_name,
+                        'channels': channels
+                    })
+                    logging.info(f"Slot {slot_idx}: Detector ({type_name}, {channels} channel(s))")
+                    
+                    # Disable slave channel check for dual sensors (allow auto-correction)
+                    if module_type == self.MODULE_DUAL_SENSOR:
+                        self.lib.hp816x_PWM_slaveChannelCheck(
+                            self.session,
+                            c_int32(slot_idx),
+                            c_int32(0)  # VI_FALSE = Off (auto-correct)
+                        )
 
     def _auto_select_laser(self) -> None:
         """Auto-select first available tunable laser"""
