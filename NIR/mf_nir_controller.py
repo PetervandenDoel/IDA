@@ -138,25 +138,25 @@ class MF_NIR_controller(LaserHAL):
         ]
         self.lib.hp816x_set_TLS_wavelength.restype = c_int32
         
-        self.lib.hp816x_get_TLS_wavelength.argtypes = [
+        self.lib.hp816x_get_TLS_wavelength_Q.argtypes = [
             c_int32, c_int32, c_int32, POINTER(c_double)
         ]
-        self.lib.hp816x_get_TLS_wavelength.restype = c_int32
+        self.lib.hp816x_get_TLS_wavelength_Q.restype = c_int32
         
-        self.lib.hp816x_get_TLS_parameters.argtypes = [
+        self.lib.hp816x_get_TLS_parameters_Q.argtypes = [
             c_int32, c_int32, c_int32, POINTER(c_int32), POINTER(c_double)
         ]
-        self.lib.hp816x_get_TLS_parameters.restype = c_int32
+        self.lib.hp816x_get_TLS_parameters_Q.restype = c_int32
         
-        self.lib.hp816x_set_TLS_state.argtypes = [
+        self.lib.hp816x_set_TLS_laserState.argtypes = [
             c_int32, c_int32, c_int32, c_uint16
         ]
-        self.lib.hp816x_set_TLS_state.restype = c_int32
+        self.lib.hp816x_set_TLS_laserState.restype = c_int32
         
-        self.lib.hp816x_get_TLS_state.argtypes = [
+        self.lib.hp816x_get_TLS_laserState_Q.argtypes = [
             c_int32, c_int32, c_int32, POINTER(c_uint16)
         ]
-        self.lib.hp816x_get_TLS_state.restype = c_int32
+        self.lib.hp816x_get_TLS_laserState_Q.restype = c_int32
         
         # PWM (Power Meter) Functions
         self.lib.hp816x_set_PWM_powerUnit.argtypes = [
@@ -164,25 +164,20 @@ class MF_NIR_controller(LaserHAL):
         ]
         self.lib.hp816x_set_PWM_powerUnit.restype = c_int32
         
-        self.lib.hp816x_get_PWM_powerUnit.argtypes = [
+        self.lib.hp816x_get_PWM_powerUnit_Q.argtypes = [
             c_int32, c_int32, c_int32, POINTER(c_int32)
         ]
-        self.lib.hp816x_get_PWM_powerUnit.restype = c_int32
+        self.lib.hp816x_get_PWM_powerUnit_Q.restype = c_int32
         
-        self.lib.hp816x_readPower.argtypes = [
+        self.lib.hp816x_readValue.argtypes = [
             c_int32, c_int32, c_int32, POINTER(c_double)
         ]
-        self.lib.hp816x_readPower.restype = c_int32
+        self.lib.hp816x_readValue.restype = c_int32
         
         self.lib.hp816x_set_PWM_powerRange.argtypes = [
             c_int32, c_int32, c_int32, c_uint16, c_double
         ]
         self.lib.hp816x_set_PWM_powerRange.restype = c_int32
-        
-        self.lib.hp816x_get_PWM_powerRange.argtypes = [
-            c_int32, c_int32, c_int32, POINTER(c_uint16), POINTER(c_double)
-        ]
-        self.lib.hp816x_get_PWM_powerRange.restype = c_int32
         
         self.lib.hp816x_get_PWM_powerRange_Q.argtypes = [
             c_int32, c_int32, c_int32, POINTER(c_uint16), POINTER(c_double)
@@ -199,16 +194,10 @@ class MF_NIR_controller(LaserHAL):
         ]
         self.lib.hp816x_set_PWM_referenceValue.restype = c_int32
         
-        self.lib.hp816x_get_PWM_referenceValue.argtypes = [
+        self.lib.hp816x_get_PWM_referenceValue_Q.argtypes = [
             c_int32, c_int32, c_int32, POINTER(c_double), POINTER(c_double)
         ]
-        self.lib.hp816x_get_PWM_referenceValue.restype = c_int32
-        
-        self.lib.hp816x_get_PWM_referenceValue_Q.argtypes = [
-            c_int32, c_int32, c_int32,
-            POINTER(c_int32), POINTER(c_double), POINTER(c_double)
-        ]
-        self.lib.hp816x_get_PWM_referenceValue_Q.restype = c_int32
+        self.lib.hp816x_get_PWM_referenceValue_Q.restype = c_int32  
         
         # Lambda Scan Functions - Multi-Frame
         self.lib.hp816x_prepareMfLambdaScan.argtypes = [
@@ -395,6 +384,8 @@ class MF_NIR_controller(LaserHAL):
                                 self.MODULE_FIXED_SINGLE_SOURCE,
                                 self.MODULE_FIXED_DUAL_SOURCE]:
                     self.discovered_modules['lasers'].append({
+                        'mainframe': i,
+                        'session': self.sessions[i],
                         'slot': slot_idx,
                         'type': module_type,
                         'type_name': type_name
@@ -404,6 +395,8 @@ class MF_NIR_controller(LaserHAL):
                 elif module_type in [self.MODULE_SINGLE_SENSOR, self.MODULE_DUAL_SENSOR]:
                     channels = 2 if module_type == self.MODULE_DUAL_SENSOR else 1
                     self.discovered_modules['detectors'].append({
+                        'mainframe': i,
+                        'session': self.sessions[i],
                         'slot': slot_idx,
                         'type': module_type,
                         'type_name': type_name,
@@ -449,7 +442,7 @@ class MF_NIR_controller(LaserHAL):
     
     def _build_detector_channel_map(self) -> None:
         """
-        Build flat list of (slot, channel) tuples for all active detector channels.
+        Build flat list of (slot, channel, session) tuples for all active detector channels.
         For dual sensors: includes both master (0) and slave (1).
         For single sensors: includes only channel 0.
         """
@@ -469,7 +462,7 @@ class MF_NIR_controller(LaserHAL):
             else:
                 # Add all channels for this detector
                 for ch in range(detector_info['channels']):
-                    self.detector_channels.append((slot, ch))
+                    self.detector_channels.append((slot, ch, detector_info['session']))
         
         logging.info(f"Built detector channel map: {self.detector_channels}")
     
@@ -486,11 +479,12 @@ class MF_NIR_controller(LaserHAL):
     def disconnect(self) -> bool:
         """Disconnect from instrument"""
         try:
-            if self.session:
-                self.cleanup_scan()
-                self.lib.hp816x_close(self.session)
-                self.session = None
-                self._is_connected = False
+            for session in self.sessions:
+                if session:
+                    self.cleanup_scan()
+                    self.lib.hp816x_close(session)
+                    self.session = None
+                    self._is_connected = False
             return True
         except Exception as e:
             logging.error(f"Disconnect error: {e}")
@@ -506,10 +500,11 @@ class MF_NIR_controller(LaserHAL):
             return False
         
         try:
+            for 
             # Set laser power unit to dBm
             power = c_double()
             unit = c_int32()
-            self.lib.hp816x_get_TLS_parameters(
+            self.lib.hp816x_get_TLS_parameters_Q(
                 self.session,
                 c_int32(self.laser_slot),
                 c_int32(0),
@@ -529,10 +524,10 @@ class MF_NIR_controller(LaserHAL):
             )
             
             # Set detector units to dBm for all active detector channels
-            for slot, ch in self.detector_channels:
+            for slot, ch, session in self.detector_channels:
                 self._check_error(
                     self.lib.hp816x_set_PWM_powerUnit(
-                        self.session,
+                        session,
                         c_int32(slot),
                         c_int32(ch),
                         c_int32(0)  # unit: 0=dBm
@@ -703,7 +698,7 @@ class MF_NIR_controller(LaserHAL):
             for slot, ch in self.detector_channels:
                 power = c_double()
                 self._check_error(
-                    self.lib.hp816x_readPower(
+                    self.lib.hp816x_readValue(
                         self.session,
                         c_int32(slot),
                         c_int32(ch),
@@ -786,7 +781,7 @@ class MF_NIR_controller(LaserHAL):
                 mode = c_uint16()
                 range_val = c_double()
                 self._check_error(
-                    self.lib.hp816x_get_PWM_powerRange(
+                    self.lib.hp816x_get_PWM_powerRange_Q(
                         self.session,
                         c_int32(slot),
                         c_int32(ch),
@@ -852,7 +847,7 @@ class MF_NIR_controller(LaserHAL):
                 ref_val = c_double()
                 wl_offset = c_double()
                 self._check_error(
-                    self.lib.hp816x_get_PWM_referenceValue(
+                    self.lib.hp816x_get_PWM_referenceValue_Q(
                         self.session,
                         c_int32(slot),
                         c_int32(ch),

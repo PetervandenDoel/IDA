@@ -11,7 +11,7 @@ from NIR.mf_nir_controller import MF_NIR_controller
 def test_connection():
     """Test connection and enumeration"""
     print("\n=== Test: Connection ===")
-    nir = MF_NIR_controller(gpib_addr=20)
+    nir = MF_NIR_controller(['GPIB0::20::INSTR','USB0::0x0957::0x3718::MY48102149::INSTR'])
     
     result = nir.connect()
     print(f"Connection: {'PASS' if result else 'FAIL'}")
