@@ -11,7 +11,6 @@ class NIRConfiguration:
     """Simple configuration for NIR system"""
     
     # Connection settings
-    com_port: int = 3
     gpib_addr: int = 20 
     laser_slot: int = 0
     detector_slots: List[int] = field(default_factory=lambda: [1,2])
@@ -26,24 +25,20 @@ class NIRConfiguration:
     start_nm = 1545
     stop_nm = 1565
     step_nm = 0.1 
-    laser_power_dbm = -5.0
-    
-    @property
-    def visa_address(self) -> str:
-        """Get VISA address"""
-        return f"GPIB0::{self.gpib_addr}::INSTR"
+    laser_power_dbm = 1.0
     
     def to_dict(self) -> dict:
         """Convert to dictionary"""
         return {
-            'com_port': self.com_port,
-            'laser_slot': self.laser_slot,
-            'detector_slots': self.detector_slots,
+            # 'com_port': self.com_port,
+            # 'laser_slot': self.laser_slot,
+            # 'detector_slots': self.detector_slots,
+            'is_mf': self.is_mf,
+            'visa_list': self.visa_list,
             'safety_password': self.safety_password,
             'timeout': self.timeout,
             'initial_wavelength_nm': self.initial_wavelength_nm,
             'initial_power_dbm': self.initial_power_dbm,
-            'visa_address': self.visa_address,
             'start_nm': self.start_nm,
             'stop_nm': self.stop_nm,
             'step_nm': self.step_nm,

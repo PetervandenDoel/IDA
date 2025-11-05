@@ -73,8 +73,7 @@ class LaserHAL(ABC):
     Abstract base class defining the laser HAL interface.
     Supports both tunable laser sources and optical power detectors.
     """
-    def __init__(self, instrument_id: str = None):
-        self.instrument_id = instrument_id
+    def __init__(self):
         self._event_callbacks: List[callable] = []
         self._is_connected = False
 
