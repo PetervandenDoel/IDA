@@ -645,7 +645,11 @@ class StageControl(MotorHAL):
                 raise asyncio.CancelledError("Stop requested")
         
             if axis_num == 4:
+                # FA
                 mid_point = self._position_limits[1] * (37.0 / 45.0)
+            elif axis_num == 3:
+                # Z 
+                mid_point = self._position_limits[1] * (3/4)  # Safety
             else:
                 mid_point = (self._position_limits[1] - self._position_limits[0]) / 2
 

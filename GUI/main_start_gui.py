@@ -175,26 +175,26 @@ class Starts(App):
         folder = self.user_dd.get_value().replace(" ", "")
         path = os.path.join(ROOT_DIR, folder)
         if not os.path.isdir(path):
-            print(f"⚠️ No such folder: {folder}")
+            print(f"! No such folder: {folder}")
             return
         try:
             shutil.rmtree(path)
             print(f"🗑️ Removed {folder}")
         except Exception as exc:
-            print(f"❌ Failed to remove: {exc}")
+            print(f"X Failed to remove: {exc}")
 
     def onclick_project_remove(self):
         user = self.user_dd.get_value().replace(" ", "")
         project = self.project_dd.get_value().replace(" ", "")
         path = os.path.join(ROOT_DIR, user, project)
         if not os.path.isdir(path):
-            print(f"⚠️ No such project: {project}")
+            print(f"! No such project: {project}")
             return
         try:
             shutil.rmtree(path)
             print(f"🗑️ Removed {project}")
         except Exception as exc:
-            print(f"❌ Failed to remove: {exc}")
+            print(f"X Failed to remove: {exc}")
 
     def refresh_user(self):
         self.user_dd.empty()
@@ -208,7 +208,7 @@ def run_remi():
     start(
         Starts,
         address="0.0.0.0",
-        port=9000,
+        port=9100,
         start_browser=False,
         multiple_instance=False,
         enable_file_cache=False,
@@ -232,7 +232,7 @@ if __name__ == "__main__":
     local_ip = '127.0.0.1'
     webview.create_window(
         "Main Window",
-        f"http://{local_ip}:9000",
+        f"http://{local_ip}:9100",
         width=0,
         height=0,
         resizable=True,

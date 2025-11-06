@@ -73,7 +73,7 @@ class area_scan(App):
             container=area_scan_setting_container, variable_name="pattern_dd",
             text=["Crosshair", "Spiral"], left=INP_X, top=y, width=INP_W+UNIT_W, height=24, position="absolute"
         )
-        self.pattern_dd.set_value("Crosshair")
+        self.pattern_dd.set_value("Spiral")
         y += ROW
 
         # Pattern hint line (updates when Pattern changes)
@@ -90,7 +90,7 @@ class area_scan(App):
                     font_size=100, flex=True, justify_content="right", color="#222")
         self.x_size = StyledSpinBox(
             container=area_scan_setting_container, variable_name="x_size_in",
-            left=INP_X, top=y, value=20, width=INP_W, height=24,
+            left=INP_X, top=y, value=50, width=INP_W, height=24,
             min_value=-1000, max_value=1000, step=1, position="absolute"
         )
         StyledLabel(container=area_scan_setting_container, text="µm",  # nicer micro symbol
@@ -104,7 +104,7 @@ class area_scan(App):
                     font_size=100, flex=True, justify_content="right", color="#222")
         self.y_size = StyledSpinBox(
             container=area_scan_setting_container, variable_name="y_size_in",
-            left=INP_X, top=y, value=20, width=INP_W, height=24,
+            left=INP_X, top=y, value=50, width=INP_W, height=24,
             min_value=-1000, max_value=1000, step=1, position="absolute"
         )
         StyledLabel(container=area_scan_setting_container, text="µm",
@@ -118,7 +118,7 @@ class area_scan(App):
                     font_size=100, flex=True, justify_content="right", color="#222")
         self.x_step = StyledSpinBox(
             container=area_scan_setting_container, variable_name="x_step_in",
-            left=INP_X, top=y, value=1, width=INP_W, height=24,
+            left=INP_X, top=y, value=5, width=INP_W, height=24,
             min_value=-1000, max_value=1000, step=0.1, position="absolute"
         )
         tooltip(self.x_step, "Used when Pattern = Crosshair. Saved as x_step.")
@@ -132,7 +132,7 @@ class area_scan(App):
                     font_size=100, flex=True, justify_content="right", color="#222")
         self.y_step = StyledSpinBox(
             container=area_scan_setting_container, variable_name="y_step_in",
-            left=INP_X, top=y, value=1, width=INP_W, height=24,
+            left=INP_X, top=y, value=5, width=INP_W, height=24,
             min_value=-1000, max_value=1000, step=0.1, position="absolute"
         )
         tooltip(self.y_step, "Used when Pattern = Crosshair. Saved as y_step.")
@@ -147,7 +147,7 @@ class area_scan(App):
                     font_size=100, flex=True, justify_content="right", color="#222")
         self.step_size = StyledSpinBox(
             container=area_scan_setting_container, variable_name="step_size_in",
-            left=INP_X, top=y, value=1, width=INP_W, height=24,
+            left=INP_X, top=y, value=5, width=INP_W, height=24,
             min_value=0.001, max_value=1000, step=0.1, position="absolute"
         )
         tooltip(self.step_size, "Used when Pattern = Spiral. Mirrored to both x_step and y_step on save.")

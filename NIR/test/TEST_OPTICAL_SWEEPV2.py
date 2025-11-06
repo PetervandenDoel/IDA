@@ -69,7 +69,7 @@ class RealOpticalSweepTest:
                 print("✅ Large sweep test PASSED")
             else:
                 results['tests_failed'] += 1
-                print("❌ Large sweep test FAILED")
+                print("X Large sweep test FAILED")
             
             # Test 2: Validate stitching quality
             if large_sweep_result['success']:
@@ -84,7 +84,7 @@ class RealOpticalSweepTest:
                     print("✅ Stitching validation PASSED")
                 else:
                     results['tests_failed'] += 1
-                    print("❌ Stitching validation FAILED")
+                    print("X Stitching validation FAILED")
             
             # Test 3: Performance benchmark
             print("\n⚡ Test 3: Performance Benchmark")
@@ -96,7 +96,7 @@ class RealOpticalSweepTest:
                 print("✅ Performance benchmark PASSED")
             else:
                 results['tests_failed'] += 1
-                print("❌ Performance benchmark FAILED")
+                print("X Performance benchmark FAILED")
             
             # Test 4: Data integrity check
             if large_sweep_result['success']:
@@ -111,10 +111,10 @@ class RealOpticalSweepTest:
                     print("✅ Data integrity PASSED")
                 else:
                     results['tests_failed'] += 1
-                    print("❌ Data integrity FAILED")
+                    print("X Data integrity FAILED")
             
         except Exception as e:
-            print(f"❌ Test suite failed with exception: {e}")
+            print(f"X Test suite failed with exception: {e}")
             results['tests_failed'] += 1
             results['error'] = str(e)
         
@@ -182,7 +182,7 @@ class RealOpticalSweepTest:
         print(f"   Expected time: {sweep_time:.1f}s")
         
         if expected_points < 10000:
-            print("   ⚠️  Adjusting parameters to ensure >10K points...")
+            print("   !  Adjusting parameters to ensure >10K points...")
             # Slower speed for more points
             speed_nm_per_s = 1.0
             averaging_time_ms = 10.0
@@ -255,7 +255,7 @@ class RealOpticalSweepTest:
             }
             
         except Exception as e:
-            print(f"   ❌ Sweep failed: {e}")
+            print(f"   X Sweep failed: {e}")
             return {
                 'success': False,
                 'error': str(e),
@@ -346,7 +346,7 @@ class RealOpticalSweepTest:
         if validation['quality_good']:
             print("   ✅ Stitching quality is good")
         else:
-            print("   ❌ Stitching quality issues found:")
+            print("   X Stitching quality issues found:")
             for issue in validation['issues']:
                 print(f"      - {issue}")
         
@@ -404,7 +404,7 @@ class RealOpticalSweepTest:
             }
             
         except Exception as e:
-            print(f"   ❌ Performance test failed: {e}")
+            print(f"   X Performance test failed: {e}")
             return {
                 'benchmark_passed': False,
                 'error': str(e)
@@ -426,7 +426,7 @@ class RealOpticalSweepTest:
             
             if not lengths_match:
                 integrity['integrity_good'] = False
-                print(f"     ❌ Array length mismatch: wl={len(result.wavelengths)}, power={len(result.powers)}, reported={result.num_points}")
+                print(f"     X Array length mismatch: wl={len(result.wavelengths)}, power={len(result.powers)}, reported={result.num_points}")
             else:
                 print(f"     ✅ Array lengths consistent: {result.num_points} points")
             
@@ -437,7 +437,7 @@ class RealOpticalSweepTest:
                 
                 if not is_monotonic:
                     integrity['integrity_good'] = False
-                    print("     ❌ Wavelengths are not monotonic")
+                    print("     X Wavelengths are not monotonic")
                 else:
                     print("     ✅ Wavelengths are monotonic")
             
@@ -448,7 +448,7 @@ class RealOpticalSweepTest:
             
             if not (wl_finite and power_finite):
                 integrity['integrity_good'] = False
-                print("     ❌ Found NaN or infinite values")
+                print("     X Found NaN or infinite values")
             else:
                 print("     ✅ All values are finite")
             
@@ -468,7 +468,7 @@ class RealOpticalSweepTest:
         except Exception as e:
             integrity['integrity_good'] = False
             integrity['checks']['error'] = str(e)
-            print(f"     ❌ Integrity check failed: {e}")
+            print(f"     X Integrity check failed: {e}")
         
         return integrity
     
@@ -519,7 +519,7 @@ class RealOpticalSweepTest:
             return plot_file
             
         except Exception as e:
-            print(f"   ⚠️  Plot creation failed: {e}")
+            print(f"   !  Plot creation failed: {e}")
             return ""
     
     async def _cleanup(self):
@@ -531,7 +531,7 @@ class RealOpticalSweepTest:
             self.controller.disconnect()
             print("🧹 Cleanup completed")
         except Exception as e:
-            print(f"⚠️  Cleanup warning: {e}")
+            print(f"!  Cleanup warning: {e}")
 
 
 # Standalone test runner

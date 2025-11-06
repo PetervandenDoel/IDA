@@ -30,7 +30,7 @@ class SweepTestResults:
             'timestamp': time.time()
         }
         
-        status = "✅ PASS" if passed else "❌ FAIL"
+        status = "✅ PASS" if passed else "X FAIL"
         print(f"{status} {test_name}")
         
         if details:
@@ -274,7 +274,7 @@ class OpticalSweepTestSuite:
     
     async def _test_data_logging_edge_cases(self):
         """Test edge cases in data logging"""
-        print("\n⚠️  Testing Data Logging Edge Cases")
+        print("\n!  Testing Data Logging Edge Cases")
         print("-" * 40)
         
         try:
@@ -754,7 +754,7 @@ class OpticalSweepTestSuite:
             self.controller.disconnect()
             print("\n🧹 Test cleanup completed")
         except Exception as e:
-            print(f"⚠️  Cleanup warning: {e}")
+            print(f"!  Cleanup warning: {e}")
 
 
 # Main test execution

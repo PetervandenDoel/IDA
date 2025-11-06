@@ -283,7 +283,7 @@ if __name__ == "__main__":
     configuration = {
         "config_project_name": "registration",
         "config_address": "0.0.0.0",
-        "config_port": 9002,
+        "config_port": 9102,
         "config_multiple_instance": False,
         "config_enable_file_cache": False,
         "config_start_browser": False,

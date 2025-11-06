@@ -97,7 +97,7 @@ class stage_control(App):
                 print(f"[Error] Failed to load uploaded .txt file: {e}")
                 return
         else:
-            print("⚠️ No input or uploaded file to use")
+            print("! No input or uploaded file to use")
             return
 
         try:

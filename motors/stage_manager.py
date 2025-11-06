@@ -327,10 +327,10 @@ class StageManager:
         
         try:
             # X y safety handling
-            # if axis != AxisType.Z:
+            if axis != AxisType.Z:
                 # position 5000 isnt al;ways reachable !!! and this will hang this await funtion forever, as there is a
                 # hard phyical limit on z. So if the Z position at start is less than 5000, then this handling hangs
-                # await self.move_axis(AxisType.Z, position=5000, relative=True, wait_for_completion=True)
+                await self.move_axis(AxisType.Z, position=9000, relative=False, wait_for_completion=True)
 
             # Special handling for Z axis safety
             case = axis == AxisType.Z and AxisType.Y in self.motors

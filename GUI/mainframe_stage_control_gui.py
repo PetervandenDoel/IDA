@@ -256,6 +256,7 @@ class stage_control(App):
         print("Sweep Done")
 
     def scan_move(self):
+        """
         x_pos = self.scanpos["x"] * self.area_s["x_step"] + self.stage_x_pos
         y_pos = self.scanpos["y"] * self.area_s["y_step"] + self.stage_y_pos
         # Respect per-axis locks
@@ -267,7 +268,47 @@ class stage_control(App):
         self.scanpos["move"] = 0
         file = File("shared_memory", "ScanPos", self.scanpos)
         file.save()
+        """
+        import asyncio
 
+        sp = self.scanpos
+        x_step = float(self.area_s["x_step"])
+        y_step = float(self.area_s["y_step"])
+
+        use_rel = ("x_rel" in sp) and ("y_rel" in sp) and ("pattern" in sp)
+
+        if use_rel:
+            pattern = str(sp["pattern"]).lower()
+            xr = float(sp["x_rel"])
+            yr = float(sp["y_rel"])
+
+            if pattern == "spiral":
+                # You must set these once at spiral start; see below.
+                x_anchor = float(getattr(self, "stage_x_center", self.stage_x_pos))
+                y_anchor = float(getattr(self, "stage_y_center", self.stage_y_pos))
+                x_pos = x_anchor + xr
+                y_pos = y_anchor + yr
+            else:
+                # crosshair or any BL-based pattern
+                x_pos = float(self.stage_x_pos) + xr
+                y_pos = float(self.stage_y_pos) + yr
+        else:
+            # Legacy path: BL indices
+            j = int(sp["x"])
+            i = int(sp["y"])
+            x_pos = float(self.stage_x_pos) + j * x_step
+            y_pos = float(self.stage_y_pos) + i * y_step
+
+        # Respect per-axis locks
+        if not self.axis_locked.get("x", False):
+            asyncio.run(self.stage_manager.move_axis(AxisType.X, x_pos, False))
+        if not self.axis_locked.get("y", False):
+            asyncio.run(self.stage_manager.move_axis(AxisType.Y, y_pos, False))
+
+        print(f"Move to: {x_pos:.3f}, {y_pos:.3f}")
+        sp["move"] = 0
+        File("shared_memory", "ScanPos", sp).save()
+    
     def after_configuration(self):
         if self.configuration["stage"] != "" and self.configuration_stage == 0 and self.configuration_check[
             "stage"] == 0:
@@ -688,19 +729,58 @@ class stage_control(App):
                 flex=True, bold=True, justify_content="left"
             ))
 
-            # jog controls (shifted right)
-            setattr(self, f"{prefix}_left_btn", StyledButton(
-                container=xyz_container, text=left_arrows[i], variable_name=f"{prefix}_left_button", font_size=100,
-                left=BTN_L_LEFT, top=top, width=50, height=ROW_H, normal_color="#007BFF", press_color="#0056B3"
-            ))
-            setattr(self, f"{prefix}_input", StyledSpinBox(
-                container=xyz_container, variable_name=f"{prefix}_step", min_value=0, max_value=1000,
-                value=init_value[i], step=0.1, left=SPIN_LEFT, top=top, width=73, height=ROW_H, position="absolute"
-            ))
-            setattr(self, f"{prefix}_right_btn", StyledButton(
-                container=xyz_container, text=right_arrows[i], variable_name=f"{prefix}_right_button", font_size=100,
-                left=BTN_R_LEFT, top=top, width=50, height=ROW_H, normal_color="#007BFF", press_color="#0056B3"
-            ))
+            if prefix in ["x", "y"]:
+                setattr(self, f"{prefix}_left_btn", StyledButton(
+                    container=xyz_container, text=left_arrows[i], variable_name=f"{prefix}_left_button", font_size=100,
+                    left=BTN_L_LEFT, top=top, width=50, height=ROW_H, normal_color="#007BFF", press_color="#0056B3"
+                ))
+                setattr(self, f"{prefix}_input", StyledSpinBox(
+                    container=xyz_container, variable_name=f"{prefix}_step", min_value=0, max_value=5000,
+                    value=init_value[i], step=0.1, left=SPIN_LEFT, top=top, width=73, height=ROW_H, position="absolute"
+                ))
+                setattr(self, f"{prefix}_right_btn", StyledButton(
+                    container=xyz_container, text=right_arrows[i], variable_name=f"{prefix}_right_button", font_size=100,
+                    left=BTN_R_LEFT, top=top, width=50, height=ROW_H, normal_color="#007BFF", press_color="#0056B3"
+                ))
+            elif prefix in ["z"]:
+                setattr(self, f"{prefix}_left_btn", StyledButton(
+                    container=xyz_container, text=left_arrows[i], variable_name=f"{prefix}_left_button", font_size=100,
+                    left=BTN_L_LEFT, top=top, width=50, height=ROW_H, normal_color="#007BFF", press_color="#0056B3"
+                ))
+                setattr(self, f"{prefix}_input", StyledSpinBox(
+                    container=xyz_container, variable_name=f"{prefix}_step", min_value=0, max_value=1000,
+                    value=init_value[i], step=0.1, left=SPIN_LEFT, top=top, width=73, height=ROW_H, position="absolute"
+                ))
+                setattr(self, f"{prefix}_right_btn", StyledButton(
+                    container=xyz_container, text=right_arrows[i], variable_name=f"{prefix}_right_button", font_size=100,
+                    left=BTN_R_LEFT, top=top, width=50, height=ROW_H, normal_color="#007BFF", press_color="#0056B3"
+                ))
+            elif prefix in ["Chip"]:
+                setattr(self, f"{prefix}_left_btn", StyledButton(
+                    container=xyz_container, text=left_arrows[i], variable_name=f"{prefix}_left_button", font_size=100,
+                    left=BTN_L_LEFT, top=top, width=50, height=ROW_H, normal_color="#007BFF", press_color="#0056B3"
+                ))
+                setattr(self, f"{prefix}_input", StyledSpinBox(
+                    container=xyz_container, variable_name=f"{prefix}_step", min_value=0, max_value=360,
+                    value=init_value[i], step=0.1, left=SPIN_LEFT, top=top, width=73, height=ROW_H, position="absolute"
+                ))
+                setattr(self, f"{prefix}_right_btn", StyledButton(
+                    container=xyz_container, text=right_arrows[i], variable_name=f"{prefix}_right_button", font_size=100,
+                    left=BTN_R_LEFT, top=top, width=50, height=ROW_H, normal_color="#007BFF", press_color="#0056B3"
+                ))
+            else:
+                setattr(self, f"{prefix}_left_btn", StyledButton(
+                    container=xyz_container, text=left_arrows[i], variable_name=f"{prefix}_left_button", font_size=100,
+                    left=BTN_L_LEFT, top=top, width=50, height=ROW_H, normal_color="#007BFF", press_color="#0056B3"
+                ))
+                setattr(self, f"{prefix}_input", StyledSpinBox(
+                    container=xyz_container, variable_name=f"{prefix}_step", min_value=0, max_value=45,
+                    value=init_value[i], step=0.1, left=SPIN_LEFT, top=top, width=73, height=ROW_H, position="absolute"
+                ))
+                setattr(self, f"{prefix}_right_btn", StyledButton(
+                    container=xyz_container, text=right_arrows[i], variable_name=f"{prefix}_right_button", font_size=100,
+                    left=BTN_R_LEFT, top=top, width=50, height=ROW_H, normal_color="#007BFF", press_color="#0056B3"
+                ))
 
             # Zero button placeholder
             # if prefix in ["x", "y", "z"]:
@@ -955,6 +1035,7 @@ class stage_control(App):
             config = FineAlignConfiguration()
             config.scan_window = self.fine_a["window_size"]
             config.step_size = self.fine_a["step_size"]
+            config.min_gradient_ss = self.fine_a["min_gradient_ss"]
             config.gradient_iters = self.fine_a["max_iters"]
 
             # Create aligner
@@ -1146,7 +1227,59 @@ class stage_control(App):
             )
             self.data = asyncio.run(self.area_sweep.begin_sweep())
             fileTime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            
+            def preview_heatmap_raw(self):
+                """
+                Quick pop-out preview of the current data array (no interactivity).
+                Just shows the data as-is to visualize whether it's centered correctly.
+                """
+                import numpy as np
+                import matplotlib.pyplot as plt
 
+                data = np.array(self.data, dtype=float)
+                if data is None:
+                    raise ValueError("self.data is None")
+
+                num_y, num_x = data.shape
+                vmin = float(np.nanmin(data))
+                vmax = float(np.nanmax(data))
+
+                # Get step sizes if available
+                dx = float(getattr(self, "xticks", getattr(self, "x_step", 1.0)))
+                dy = float(getattr(self, "yticks", getattr(self, "y_step", dx)))
+                dx = abs(dx)
+                dy = abs(dy)
+
+                # Compute coordinate centers assuming the spiral pattern’s midpoints
+                mid_x = (num_x - 1) / 2.0
+                mid_y = (num_y - 1) / 2.0
+                x_centers = (np.arange(num_x) - mid_x) * dx
+                y_centers = (np.arange(num_y) - mid_y) * dy
+
+                # Plot
+                fig, ax = plt.subplots(figsize=(6, 6))
+                im = ax.imshow(
+                    data,
+                    origin="lower",
+                    cmap="inferno",
+                    interpolation="nearest",
+                    extent=[
+                        x_centers[0] - 0.5 * dx,
+                        x_centers[-1] + 0.5 * dx,
+                        y_centers[0] - 0.5 * dy,
+                        y_centers[-1] + 0.5 * dy,
+                    ],
+                    aspect="equal",
+                )
+
+                ax.set_title("Raw Data (Center-Oriented Spiral Grid)")
+                ax.set_xlabel("X (µm)")
+                ax.set_ylabel("Y (µm)")
+                plt.colorbar(im, ax=ax, label="Power (dBm)")
+
+                plt.show()
+            
+            # preview_heatmap_raw(self.data)
             # Create window for plotting
             if str(self.area_s["pattern"]) == "spiral":
                 diagram = plot(
@@ -1157,7 +1290,8 @@ class stage_control(App):
                     data=self.data,
                     xticks=int(self.area_s["x_step"]),
                     yticks=None,
-                    pos_i = [self.stage_x_pos, self.stage_y_pos])
+                    pos_i = [self.stage_x_pos, self.stage_y_pos],
+                    pattern="spiral")
             else:
                 diagram = plot(
                     filename="heat_map",
@@ -1167,7 +1301,8 @@ class stage_control(App):
                     data=self.data,
                     xticks=int(self.area_s["x_step"]),
                     yticks=int(self.area_s["y_step"]),
-                    pos_i = [self.stage_x_pos, self.stage_y_pos])
+                    pos_i = [self.stage_x_pos, self.stage_y_pos],
+                    pattern="crosshair")
 
 
             with self._scan_done.get_lock():

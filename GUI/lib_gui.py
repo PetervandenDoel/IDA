@@ -2,6 +2,7 @@ from remi.gui import *
 import os
 import time
 from multiprocessing import Process
+import multiprocessing as mp
 from time import sleep, monotonic
 from motors.config.stage_position import *
 from motors.config.stage_config import *
@@ -532,7 +533,7 @@ class File():
 
 class plot():
     def __init__(self, x=None, y=None, filename=None, fileTime=None, user=None, name=None, project=None, data=None,
-                 file_format=None, file_path="", xticks = None, yticks=None, pos_i=None):
+                 file_format=None, file_path="", xticks = None, yticks=None, pos_i=None, pattern="crosshair"):
         if file_format is None:
             self.file_format = {"csv": 1, "mat": 1, "png": 1, "pdf": 1}
         else:
@@ -549,266 +550,8 @@ class plot():
         self.xticks = xticks
         self.yticks = yticks
         self.pos_i = pos_i
-
-    # def heat_map(self):
-    #     import os
-    #     import numpy as np
-    #     import matplotlib.pyplot as plt
-    #     from mpl_toolkits.axes_grid1 import make_axes_locatable
-
-    #     fig, ax = plt.subplots(figsize=(7, 7))
-
-    #     min_value = np.nanmin(self.data)
-    #     max_value = np.nanmax(self.data)
-
-    #     num_y, num_x = self.data.shape  # rows, cols
-
-    #     # ---- decide mode from xticks/yticks presence ----
-    #     if self.xticks is None and self.yticks is None:
-    #         mode = "index"
-    #     elif self.xticks is not None and self.yticks is None:
-    #         mode = "spiral"
-    #     else:
-    #         mode = "crosshair"
-
-    #     # ---------- helpers ----------
-    #     def _gen_rect_spiral_indices(w, h):
-    #         """Rectangular spiral in index space starting from center pixel."""
-    #         cx, cy = w // 2, h // 2
-    #         path = [(cx, cy)]
-    #         step_len, d_idx = 1, 0
-    #         x, y = cx, cy
-    #         dirs = [(1, 0), (0, 1), (-1, 0), (0, -1)]  # R, U, L, D
-    #         seen = {path[0]}
-    #         max_iters = w * h * 4
-    #         while len(path) < w * h and max_iters > 0:
-    #             dx, dy = dirs[d_idx % 4]
-    #             for _ in range(step_len):
-    #                 x += dx; y += dy
-    #                 if 0 <= x < w and 0 <= y < h:
-    #                     if (x, y) not in seen:
-    #                         path.append((x, y))
-    #                         seen.add((x, y))
-    #                 if len(path) >= w * h:
-    #                     break
-    #             d_idx += 1
-    #             if d_idx % 2 == 0:
-    #                 step_len += 1
-    #             max_iters -= 1
-    #         return path
-
-    #     # Map index <-> physical conversions
-    #     def idx_to_phys(ix, iy, origin, x_min, y_min, dx, dy):
-    #         px = x_min + ix * dx
-    #         if origin == 'lower':
-    #             py = y_min + iy * dy
-    #         else:  # 'upper' means y increases downward in image pixels
-    #             py = y_min + (num_y - 1 - iy) * dy
-    #         return px, py
-
-    #     def phys_to_idx(px, py, origin, x_min, y_min, dx, dy):
-    #         ix = int(np.round((px - x_min) / dx))
-    #         if origin == 'lower':
-    #             iy = int(np.round((py - y_min) / dy))
-    #         else:
-    #             iy = int(np.round((y_min + (num_y - 1) * dy - py) / dy))
-    #         return ix, iy
-
-    #     # ---------- plotting branches ----------
-    #     if mode == "index":
-    #         heatmap = ax.imshow(
-    #             self.data,
-    #             origin='lower',
-    #             cmap='gist_heat',
-    #             vmin=min_value - 3,
-    #             vmax=max_value + 1,
-    #             interpolation='nearest'
-    #         )
-    #         ax.set_title('Area Sweep Heat Map', fontsize=16)
-    #         ax.set_xlabel('X Position Index')
-    #         ax.set_ylabel('Y Position Index')
-
-    #         ax.set_xticks(np.arange(0, num_x, 1))
-    #         ax.set_yticks(np.arange(0, num_y, 1))
-
-    #         divider = make_axes_locatable(ax)
-    #         cax = divider.append_axes("right", size="5%", pad=0.05)
-    #         plt.colorbar(heatmap, cax=cax, label='Power (dBm)')
-
-    #         # Basic click in index space (as your original)
-    #         def onclick(event):
-    #             if event.inaxes != ax or event.xdata is None or event.ydata is None:
-    #                 return
-    #             x = int(np.round(event.xdata))
-    #             y = int(np.round(event.ydata))
-    #             if 0 <= x < num_x and 0 <= y < num_y:
-    #                 value = self.data[y, x]
-    #                 print(f"Clicked at (x={x}, y={y}), Value = {value:.3f} dBm")
-    #                 position = {"x": x, "y": y, "move": 1}
-    #                 file = File("shared_memory", "ScanPos", position)
-    #                 file.save()
-
-    #         fig.canvas.mpl_connect('button_press_event', onclick)
-
-    #     else:
-    #         # ---- physical-space (µm) setup ----
-    #         if mode == "spiral":
-    #             dx = float(self.xticks)
-    #             dy = float(self.xticks)
-    #             x0 = float(self.pos_i[0]) if getattr(self, "pos_i", None) is not None else 0.0
-    #             y0 = float(self.pos_i[1]) if getattr(self, "pos_i", None) is not None else 0.0
-
-    #             x_min = x0
-    #             x_max = x0 + (num_x - 1) * dx
-    #             y_min = y0
-    #             y_max = y0 + (num_y - 1) * dy
-
-    #             origin = 'lower'  # natural upward Y
-    #         else:  # crosshair
-    #             dx = float(self.xticks)
-    #             dy = float(self.yticks)
-    #             if getattr(self, "pos_i", None) is None:
-    #                 cx, cy = 0.0, 0.0
-    #             else:
-    #                 cx, cy = float(self.pos_i[0]), float(self.pos_i[1])
-
-    #             hx = (num_x - 1) * dx / 2.0
-    #             hy = (num_y - 1) * dy / 2.0
-
-    #             x_min, x_max = cx - hx, cx + hx
-    #             y_min, y_max = cy - hy, cy + hy
-
-    #             origin = 'upper'  # matches your previous choice
-
-    #         heatmap = ax.imshow(
-    #             self.data,
-    #             origin=origin,
-    #             cmap='gist_heat',
-    #             vmin=min_value - 3,
-    #             vmax=max_value + 1,
-    #             interpolation='nearest',
-    #             extent=[x_min, x_max, y_min, y_max],
-    #             aspect='equal'
-    #         )
-
-    #         ax.set_title('Area Sweep Heat Map', fontsize=16)
-    #         ax.set_xlabel('X Position (µm)')
-    #         ax.set_ylabel('Y Position (µm)')
-
-    #         # ticks
-    #         eps = 1e-9
-    #         if mode == "spiral":
-    #             step = float(self.xticks)
-    #             ax.set_xticks(np.arange(x_min, x_max + eps, step))
-    #             ax.set_yticks(np.arange(y_min, y_max + eps, step))
-    #         else:  # crosshair
-    #             ax.set_xticks(np.arange(x_min, x_max + eps, float(self.xticks)))
-    #             ax.set_yticks(np.arange(y_min, y_max + eps, float(self.yticks)))
-
-    #         # colorbar
-    #         divider = make_axes_locatable(ax)
-    #         cax = divider.append_axes("right", size="5%", pad=0.05)
-    #         plt.colorbar(heatmap, cax=cax, label='Power (dBm)')
-
-    #         ax.tick_params(axis='x', labelrotation=45, labelsize=8)
-    #         fig.tight_layout(rect=[0, 0, 0.95, 1.0])
-            
-    #         # ---- spiral overlay (on spiral mode) ----
-    #         spiral_line = None
-    #         if mode == "spiral":
-    #             # prefer user-supplied spiral order in index space
-    #             # expected as list of (ix, iy)
-    #             spiral_indices = getattr(self, "spiral_points", None)
-    #             if not spiral_indices:
-    #                 spiral_indices = _gen_rect_spiral_indices(num_x, num_y)
-    #             if spiral_indices:
-    #                 sx, sy = [], []
-    #                 for ix, iy in spiral_indices:
-    #                     if 0 <= ix < num_x and 0 <= iy < num_y:
-    #                         px, py = idx_to_phys(ix, iy, origin, x_min, y_min, dx, dy)
-    #                         sx.append(px); sy.append(py)
-    #                 if sx:
-    #                     # (spiral_line,) = ax.plot(
-    #                     #     sx, sy,
-    #                     #     linestyle='--', linewidth=1.0,
-    #                     #     marker='o', markersize=2, alpha=0.7,
-    #                     #     label='Spiral Path'
-    #                     # )
-    #                     # ax.legend(loc='upper left', fontsize=9, framealpha=0.6)
-    #                     pass
-
-    #         # ---- crosshair overlay (both modes benefit) ----
-    #         enable_crosshair = True
-    #         vline = hline = coord_text = None
-    #         crosshair_visible = [True]
-
-    #         if enable_crosshair:
-    #             vline = ax.axvline(x_min, linestyle='--', linewidth=0.8, alpha=0.9)
-    #             hline = ax.axhline(y_min, linestyle='--', linewidth=0.8, alpha=0.9)
-    #             coord_text = ax.text(
-    #                 0.01, 0.99, "", transform=ax.transAxes,
-    #                 ha='left', va='top', fontsize=9,
-    #                 bbox=dict(boxstyle="round,pad=0.2", fc="white", alpha=0.6)
-    #             )
-
-    #             def onmove(event):
-    #                 if not crosshair_visible[0]:
-    #                     return
-    #                 if event.inaxes != ax or event.xdata is None or event.ydata is None:
-    #                     return
-    #                 px, py = float(event.xdata), float(event.ydata)
-    #                 ix, iy = phys_to_idx(px, py, origin, x_min, y_min, dx, dy)
-    #                 if 0 <= ix < num_x and 0 <= iy < num_y:
-    #                     vline.set_xdata([px, px])
-    #                     hline.set_ydata([py, py])
-    #                     val = self.data[iy, ix]
-    #                     coord_text.set_text(
-    #                         f"idx=({ix},{iy})  pos=({px:.1f},{py:.1f}) µm  {val:.3f} dBm"
-    #                     )
-    #                     fig.canvas.draw_idle()
-
-    #             def onkey(event):
-    #                 if event.key == 'x':
-    #                     crosshair_visible[0] = not crosshair_visible[0]
-    #                     for artist in (vline, hline, coord_text):
-    #                         if artist is not None:
-    #                             artist.set_visible(crosshair_visible[0])
-    #                     fig.canvas.draw_idle()
-
-    #             fig.canvas.mpl_connect('motion_notify_event', onmove)
-    #             fig.canvas.mpl_connect('key_press_event', onkey)
-
-    #         # ---- click handler (convert µm -> index correctly) ----
-    #         def onclick(event):
-    #             if event.inaxes != ax or event.xdata is None or event.ydata is None:
-    #                 return
-    #             px, py = float(event.xdata), float(event.ydata)
-    #             ix, iy = phys_to_idx(px, py, origin, x_min, y_min, dx, dy)
-    #             if 0 <= ix < num_x and 0 <= iy < num_y:
-    #                 value = self.data[iy, ix]
-    #                 print(f"Clicked at (x={ix}, y={iy}) [pos=({px:.1f},{py:.1f}) µm], Value = {value:.3f} dBm")
-    #                 position = {"x": ix, "y": iy, "move": 1}
-    #                 file = File("shared_memory", "ScanPos", position)
-    #                 file.save()
-
-    #         fig.canvas.mpl_connect('button_press_event', onclick)
-
-    #     # ---- show and save (unchanged I/O paths) ----
-    #     plt.show()
-
-    #     output_dir = os.path.join(".", "UserData", self.user, self.project, "HeatMap")
-    #     os.makedirs(output_dir, exist_ok=True)
-
-    #     fig_path = os.path.join(output_dir, f"{self.filename}_{self.fileTime}.png")
-    #     fig.savefig(fig_path, dpi=300)
-    #     print(f" Saved heatmap figure: {fig_path}")
-
-    #     csv_path = os.path.join(output_dir, f"{self.filename}_{self.fileTime}.csv")
-    #     np.savetxt(csv_path, self.data, delimiter=",", fmt="%.4f")
-    #     print(f" Saved heatmap data: {csv_path}")
-
-    #     plt.close(fig)
-
+        self.pattern = pattern
+    """
     def heat_map(self):
         import os
         import numpy as np
@@ -820,9 +563,7 @@ class plot():
         vmin = float(np.nanmin(data))
         vmax = float(np.nanmax(data))
 
-        # -------- determine mode (spiral if no yticks) --------
-        # If you store a pattern string, you can replace this with that.
-        mode = "spiral" if getattr(self, "yticks", None) is None else "crosshair"
+        mode = self.pattern
 
         # -------- step sizes (use ABS so axes increase "correctly") --------
         dx = float(self.xticks) if getattr(self, "xticks", None) is not None else 1.0
@@ -860,7 +601,7 @@ class plot():
             arr = arr.copy()
             arr[np.isclose(arr, 0.0, atol=1e-12)] = 0.0
             return arr
-
+        
         x_centers = _clean_zero(x_centers)
         y_centers = _clean_zero(y_centers)
 
@@ -917,12 +658,18 @@ class plot():
         )
         crosshair_visible = [True]
 
-        # Fast nearest-center index from relative coords
+        # # Fast nearest-center index from relative coords
+        # def rel_to_idx(px, py):
+        #     j = int(np.round((px - x_centers[0]) / dx)) if mode == "crosshair" else int(np.round((px - x_centers[0]) / dx))
+        #     i = int(np.round((py - y_centers[0]) / dy)) if mode == "crosshair" else int(np.round((py - y_centers[0]) / dy))
+        #     j = max(0, min(num_x - 1, j))
+        #     i = max(0, min(num_y - 1, i))
+        #     return j, i
+
         def rel_to_idx(px, py):
-            j = int(np.round((px - x_centers[0]) / dx)) if mode == "crosshair" else int(np.round((px - x_centers[0]) / dx))
-            i = int(np.round((py - y_centers[0]) / dy)) if mode == "crosshair" else int(np.round((py - y_centers[0]) / dy))
-            j = max(0, min(num_x - 1, j))
-            i = max(0, min(num_y - 1, i))
+            # j: x index (columns), i: y index (rows)
+            j = int(np.argmin(np.abs(x_centers - px)))
+            i = int(np.argmin(np.abs(y_centers - py)))
             return j, i
 
         def onmove(event):
@@ -964,6 +711,227 @@ class plot():
         plt.show()
 
         # -------- save --------
+        out_dir = os.path.join(".", "UserData", self.user, self.project, "HeatMap")
+        os.makedirs(out_dir, exist_ok=True)
+        fig_path = os.path.join(out_dir, f"{self.filename}_{self.fileTime}.png")
+        fig.savefig(fig_path, dpi=300)
+        print(f"Saved heatmap figure: {fig_path}")
+        csv_path = os.path.join(out_dir, f"{self.filename}_{self.fileTime}.csv")
+        np.savetxt(csv_path, data, delimiter=",", fmt="%.4f")
+        print(f"Saved heatmap data: {csv_path}")
+        plt.close(fig)
+    """
+    def heat_map(self):
+        import os
+        import numpy as np
+        import matplotlib.pyplot as plt
+        from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+        data = self.data
+        if data is None:
+            raise ValueError("self.data is None")
+
+        # rows (y), cols (x)
+        num_y, num_x = data.shape
+        vmin = float(np.nanmin(data))
+        vmax = float(np.nanmax(data))
+
+        mode = (getattr(self, "pattern", "spiral") or "spiral").lower()
+
+        # ------- step sizes (µm) -------
+        # Prefer explicit steps if present; fall back to xticks/yticks; else 1.0
+        def _get_step(default_val):
+            try:
+                return float(default_val)
+            except Exception:
+                return None
+
+        dx = _get_step(getattr(self, "xticks", None))
+        dy = _get_step(getattr(self, "yticks", None))
+
+        # Optional: pull from area_s (your scan config object)
+        if dx is None and hasattr(self, "area_s"):
+            dx = _get_step(self.area_s.get("x_step", None))
+        if dy is None and hasattr(self, "area_s"):
+            dy = _get_step(self.area_s.get("y_step", None))
+
+        # Final fallback
+        if dx is None: dx = 1.0
+        if dy is None: dy = dx
+
+        dx = abs(float(dx))
+        dy = abs(float(dy))
+
+        # ------- coordinate centers (µm) consistent with the movement logic -------
+        # crosshair: BL-origin; spiral: center-origin
+        mid_x = (num_x - 1) / 2.0
+        mid_y = (num_y - 1) / 2.0
+
+        if mode == "crosshair":
+            # centers at 0, dx, 2dx, ... (BL origin)
+            x_centers = np.arange(num_x, dtype=float) * dx
+            y_centers = np.arange(num_y, dtype=float) * dy
+        else:
+            # centers at (..., -dx, 0, +dx, ...) with (0,0) at grid midpoint
+            x_centers = (np.arange(num_x, dtype=float) - mid_x) * dx
+            y_centers = (np.arange(num_y, dtype=float) - mid_y) * dy
+
+        # edges for imshow 'extent' (draw squares centered at centers)
+        x_edge_min = x_centers[0] - 0.5 * dx
+        x_edge_max = x_centers[-1] + 0.5 * dx
+        y_edge_min = y_centers[0] - 0.5 * dy
+        y_edge_max = y_centers[-1] + 0.5 * dy
+
+        # clean -0.0 labels
+        def _clean_zero(arr):
+            arr = arr.copy()
+            arr[np.isclose(arr, 0.0, atol=1e-12)] = 0.0
+            return arr
+
+        x_centers = _clean_zero(x_centers)
+        y_centers = _clean_zero(y_centers)
+
+        # ------- helpers: exact, analytical mappings -------
+        def clamp_idx(j, i):
+            j = max(0, min(num_x - 1, int(j)))
+            i = max(0, min(num_y - 1, int(i)))
+            return j, i
+
+        # index -> relative µm used for plot / readout
+        def idx_to_rel(j, i):
+            if mode == "crosshair":
+                px = j * dx
+                py = i * dy
+            else:  # spiral center-origin
+                px = (j - mid_x) * dx
+                py = (i - mid_y) * dy
+            return float(px), float(py)
+
+        # relative µm (plot coords) -> nearest index (column j, row i)
+        def rel_to_idx(px, py):
+            if mode == "crosshair":
+                j = round(px / dx)
+                i = round(py / dy)
+            else:
+                j = round(px / dx + mid_x)
+                i = round(py / dy + mid_y)
+            return clamp_idx(j, i)
+
+        # ------- draw -------
+        fig, ax = plt.subplots(figsize=(7, 7))
+        heat = ax.imshow(
+            data,
+            origin="lower",  # y increases upward
+            cmap="gist_heat",
+            vmin=vmin - 3,
+            vmax=vmax + 1,
+            interpolation="nearest",
+            extent=[x_edge_min, x_edge_max, y_edge_min, y_edge_max],
+            aspect="equal",
+        )
+
+        title = "Area Sweep Heat Map (Spiral)" if mode == "spiral" else "Area Sweep Heat Map (Crosshair)"
+        ax.set_title(title, fontsize=16)
+        ax.set_xlabel("X (µm)")
+        ax.set_ylabel("Y (µm)")
+
+        # Ticks at sample centers
+        ax.set_xticks(x_centers)
+        ax.set_yticks(y_centers)
+
+        def _fmt_ticks(vals):
+            out = []
+            for v in vals:
+                if abs(v) < 1e-9:
+                    out.append("0")
+                elif abs(v - round(v)) < 1e-9:
+                    out.append(f"{int(round(v))}")
+                else:
+                    out.append(f"{v:.1f}")
+            return out
+
+        ax.set_xticklabels(_fmt_ticks(x_centers), fontsize=8)
+        ax.set_yticklabels(_fmt_ticks(y_centers), fontsize=8)
+
+        # Colorbar
+        div = make_axes_locatable(ax)
+        cax = div.append_axes("right", size="5%", pad=0.05)
+        plt.colorbar(heat, cax=cax, label="Power (dBm)")
+
+        # ------- hover crosshair (snap to cell centers) -------
+        # Start crosshair at center (spiral) or BL corner (crosshair)
+        if mode == "spiral":
+            j0, i0 = int(round(mid_x)), int(round(mid_y))
+        else:
+            j0, i0 = 0, 0
+        px0, py0 = idx_to_rel(j0, i0)
+
+        vline = ax.axvline(px0, linestyle="--", linewidth=0.8, alpha=0.9)
+        hline = ax.axhline(py0, linestyle="--", linewidth=0.8, alpha=0.9)
+        info = ax.text(
+            0.01, 0.99, "", transform=ax.transAxes, ha="left", va="top",
+            fontsize=9, bbox=dict(boxstyle="round,pad=0.2", fc="white", alpha=0.6)
+        )
+        crosshair_visible = [True]
+
+        def onmove(event):
+            if not crosshair_visible[0] or event.inaxes != ax:
+                return
+            if event.xdata is None or event.ydata is None:
+                return
+            # pointer in plot coords (relative µm)
+            px, py = float(event.xdata), float(event.ydata)
+            j, i = rel_to_idx(px, py)     # nearest cell
+            px_c, py_c = idx_to_rel(j, i) # exact center of that cell
+
+            vline.set_xdata([px_c, px_c])
+            hline.set_ydata([py_c, py_c])
+
+            val = data[i, j]
+            info.set_text(f"idx=({j},{i})  rel=({px_c:.1f},{py_c:.1f}) µm  {val:.3f} dBm")
+            fig.canvas.draw_idle()
+
+        def onkey(event):
+            if event.key == "x":
+                crosshair_visible[0] = not crosshair_visible[0]
+                for art in (vline, hline, info):
+                    art.set_visible(crosshair_visible[0])
+                fig.canvas.draw_idle()
+
+        fig.canvas.mpl_connect("motion_notify_event", onmove)
+        fig.canvas.mpl_connect("key_press_event", onkey)
+
+        # ------- click -> write ScanPos (both systems) -------
+        def onclick(event):
+            if event.inaxes != ax or event.xdata is None or event.ydata is None:
+                return
+            px, py = float(event.xdata), float(event.ydata)
+            j, i = rel_to_idx(px, py)
+            px_c, py_c = idx_to_rel(j, i)
+            val = data[i, j]
+            print(f"Clicked idx=({j},{i})  rel_center=({px_c:.1f},{py_c:.1f}) µm  Value={val:.3f} dBm")
+
+            # Emit both index (BL) and relative µm (center for spiral, BL for crosshair).
+            payload = {
+                "x": j,               # legacy index field (BL indices)
+                "y": i,               # legacy index field (BL indices)
+                "x_index": j,         # explicit duplicate for clarity
+                "y_index": i,
+                "x_rel": px_c,        # µm in the plot's coordinate frame
+                "y_rel": py_c,
+                "dx": dx,
+                "dy": dy,
+                "pattern": mode,      # 'spiral' or 'crosshair'
+                "move": 1
+            }
+            File("shared_memory", "ScanPos", payload).save()
+
+        fig.canvas.mpl_connect("button_press_event", onclick)
+
+        fig.tight_layout(rect=[0, 0, 0.95, 1.0])
+        plt.show()
+
+        # ------- save outputs -------
         out_dir = os.path.join(".", "UserData", self.user, self.project, "HeatMap")
         os.makedirs(out_dir, exist_ok=True)
         fig_path = os.path.join(out_dir, f"{self.filename}_{self.fileTime}.png")

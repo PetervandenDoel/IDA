@@ -60,7 +60,7 @@ def main():
     n = wl.size
     print(f"sweep done. points={n}")
     if n:
-        print(f"wl range: {wl[0]:.6f} → {wl[-1]:.6f} nm | step≈{np.median(np.diff(wl)):.6f} nm")
+        print(f"wl range: {wl[0]:.6f} → {wl[-1]:.6f} nm | step={np.median(np.diff(wl)):.6f} nm")
         print(f"ch1 first 5: {np.array2string(ch1[:5], precision=3)}")
         if ch2 is not None and ch2.size == n:
             print(f"ch2 first 5: {np.array2string(ch2[:5], precision=3)}")

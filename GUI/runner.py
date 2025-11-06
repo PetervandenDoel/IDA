@@ -271,7 +271,7 @@ if platform.system() == "Windows":
         FILE_LOG.write_line("✓ Windows Job Object created for process tree management")
     except Exception as e:
         _hJob = None
-        FILE_LOG.write_line(f"⚠️ Failed to create Job Object: {e}")
+        FILE_LOG.write_line(f"! Failed to create Job Object: {e}")
 else:
     _hJob = None
 
@@ -322,7 +322,7 @@ def start_gui(path: pathlib.Path):
             _assign_to_job(proc._handle, _hJob)
             FILE_LOG.write_line(f"✓ Process {proc.pid} assigned to job object")
         except Exception as e:
-            FILE_LOG.write_line(f"⚠️ Failed to assign process {proc.pid} to job: {e}")
+            FILE_LOG.write_line(f"! Failed to assign process {proc.pid} to job: {e}")
     
     processes.append(proc)
     FILE_LOG.write_line(f"▶ {path.name} started (pid={proc.pid})")
@@ -354,7 +354,7 @@ def terminate_all():
                     proc.terminate()
                 FILE_LOG.write_line(f"✓ Sent termination signal to PID {proc.pid}")
             except Exception as e:
-                FILE_LOG.write_line(f"⚠️ Failed to send termination to PID {proc.pid}: {e}")
+                FILE_LOG.write_line(f"! Failed to send termination to PID {proc.pid}: {e}")
     
     # Wait for graceful shutdown
     time.sleep(2.0)
@@ -368,7 +368,7 @@ def terminate_all():
                 proc.terminate()
                 FILE_LOG.write_line(f"✓ Force terminated PID {proc.pid}")
             except Exception as e:
-                FILE_LOG.write_line(f"⚠️ Failed to force terminate PID {proc.pid}: {e}")
+                FILE_LOG.write_line(f"! Failed to force terminate PID {proc.pid}: {e}")
         
         time.sleep(1.0)
     
@@ -381,12 +381,12 @@ def terminate_all():
                 proc.kill()
                 FILE_LOG.write_line(f"✓ Killed PID {proc.pid}")
             except Exception as e:
-                FILE_LOG.write_line(f"⚠️ Failed to kill PID {proc.pid}: {e}")
+                FILE_LOG.write_line(f"! Failed to kill PID {proc.pid}: {e}")
     
     # Final status report
     final_remaining = [p for p in processes if p.poll() is None]
     if final_remaining:
-        FILE_LOG.write_line(f"⚠️ {len(final_remaining)} processes still running after all termination attempts")
+        FILE_LOG.write_line(f"! {len(final_remaining)} processes still running after all termination attempts")
         for proc in final_remaining:
             FILE_LOG.write_line(f"   - PID {proc.pid} still running")
     else:
@@ -400,7 +400,7 @@ def main():
         print("It's Windows Version")
     targets = sorted(p for p in GUI_DIR.rglob("*.py") if is_target(p))
     if not targets:
-        print("⚠️  No *gui.py / *setup.py found"); return
+        print("!  No *gui.py / *setup.py found"); return
 
     print(f"Logging (tail={KEEP_LINES}, trim-threshold={TRIM_THRESHOLD}) → {LOG_FILE}\n")
 
@@ -443,7 +443,7 @@ if platform.system() == "Windows":
         )
         FILE_LOG.write_line("✓ Console close handler registered")
     except Exception as e:
-        FILE_LOG.write_line(f"⚠️ Failed to register console handler: {e}")
+        FILE_LOG.write_line(f"! Failed to register console handler: {e}")
 
 if __name__ == "__main__":
     atexit.register(terminate_all)

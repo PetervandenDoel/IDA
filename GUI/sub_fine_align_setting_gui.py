@@ -33,67 +33,159 @@ class fine_align(App):
 
     def construct_ui(self):
         fine_align_setting_container = StyledContainer(
-            variable_name="fine_align_setting_container", left=0, top=0, height=180, width=200
+            variable_name="fine_align_setting_container",
+            left=0,
+            top=0,
+            height=210,   
+            width=200
         )
 
+        # ----- Window -----
         StyledLabel(
-            container=fine_align_setting_container, text="Window", variable_name="window_size_lb", left=0,
-            top=10, width=70, height=25, font_size=100, flex=True, justify_content="right", color="#222"
+            container=fine_align_setting_container, text="Window",
+            variable_name="window_size_lb",
+            left=0, top=10,
+            width=70, height=25,
+            font_size=100, flex=True,
+            justify_content="right", color="#222"
         )
 
         self.window_size = StyledSpinBox(
-            container=fine_align_setting_container, variable_name="window_size_in", left=80, top=10, value=20,
-            width=50, height=24, min_value=-1000, max_value=1000, step=1, position="absolute"
+            container=fine_align_setting_container,
+            variable_name="window_size_in",
+            left=80, top=10,
+            value=10,
+            width=50, height=24,
+            min_value=-1000, max_value=1000,
+            step=1,
+            position="absolute"
         )
 
         StyledLabel(
-            container=fine_align_setting_container, text="um", variable_name="window_size_um", left=150, top=10,
-            width=20, height=25, font_size=100, flex=True, justify_content="left", color="#222"
+            container=fine_align_setting_container, text="um",
+            variable_name="window_size_um",
+            left=150, top=10,
+            width=20, height=25,
+            font_size=100, flex=True,
+            justify_content="left", color="#222"
         )
 
+        # ----- Step Size -----
         StyledLabel(
-            container=fine_align_setting_container, text="Step Size", variable_name="step_size_lb", left=0, top=42,
-            width=70, height=25, font_size=100, flex=True, justify_content="right", color="#222"
+            container=fine_align_setting_container, text="Step Size",
+            variable_name="step_size_lb",
+            left=0, top=42,
+            width=70, height=25,
+            font_size=100, flex=True,
+            justify_content="right", color="#222"
         )
 
         self.step_size = StyledSpinBox(
-            container=fine_align_setting_container, variable_name="step_size_in", left=80, top=42, value=2,
-            width=50, height=24, min_value=-1000, max_value=1000, step=0.1, position="absolute"
+            container=fine_align_setting_container,
+            variable_name="step_size_in",
+            left=80, top=42,
+            value=1,
+            width=50, height=24,
+            min_value=-1000, max_value=1000,
+            step=0.1,
+            position="absolute"
         )
 
         StyledLabel(
-            container=fine_align_setting_container, text="um", variable_name="step_size_um", left=150, top=42,
-            width=20, height=25, font_size=100, flex=True, justify_content="left", color="#222"
+            container=fine_align_setting_container, text="um",
+            variable_name="step_size_um",
+            left=150, top=42,
+            width=20, height=25,
+            font_size=100, flex=True,
+            justify_content="left", color="#222"
         )
 
+        # ----- Max Iters (keep at original row ~74) -----
         StyledLabel(
-            container=fine_align_setting_container, text="Max Iters", variable_name="max_iters_lb", left=0,
-            top=74,width=70, height=25, font_size=100, flex=True, justify_content="right", color="#222"
+            container=fine_align_setting_container, text="Max Iters",
+            variable_name="max_iters_lb",
+            left=0, top=74,
+            width=70, height=25,
+            font_size=100, flex=True,
+            justify_content="right", color="#222"
         )
 
         self.max_iters = StyledSpinBox(
-            container=fine_align_setting_container, variable_name="max_iters_in", left=80, top=74, value=5,
-            width=50, height=24, min_value=0, max_value=50, step=1, position="absolute"
+            container=fine_align_setting_container,
+            variable_name="max_iters_in",
+            left=80, top=74,
+            value=10,
+            width=50, height=24,
+            min_value=0, max_value=50,
+            step=1,
+            position="absolute"
         )
 
         StyledLabel(
-            container=fine_align_setting_container, text="um", variable_name="max_iters_um", left=150, top=74,
-            width=20, height=25, font_size=100, flex=True, justify_content="left", color="#222"
+            container=fine_align_setting_container, text="",  # iterations have no 'um'
+            variable_name="max_iters_um",
+            left=150, top=74,
+            width=20, height=25,
+            font_size=100, flex=True,
+            justify_content="left", color="#222"
+        )
+
+        # ----- Min Grad SS (new row below Max Iters) -----
+        StyledLabel(
+            container=fine_align_setting_container, text="Min Grad SS",
+            variable_name="min_grad_ss_lb",
+            left=0, top=106,
+            width=70, height=25,
+            font_size=100, flex=True,
+            justify_content="right", color="#222"
+        )
+
+        self.min_grad_ss = StyledSpinBox(
+            container=fine_align_setting_container,
+            variable_name="min_grad_ss_in",
+            left=80, top=106,
+            value=0.1,
+            width=50, height=24,
+            min_value=0.001, max_value=10,
+            step=1,
+            position="absolute"
         )
 
         StyledLabel(
-            container=fine_align_setting_container, text="Detector", variable_name="detector_lb",
-            left=0, top=106, width=70, height=25, font_size=100, flex=True, justify_content="right", color="#222"
+            container=fine_align_setting_container, text="um",
+            variable_name="min_grad_ss_um",
+            left=150, top=106,
+            width=20, height=25,
+            font_size=100, flex=True,
+            justify_content="left", color="#222"
+        )
+
+        # ----- Detector (pushed down one row) -----
+        StyledLabel(
+            container=fine_align_setting_container, text="Detector",
+            variable_name="detector_lb",
+            left=0, top=138,
+            width=70, height=25,
+            font_size=100, flex=True,
+            justify_content="right", color="#222"
         )
 
         self.detector = StyledDropDown(
-            container=fine_align_setting_container, variable_name="detector", text=["ch1","ch2","None"],
-            left=80, top=106, width=60, height=25, position="absolute"
+            container=fine_align_setting_container,
+            variable_name="detector",
+            text=["ch1", "ch2", "None"],
+            left=80, top=138,
+            width=60, height=25,
+            position="absolute"
         )
 
+        # ----- Confirm button (pushed down as well) -----
         self.confirm_btn = StyledButton(
-            container=fine_align_setting_container, text="Confirm", variable_name="confirm_btn",
-            left=68, top=142, height=25, width=70, font_size=90
+            container=fine_align_setting_container, text="Confirm",
+            variable_name="confirm_btn",
+            left=68, top=174,
+            height=25, width=70,
+            font_size=90
         )
 
         self.confirm_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_confirm))
@@ -101,11 +193,13 @@ class fine_align(App):
         self.fine_align_setting_container = fine_align_setting_container
         return fine_align_setting_container
 
+
     def onclick_confirm(self):
         value = {
             "window_size": float(self.window_size.get_value()),
             "step_size": float(self.step_size.get_value()),
             "max_iters": int(self.max_iters.get_value()),
+            "min_gradient_ss": float(self.min_grad_ss.get_value()),
             "detector": str(self.detector.get_value())
         }
         file = File("shared_memory", "FineA", value)
@@ -159,6 +253,8 @@ class fine_align(App):
                 self.step_size.set_value(val)
             elif key == "fa_max_iters":
                 self.max_iters.set_value(val)
+            elif key == "fa_min_gradient_ss":
+                self.min_gradient_ss.set_value(val)
             elif key == "fa_detector":
                 self.detector.set_value(str(val))
             elif key == "fa_confirm":

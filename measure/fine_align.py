@@ -282,14 +282,16 @@ class FineAlign:
             grad_step = self.grad_step if self.grad_step > 0 else (total_shrink / iters)
 
             ss = self.step_size
+
             # Probe order: +/-X then +/-Y
             axes = [(AxisType.X, +1), (AxisType.X, -1), (AxisType.Y, +1), (AxisType.Y, -1)]
             tried_min_step = False
 
             while ss >= self.min_gradient_ss:
-                if self._cancelled() or (time.monotonic() - self._start_time) > self.timeout_s:
-                    self._report(min(99.0, 100.0 * probes_done / total_probes), "Gradient: canceled/timeout")
-                    return False
+                # if self._cancelled() or (time.monotonic() - self._start_time) > self.timeout_s:
+                #     self._report(min(99.0, 100.0 * probes_done / total_probes), "Gradient: canceled/timeout")
+                #     print(f"GRADIENT: CANCELED / TIMEOUT")
+                #     return False
 
                 improved = False
                 best_axis, best_dir, best_val = None, 0, self.lowest_loss
@@ -298,6 +300,7 @@ class FineAlign:
                 for axis, direction in axes:
                     if self._cancelled():
                         self._report(min(99.0, 100.0 * probes_done / total_probes), "Gradient: canceled")
+                        print(f"GRADIENT: CANCELED")
                         return False
 
                     await self.stage_manager.move_axis(axis, ss * direction, relative=True, wait_for_completion=True)
@@ -317,6 +320,7 @@ class FineAlign:
 
                 if self._cancelled():
                     self._report(min(99.0, 100.0 * probes_done / total_probes), "Gradient: canceled")
+                    print(f"GRADIENT: CANCELED 2")
                     return False
 
                 if improved and best_axis is not None:
@@ -332,7 +336,7 @@ class FineAlign:
                     current = best_val
 
                     self._report(min(99.0, 100.0 * probes_done / total_probes),
-                                 f"Gradient: improved → {self.lowest_loss:.2f} dBm")
+                                 f"Gradient: improved -> {self.lowest_loss:.2f} dBm")
 
                     if self.lowest_loss >= self.threshold:
                         self.log(f"Gradient met threshold at {self.lowest_loss:.2f} dBm", "info")
@@ -352,6 +356,7 @@ class FineAlign:
         except Exception as e:
             self.log(f"Gradient search error: {e}", "error")
             self._report(100.0, f"Gradient: error ({e})")
+            print(f"GRADIETN EXCEPTION FOUDN!!! {e}")
             return False
 
     def _select_detector_channel(self, loss_master: float, loss_slave: float) -> float:

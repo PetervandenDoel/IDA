@@ -508,31 +508,31 @@ class testing(App):
             dest_path = os.path.join(dest_dir, self.cur_user, path)
 
         if not dest_dir:
-            print("❌ Save path cannot be empty!")
+            print("X Save path cannot be empty!")
             return
 
         if not os.path.exists(dest_dir):
             try:
                 os.makedirs(dest_dir, exist_ok=True)
-                print(f"📁 Created destination directory: {dest_dir}")
+                print(f"[] Created destination directory: {dest_dir}")
             except Exception as e:
-                print(f"❌ Failed to create directory: {e}")
+                print(f"X Failed to create directory: {e}")
                 return
 
 
         if os.path.exists(dest_path):
             try:
                 shutil.rmtree(dest_path)
-                print(f"⚠️ Removed existing directory: {dest_path}")
+                print(f"! Removed existing directory: {dest_path}")
             except Exception as e:
-                print(f"❌ Failed to remove existing directory: {e}")
+                print(f"X Failed to remove existing directory: {e}")
                 return
 
         try:
             shutil.copytree(src, dest_path)
             print(f"✅ Files saved to: {dest_path}")
         except Exception as e:
-            print(f"❌ Copy failed: {e}")
+            print(f"X Copy failed: {e}")
 
     def execute_command(self, path=command_path):
         test = 0
@@ -602,8 +602,8 @@ class testing(App):
             file.save()
 
     def laser_sweep_setting(self):
-        # local_ip = get_local_ip()
-        local_ip = '127.0.0.1'
+        local_ip = get_local_ip()  # Use at 347
+        # local_ip = '127.0.0.1'  # Use at IDA MAY REQUIRE A SOLUTION** 
         webview.create_window(
             "Setting",
             f"http://{local_ip}:7001",
@@ -617,7 +617,7 @@ def run_remi():
     start(
         testing,
         address="0.0.0.0",
-        port=9004,
+        port=9104,
         start_browser=False,
         multiple_instance=False,
         enable_file_cache=False,
@@ -643,7 +643,7 @@ if __name__ == "__main__":
     local_ip = '127.0.0.1'
     webview.create_window(
         "Main Window",
-        f"http://{local_ip}:9004",
+        f"http://{local_ip}:9104",
         width=0,
         height=0,
         resizable=True,

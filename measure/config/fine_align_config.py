@@ -12,7 +12,7 @@ class FineAlignConfiguration:
     scan_window: float = 10.0       # microns
     threshold: float = -10.0        # dBm 
     gradient_iters: int = 10        
-    min_gradient_ss: float = 0.2    # microns
+    min_gradient_ss: float = 0.1    # microns
     primary_detector: str = "ch1"   # "ch1" or "ch2"
     ref_wl: float = 1550.0          # nm
     timeout_s: float = 60.0        # seconds

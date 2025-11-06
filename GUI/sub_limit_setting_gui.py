@@ -75,7 +75,7 @@ class limit(App):
             container=limit_setting_container, text=["Yes", "No"], variable_name="chip_dd", left=75, top=106,
             width=70, height=24, position="absolute"
         )
-        self.chip_dd.set_value("No")
+        self.chip_dd.set_value("Yes")
 
         StyledLabel(
             container=limit_setting_container, text="Fiber", variable_name="fiber_lb", left=0, top=138,
@@ -86,7 +86,7 @@ class limit(App):
             container=limit_setting_container, text=["Yes", "No"], variable_name="fiber_dd", left=75, top=138,
             width=70, height=24, position="absolute"
         )
-        self.fiber_dd.set_value("No")
+        self.fiber_dd.set_value("Yes")
 
         self.confirm_btn = StyledButton(
             container=limit_setting_container, text="Confirm", variable_name="confirm_btn",

@@ -35,7 +35,7 @@ class AreaSweep:
         self.nir_manager = nir_manager
         self.config = area_sweep_config
         self.debug = debug
-        self.primary_detector = self.config 
+        self.primary_detector = self.config.primary_detector
         self.spiral = None
         self._stop_requested = False
         self._cancel_event = cancel_event  
@@ -208,7 +208,7 @@ class AreaSweep:
             step = float(getattr(cfg, "step_size", getattr(cfg, "x_step", 1.0)))
             if step <= 0:
                 raise ValueError("step_size must be > 0 µm")
-
+            print(f"HHHHHHHHHERE: {self.primary_detector}")
             # inclusive endpoints => floor(extent/step) + 1
             def samples_along(extent_um: float, pitch_um: float) -> int:
                 return max(1, int(extent_um // pitch_um) + 1)
