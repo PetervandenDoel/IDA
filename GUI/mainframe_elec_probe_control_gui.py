@@ -105,9 +105,9 @@ class elecprobe(App):
         )
 
         sweep_params = [
-            ("Set Sweep Min:", "set_sweep_min", "V", 42),
-            ("Set Sweep Max:", "set_sweep_max", "V", 74),
-            ("Set Sweep Resolution:", "set_sweep_resolution", "mV", 106),
+            ("Set Sweep Min", "set_sweep_min", "V", 42),
+            ("Set Sweep Max", "set_sweep_max", "V", 74),
+            ("Set Sweep Resolution", "set_sweep_resolution", "mV", 106),
         ]
 
         for text, var_prefix, unit, top in sweep_params:
@@ -135,6 +135,47 @@ class elecprobe(App):
                 font_size=110, color="#222", position="absolute",
                 flex=True, justify_content="left"
             )
+
+        StyledLabel(
+            container=smu_sweep_container, text="Plot Type", variable_name="set_sweep_plot_lb",
+            left=5, top=150, width=70, height=25, font_size=110, color="#222", position="absolute",
+            flex=True, justify_content="left"
+        )
+
+        self.set_sweep_iv_box = StyledCheckBox(
+            container=smu_sweep_container, variable_name="set_sweep_iv_box", left=140, top=148, width=12, height=12
+        )
+
+        StyledLabel(
+            container=smu_sweep_container, text="IV/VI", variable_name="set_sweep_iv_lb",
+            left=170, top=150, width=70, height=25, font_size=110, color="#222", position="absolute",
+            flex=True, justify_content="left"
+        )
+
+        self.set_sweep_riv_box = StyledCheckBox(
+            container=smu_sweep_container, variable_name="set_sweep_riv_box", left=290, top=148, width=12, height=12
+        )
+
+        StyledLabel(
+            container=smu_sweep_container, text="RV/RI", variable_name="set_sweep_riv_lb",
+            left=320, top=150, width=70, height=25, font_size=110, color="#222", position="absolute",
+            flex=True, justify_content="left"
+        )
+
+        self.set_sweep_piv_box = StyledCheckBox(
+            container=smu_sweep_container, variable_name="set_sweep_piv_box", left=440, top=148, width=12, height=12
+        )
+
+        StyledLabel(
+            container=smu_sweep_container, text="PV/PI", variable_name="set_sweep_piv_lb",
+            left=470, top=150, width=70, height=25, font_size=110, color="#222", position="absolute",
+            flex=True, justify_content="left"
+        )
+
+        self.sweep_btn = StyledButton(
+            container=smu_container, variable_name="sweep_btn", text="Sweep",
+            left=245, top=500, width=100, height=40, font_size=120
+        )
 
         # Display --------------------------------------------------------------------------------------------------------------
         StyledContainer(
