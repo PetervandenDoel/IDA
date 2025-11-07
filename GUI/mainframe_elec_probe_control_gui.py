@@ -61,7 +61,7 @@ class elecprobe(App):
 
         smu_control_container = StyledContainer(
             container=smu_container, variable_name="smu_control_container", border=True,
-            left=8, top=10, height=200, width=584
+            left=8, top=10, height=215, width=584
         )
 
         StyledLabel(
@@ -72,7 +72,7 @@ class elecprobe(App):
 
         smu_sweep_container = StyledContainer(
             container=smu_container, variable_name="smu_sweep_container", border=True,
-            left=8, top=225, height=200, width=584
+            left=8, top=250, height=200, width=584
         )
 
         StyledLabel(
@@ -80,6 +80,7 @@ class elecprobe(App):
             left=30, top=-12, width=112, height=20, font_size=120, color="#222", position="absolute",
             flex=True, on_line=True
         )
+
 # Sweep Setting --------------------------------------------------------------------------------------------------------
         StyledLabel(
             container=smu_sweep_container, text="Independent Variable", variable_name=f"set_sweep_var_lb",
@@ -102,98 +103,110 @@ class elecprobe(App):
             container=smu_sweep_container, variable_name="set_sweep_output", text=["A", "B"],
             left=432, top=10, width=142, height=25
         )
-# Display --------------------------------------------------------------------------------------------------------------
+
+        sweep_params = [
+            ("Set Sweep Min:", "set_sweep_min", "V", 42),
+            ("Set Sweep Max:", "set_sweep_max", "V", 74),
+            ("Set Sweep Resolution:", "set_sweep_resolution", "mV", 106),
+        ]
+
+        for text, var_prefix, unit, top in sweep_params:
+            StyledLabel(
+                container=smu_sweep_container,
+                text=text,
+                variable_name=f"{var_prefix}_lb",
+                left=5, top=top, width=160, height=25,
+                font_size=110, color="#222", position="absolute",
+                flex=True, justify_content="left"
+            )
+
+            setattr(self, f"{var_prefix}_sb", StyledSpinBox(
+                container=smu_sweep_container,
+                variable_name=f"{var_prefix}_sb",
+                max_value=30, min_value=-30, value=0.0, step=0.1,
+                left=180, top=top, width=180, height=24
+            ))
+
+            StyledLabel(
+                container=smu_sweep_container,
+                text=unit,
+                variable_name=f"{var_prefix}_unit",
+                left=400, top=top, width=30, height=25,
+                font_size=110, color="#222", position="absolute",
+                flex=True, justify_content="left"
+            )
+
+        # Display --------------------------------------------------------------------------------------------------------------
         StyledContainer(
-            container=smu_control_container, variable_name="smu_line", left=310, top=10, width=0, height=180,
+            container=smu_control_container, variable_name="smu_line", left=310, top=10, width=0, height=195,
             border=True, line="1.5px dashed #ccc"
         )
 
-        StyledLabel(
-            container=smu_control_container, text="Channel A", variable_name=f"chl_a_lb",
-            left=360, top=10, width=110, height=25, font_size=110, color="#222", position="absolute",
-            flex=True
-        )
+        channel_headers = [
+            ("A", 360),
+            ("B", 470),
+        ]
 
-        StyledLabel(
-            container=smu_control_container, text="Channel B", variable_name=f"chl_b_lb",
-            left=470, top=10, width=110, height=25, font_size=110, color="#222", position="absolute",
-            flex=True
-        )
+        for ch, left in channel_headers:
+            StyledLabel(
+                container=smu_control_container,
+                text=f"Channel {ch}",
+                variable_name=f"chl_{ch.lower()}_lb",
+                left=left, top=25, width=110, height=25,
+                font_size=110, color="#222", position="absolute",
+                flex=True
+            )
 
-        StyledLabel(
-            container=smu_control_container, text="V (V)", variable_name=f"read_v_lb",
-            left=320, top=40, width=50, height=25, font_size=110, color="#222", position="absolute",
-            flex=True, justify_content="left"
-        )
+        metric_labels = [
+            ("V (V)", "v", 57),
+            ("I (µA)", "i", 97),
+            ("R (KΩ)", "o", 137),
+        ]
 
-        StyledLabel(
-            container=smu_control_container, text="I (µA)", variable_name=f"read_i_lb",
-            left=320, top=70, width=50, height=25, font_size=110, color="#222", position="absolute",
-            flex=True, justify_content="left"
-        )
+        for text, suffix, top in metric_labels:
+            StyledLabel(
+                container=smu_control_container,
+                text=text,
+                variable_name=f"read_{suffix}_lb",
+                left=320, top=top, width=50, height=25,
+                font_size=110, color="#222", position="absolute",
+                flex=True, justify_content="left"
+            )
 
-        StyledLabel(
-            container=smu_control_container, text="R (KΩ)", variable_name=f"read_o_lb",
-            left=320, top=100, width=50, height=25, font_size=110, color="#222", position="absolute",
-            flex=True, justify_content="left"
-        )
-
-        self.chl_a_v = StyledLabel(
-            container=smu_control_container, text="0.0", variable_name=f"chl_a_v",
-            left=360, top=40, width=110, height=25, font_size=110, color="#222", position="absolute",
-            flex=True
-        )
-
-        self.chl_b_v = StyledLabel(
-            container=smu_control_container, text="0.0", variable_name=f"chl_b_v",
-            left=470, top=40, width=110, height=25, font_size=110, color="#222", position="absolute",
-            flex=True
-        )
-
-        self.chl_a_i = StyledLabel(
-            container=smu_control_container, text="0.0", variable_name=f"chl_a_i",
-            left=360, top=70, width=110, height=25, font_size=110, color="#222", position="absolute",
-            flex=True
-        )
-
-        self.chl_b_i = StyledLabel(
-            container=smu_control_container, text="0.0", variable_name=f"chl_b_i",
-            left=470, top=70, width=110, height=25, font_size=110, color="#222", position="absolute",
-            flex=True
-        )
-
-        self.chl_a_o = StyledLabel(
-            container=smu_control_container, text="0.0", variable_name=f"chl_a_o",
-            left=360, top=100, width=110, height=25, font_size=110, color="#222", position="absolute",
-            flex=True
-        )
-
-        self.chl_b_o = StyledLabel(
-            container=smu_control_container, text="0.0", variable_name=f"chl_b_o",
-            left=470, top=100, width=110, height=25, font_size=110, color="#222", position="absolute",
-            flex=True
-        )
+        for ch, left in channel_headers:
+            ch_lower = ch.lower()
+            for _, suffix, top in metric_labels:
+                var_name = f"chl_{ch_lower}_{suffix}"
+                setattr(self, var_name,
+                        StyledLabel(
+                            container=smu_control_container,
+                            text="0.0",
+                            variable_name=var_name,
+                            left=left, top=top, width=110, height=25,
+                            font_size=110, color="#222", position="absolute",
+                            flex=True
+                        ))
 
 # Setting --------------------------------------------------------------------------------------------------------------
         StyledLabel(
             container=smu_control_container, text="SMU Output", variable_name=f"smu_output_lb",
-            left=5, top=10, width=100, height=25, font_size=110, color="#222", position="absolute",
+            left=5, top=15, width=100, height=25, font_size=110, color="#222", position="absolute",
             flex=True, justify_content="left"
         )
 
         self.set_output = StyledDropDown(
             container=smu_control_container, variable_name="set_output", text=["A", "B"],
-            left=105, top=10, width=80, height=25
+            left=105, top=15, width=80, height=25
         )
 
         self.set_output_on = StyledButton(
             container=smu_control_container, variable_name="set_output_on", text="ON",
-            left=195, top=10, width=50, height=25
+            left=195, top=15, width=50, height=25
         )
 
         self.set_output_off = StyledButton(
             container=smu_control_container, variable_name="set_output_off", text="OFF",
-            left=250, top=10, width=50, height=25
+            left=250, top=15, width=50, height=25
         )
 
         labels = [
@@ -205,8 +218,8 @@ class elecprobe(App):
         ]
         names = ["voltage", "current", "v_limit", "i_limit", "p_limit"]
 
-        base_top = 40
-        spacing = 30
+        base_top = 47
+        spacing = 32
 
         for i, (label, name) in enumerate(zip(labels, names)):
             top_pos = base_top + i * spacing
