@@ -62,7 +62,7 @@ class tec_control(App):
     def after_configuration(self):
         if self.configuration["tec"] != "" and self.configuration_count == 0 and self.configuration_check["tec"] == 0:
             self.configure = LDCConfiguration()
-            self.configure.visa_address = f"ASRL{self.port['tec']}::INSTR"
+            self.configure.visa_address = str(self.port['tec'])
             self.ldc_manager = LDCManager(self.configure)
             success = self.ldc_manager.initialize()
             if success:
@@ -111,7 +111,7 @@ class tec_control(App):
         )
 
         StyledLabel(
-            container=sensor_control_container, text="Tem [°C]", variable_name="wvl_label", left=0, top=55,
+            container=sensor_control_container, text="Tem [C]", variable_name="wvl_label", left=0, top=55,
             width=80, height=25, font_size=100, flex=True, justify_content="right", color="#222"
         )
 
@@ -144,7 +144,7 @@ class tec_control(App):
         if value > 100: value = 100.0
         self.tem.set_value(value)
         self.ldc_manager.set_temperature(value)
-        print(f"TEC temperature: {value:.1f} °C")
+        print(f"TEC temperature: {value:.1f} C")
 
     def onclick_plus_tem(self):
         value = round(float(self.tem.get_value()), 1)
@@ -153,12 +153,12 @@ class tec_control(App):
         if value > 100: value = 100.0
         self.tem.set_value(value)
         self.ldc_manager.set_temperature(value)
-        print(f"TEC temperature: {value:.1f} °C")
+        print(f"TEC temperature: {value:.1f} C")
 
     def onchange_tem(self, emitter, value):
         value = round(float(value), 1)
         self.ldc_manager.set_temperature(value)
-        print(f"TEC temperature: {value} °C")
+        print(f"TEC temperature: {value} C")
 
     def onchange_box(self, emitter, value):
         if value:

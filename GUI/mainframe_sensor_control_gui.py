@@ -76,7 +76,7 @@ class stage_control(App):
             self.sweep_btn.set_enabled(True)
             if self.sweep_check == 1:
                 if self.sweep["done"] == "Laser On":
-                    self.on_box.set_value(1)
+                    self.on_box.set_value(0)
                     self.onchange_box(1,1)
                 else:
                     self.on_box.set_value(0)
@@ -184,7 +184,7 @@ class stage_control(App):
 
         self.range_start = StyledSpinBox(
             container=sweep_container, variable_name="range_start", left=90, top=55, min_value=0,
-            max_value=2000, value=1540.0, step=0.1, width=65, height=24, position="absolute"
+            max_value=2000, value=1500.0, step=0.1, width=65, height=24, position="absolute"
         )
 
         StyledLabel(
@@ -194,7 +194,7 @@ class stage_control(App):
 
         self.range_end = StyledSpinBox(
             container=sweep_container, variable_name="range_end", left=200, top=55, min_value=0,
-            max_value=2000, value=1560.0, step=0.1, width=65, height=24, position="absolute"
+            max_value=2000, value=1600.0, step=0.1, width=65, height=24, position="absolute"
         )
 
         self.configure.do_onclick(lambda *_: self.run_in_thread(self.onclick_configure))
@@ -220,9 +220,9 @@ class stage_control(App):
         local_ip = '127.0.0.1'
         webview.create_window(
             "Setting",
-            f"http://{local_ip}:7001",
-            width=262+web_w,
-            height=305+web_h,
+            f"http://{local_ip}:7101",
+            width=257+web_w,
+            height=267+web_h,
             resizable=True,
             on_top=True,
             hidden=False
@@ -385,20 +385,6 @@ class stage_control(App):
                 self.onclick_sweep()
                 self.sweep["sweep"] = 1
 
-            # Data Window Commands
-            # elif key == "data_apply_ch1_auto_range":
-                # self.apply_detector_auto_range()
-            # elif key == "data_apply_ch1_range":
-                # self.apply_detector_range()
-            # elif key == "data_apply_ch1_ref":
-                # self.apply_detector_reference()
-            # elif key == "data_apply_ch2_auto_range":
-                # self.apply_detector_auto_range()
-            # elif key == "data_apply_ch2_range":
-                # self.apply_detector_range()
-            # elif key == "data_apply_ch2_ref":
-                # self.apply_detector_reference()
-
             # while self.sweep["sweep"] == 1:
                 time.sleep(1)
 
@@ -406,52 +392,6 @@ class stage_control(App):
             print("sensor record")
             file = File("command", "command", new_command)
             file.save()
-    # def apply_detector_autorange(self, channel: int):
-        # """Apply autoranging setting via shared memory"""
-        # try:
-            # if channel == 1:
-
-            # data = self.detector_settings[]
-            # file = File("shared_memory", f"DetectorAutoRange_Ch{channel}", range_data).save()
-            # print(f"Saved detector autorange to channel {channel}")
-            # return True
-        # except Exception as e:
-            # print(f"Error saving autorange (CH{channel}): {e}")
-            # return False
-
-    # def apply_detector_range(self, channel):
-        # """Apply detector range setting via shared memory"""
-        # try:
-            # Store range setting in shared memory for stage control to read
-            # range_data = {
-                # "channel": channel,
-                # "range_dbm": range_dbm,
-                # "timestamp": datetime.datetime.now().isoformat()
-            # }
-            # file = File("shared_memory", f"DetectorRange_Ch{channel}", range_data)
-            # file.save()
-            # print(f"Saved detector range {range_dbm} dBm for channel {channel} to shared memory")
-            # return True
-        # except Exception as e:
-            # print(f"Error saving detector range: {e}")
-            # return False
-
-    # def apply_detector_reference(self, channel):
-        # """Apply detector reference setting via shared memory"""
-        # try:
-            # Store reference setting in shared memory for stage control to read
-            # ref_data = {
-                # "channel": channel,
-                # "ref_dbm": ref_dbm,
-                # "timestamp": datetime.datetime.now().isoformat()
-            # }
-            # file = File("shared_memory", f"DetectorReference_Ch{channel}", ref_data)
-            # file.save()
-            # print(f"Saved detector reference {ref_dbm} dBm for channel {channel} to shared memory")
-            # return True
-        # except Exception as e:
-            # print(f"Error saving detector reference: {e}")
-            # return False
 
     def on_close(self):
         # Signal closing with the e"x"it button
@@ -509,7 +449,7 @@ if __name__ == '__main__':
 
     webview.create_window(
         "Setting",
-        f"http://{local_ip}:7001",
+        f"http://{local_ip}:7101",
         width=262,
         height=305,
         resizable=True,

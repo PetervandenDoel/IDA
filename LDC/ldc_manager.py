@@ -8,7 +8,7 @@ from LDC.utils.shared_memory import *
 from utils.logging_helper import setup_logger
 
 """
-LDC Manager - Simplified Implementation
+LDC Manager 
 Cameron Basara, 2025
 """
 
@@ -251,7 +251,7 @@ class LDCManager:
             success = self.ldc.set_temp(temperature)
             if success:
                 self.config.setpoint = temperature
-                self._log(f"Temperature setpoint set to {temperature}°C")
+                self._log(f"Temperature setpoint set to {temperature}C")
                 
                 # Update shared memory config
                 if self.use_shared_memory:
@@ -260,7 +260,7 @@ class LDCManager:
                     except Exception as e:
                         self._log(f"Failed to update shared memory: {e}")
             else:
-                self._log(f"Failed to set temperature to {temperature}°C", "error")
+                self._log(f"Failed to set temperature to {temperature}C", "error")
                 
             return success
             

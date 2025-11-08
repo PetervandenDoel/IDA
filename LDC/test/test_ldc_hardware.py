@@ -64,7 +64,7 @@ class LDCHardwareTest:
             'pid_coeffs': copy.deepcopy(manager.config.pid_coeffs),
             'tec_status': manager.get_tec_status() if manager.is_connected() else False
         }
-        self.log(f"✅ Configuration backed up: {self.original_config['setpoint']}°C setpoint")
+        self.log(f"✅ Configuration backed up: {self.original_config['setpoint']}C setpoint")
 
     def restore_configuration(self, manager):
         """Restore original configuration"""
@@ -84,7 +84,7 @@ class LDCHardwareTest:
             # Restore temperature setpoint
             success = manager.set_temperature(self.original_config['setpoint'])
             if success:
-                self.log(f"✅ Temperature setpoint restored to {self.original_config['setpoint']}°C")
+                self.log(f"✅ Temperature setpoint restored to {self.original_config['setpoint']}C")
             
             # Restore sensor coefficients
             success = manager.set_sensor_coefficients(self.original_config['model_coeffs'])
@@ -171,7 +171,7 @@ class LDCHardwareTest:
                     temp = manager.get_temperature()
                     
                     if temp is not None and isinstance(temp, float):
-                        return self.test_result("Temperature Reading", True, f"Temperature: {temp:.2f}°C")
+                        return self.test_result("Temperature Reading", True, f"Temperature: {temp:.2f}C")
                     else:
                         return self.test_result("Temperature Reading", False, "Invalid temperature reading")
                 else:
@@ -241,9 +241,9 @@ class LDCHardwareTest:
                         self.restore_configuration(manager)
                         
                         if abs(setpoint - test_temp) < 0.1:
-                            return self.test_result("Temperature Setting", True, f"Setpoint: {setpoint:.1f}°C")
+                            return self.test_result("Temperature Setting", True, f"Setpoint: {setpoint:.1f}C")
                         else:
-                            return self.test_result("Temperature Setting", False, f"Setpoint mismatch: {setpoint:.1f}°C")
+                            return self.test_result("Temperature Setting", False, f"Setpoint mismatch: {setpoint:.1f}C")
                     else:
                         self.restore_configuration(manager)
                         return self.test_result("Temperature Setting", False, "Failed to set temperature")

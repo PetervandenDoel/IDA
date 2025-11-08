@@ -1,3 +1,11 @@
+import warnings
+# Filter spam warnings, but be aware 
+warnings.filterwarnings(
+    "ignore",
+    category=UserWarning,
+    message=r".*pkg_resources is deprecated as an API.*",
+)
+
 from remi.gui import *
 import os
 import time
@@ -518,7 +526,7 @@ class File():
             "Limit": {"x": "Yes", "y": "Yes", "z": "Yes", "chip": "Yes", "fiber": "Yes"},
             "FineA": {"window_size": 20, "step_size": 2, "max_iters": 10, "detector": 1, "timeout_s": 30},
             "AreaS": {"pattern": "spiral", "x_size": 20.0, "x_step": 1.0, "y_size": 20.0, "y_step": 1.0, "plot": "New"},
-            "Sweep": {"wvl": 1550.0, "speed": 1.0, "power": 1.0, "step": 0.001, "start": 1540.0, "end": 1580.0, "done": "Laser On", "sweep": 0, "on": 0},
+            "Sweep": {"wvl": 1550.0, "speed": 1.0, "power": 0.0, "step": 0.001, "start": 1500.0, "end": 1600.0, "done": "Laser On", "sweep": 0, "on": 0},
             "ScanPos": {"x": 0, "y": 0, "move": 0},
             "StagePos": {"x": 0, "y": 0},
             "AutoSweep": 0,
@@ -551,176 +559,7 @@ class plot():
         self.yticks = yticks
         self.pos_i = pos_i
         self.pattern = pattern
-    """
-    def heat_map(self):
-        import os
-        import numpy as np
-        import matplotlib.pyplot as plt
-        from mpl_toolkits.axes_grid1 import make_axes_locatable
-
-        data = self.data
-        num_y, num_x = data.shape  # rows, cols
-        vmin = float(np.nanmin(data))
-        vmax = float(np.nanmax(data))
-
-        mode = self.pattern
-
-        # -------- step sizes (use ABS so axes increase "correctly") --------
-        dx = float(self.xticks) if getattr(self, "xticks", None) is not None else 1.0
-        dy = float(self.yticks) if getattr(self, "yticks", None) is not None else float(dx)
-        dx = abs(dx)
-        dy = abs(dy)
-
-        # -------- build relative coordinate centers (µm) --------
-        if mode == "crosshair":
-            # (0,0) at bottom-left corner
-            x_centers = np.arange(num_x) * dx                   # 0, dx, 2dx, ...
-            y_centers = np.arange(num_y) * dy                   # 0, dy, 2dy, ...
-            # Edge-based extent for square pixels
-            x_edge_min = -0.5 * dx
-            x_edge_max = (num_x - 0.5) * dx
-            y_edge_min = -0.5 * dy
-            y_edge_max = (num_y - 0.5) * dy
-            origin = 'lower'
-
-        else:  # spiral
-            # (0,0) at grid midpoint
-            mid_x = (num_x - 1) / 2.0
-            mid_y = (num_y - 1) / 2.0
-            x_centers = (np.arange(num_x) - mid_x) * dx         # ..., -dx, 0, +dx, ...
-            y_centers = (np.arange(num_y) - mid_y) * dy
-            # Edge-based extent for square pixels
-            x_edge_min = x_centers[0] - 0.5 * dx
-            x_edge_max = x_centers[-1] + 0.5 * dx
-            y_edge_min = y_centers[0] - 0.5 * dy
-            y_edge_max = y_centers[-1] + 0.5 * dy
-            origin = 'lower'
-
-        # Clean up -0.0/+0.0 in labels
-        def _clean_zero(arr):
-            arr = arr.copy()
-            arr[np.isclose(arr, 0.0, atol=1e-12)] = 0.0
-            return arr
-        
-        x_centers = _clean_zero(x_centers)
-        y_centers = _clean_zero(y_centers)
-
-        # -------- draw --------
-        fig, ax = plt.subplots(figsize=(7, 7))
-        heat = ax.imshow(
-            data,
-            origin=origin,
-            cmap='gist_heat',
-            vmin=vmin - 3,
-            vmax=vmax + 1,
-            interpolation='nearest',
-            extent=[x_edge_min, x_edge_max, y_edge_min, y_edge_max],
-            aspect='equal'
-        )
-
-        title = "Area Sweep Heat Map"
-        title += " (Crosshair)" if mode == "crosshair" else " (Spiral)"
-        ax.set_title(title, fontsize=16)
-        ax.set_xlabel('X (µm)')   # relative
-        ax.set_ylabel('Y (µm)')   # relative
-
-        # Ticks exactly at sample centers (relative µm)
-        ax.set_xticks(x_centers)
-        ax.set_yticks(y_centers)
-
-        def _fmt_labels(vals):
-            out = []
-            for v in vals:
-                if abs(v) < 1e-9:
-                    out.append("0")
-                elif abs(v - round(v)) < 1e-9:
-                    out.append(f"{int(round(v))}")
-                else:
-                    out.append(f"{v:.1f}")
-            return out
-
-        ax.set_xticklabels(_fmt_labels(x_centers), rotation=0, fontsize=8)
-        ax.set_yticklabels(_fmt_labels(y_centers), fontsize=8)
-
-        # Colorbar
-        div = make_axes_locatable(ax)
-        cax = div.append_axes("right", size="5%", pad=0.05)
-        plt.colorbar(heat, cax=cax, label='Power (dBm)')
-
-        # -------- hover crosshair (relative readout) --------
-        vline = ax.axvline(x_centers[0 if mode=='crosshair' else np.argmin(abs(x_centers))],
-                        linestyle='--', linewidth=0.8, alpha=0.9)
-        hline = ax.axhline(y_centers[0 if mode=='crosshair' else np.argmin(abs(y_centers))],
-                        linestyle='--', linewidth=0.8, alpha=0.9)
-        info = ax.text(
-            0.01, 0.99, "", transform=ax.transAxes, ha='left', va='top',
-            fontsize=9, bbox=dict(boxstyle="round,pad=0.2", fc="white", alpha=0.6)
-        )
-        crosshair_visible = [True]
-
-        # # Fast nearest-center index from relative coords
-        # def rel_to_idx(px, py):
-        #     j = int(np.round((px - x_centers[0]) / dx)) if mode == "crosshair" else int(np.round((px - x_centers[0]) / dx))
-        #     i = int(np.round((py - y_centers[0]) / dy)) if mode == "crosshair" else int(np.round((py - y_centers[0]) / dy))
-        #     j = max(0, min(num_x - 1, j))
-        #     i = max(0, min(num_y - 1, i))
-        #     return j, i
-
-        def rel_to_idx(px, py):
-            # j: x index (columns), i: y index (rows)
-            j = int(np.argmin(np.abs(x_centers - px)))
-            i = int(np.argmin(np.abs(y_centers - py)))
-            return j, i
-
-        def onmove(event):
-            if not crosshair_visible[0]:
-                return
-            if event.inaxes != ax or event.xdata is None or event.ydata is None:
-                return
-            px, py = float(event.xdata), float(event.ydata)  # relative µm here
-            j, i = rel_to_idx(px, py)
-            vline.set_xdata([px, px])
-            hline.set_ydata([py, py])
-            val = data[i, j]
-            info.set_text(f"idx=({j},{i})  rel=({px:.1f},{py:.1f}) µm  {val:.3f} dBm")
-            fig.canvas.draw_idle()
-
-        def onkey(event):
-            if event.key == 'x':
-                crosshair_visible[0] = not crosshair_visible[0]
-                for art in (vline, hline, info):
-                    art.set_visible(crosshair_visible[0])
-                fig.canvas.draw_idle()
-
-        fig.canvas.mpl_connect('motion_notify_event', onmove)
-        fig.canvas.mpl_connect('key_press_event', onkey)
-
-        # -------- clicks -> indices (relative) --------
-        def onclick(event):
-            if event.inaxes != ax or event.xdata is None or event.ydata is None:
-                return
-            px, py = float(event.xdata), float(event.ydata)
-            j, i = rel_to_idx(px, py)
-            val = data[i, j]
-            print(f"Clicked idx=({j},{i})  rel=({px:.1f},{py:.1f}) um  Value={val:.3f} dBm")
-            File("shared_memory", "ScanPos", {"x": j, "y": i, "move": 1}).save()
-
-        fig.canvas.mpl_connect('button_press_event', onclick)
-
-        fig.tight_layout(rect=[0, 0, 0.95, 1.0])
-        plt.show()
-
-        # -------- save --------
-        out_dir = os.path.join(".", "UserData", self.user, self.project, "HeatMap")
-        os.makedirs(out_dir, exist_ok=True)
-        fig_path = os.path.join(out_dir, f"{self.filename}_{self.fileTime}.png")
-        fig.savefig(fig_path, dpi=300)
-        print(f"Saved heatmap figure: {fig_path}")
-        csv_path = os.path.join(out_dir, f"{self.filename}_{self.fileTime}.csv")
-        np.savetxt(csv_path, data, delimiter=",", fmt="%.4f")
-        print(f"Saved heatmap data: {csv_path}")
-        plt.close(fig)
-    """
+    
     def heat_map(self):
         import os
         import numpy as np

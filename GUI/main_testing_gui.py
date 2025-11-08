@@ -602,17 +602,15 @@ class testing(App):
             file.save()
 
     def laser_sweep_setting(self):
-        local_ip = get_local_ip()  # Use at 347
-        # local_ip = '127.0.0.1'  # Use at IDA MAY REQUIRE A SOLUTION** 
+        local_ip = '127.0.0.1'
         webview.create_window(
-            "Setting",
-            f"http://{local_ip}:7001",
-            width=262+web_w,
-            height=305+web_h,
+            "Auto Sweep Settings",
+            f"http://{local_ip}:7109",
+            width=287,
+            height=237,
             resizable=True,
             on_top=True,
         )
-
 def run_remi():
     start(
         testing,
@@ -623,23 +621,22 @@ def run_remi():
         enable_file_cache=False,
     )
 
-def get_local_ip():
-    """Automatically detect local LAN IP address"""
-    try:
-        import socket
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))  # Fake connect to get route IP
-        ip = s.getsockname()[0]
-        s.close()
-        return ip
-    except Exception:
-        return "127.0.0.1"  # fallback
+from GUI.sub_automeasure_gui import AutoSweepConfig
 
+def run_autosweep():
+    start(
+        AutoSweepConfig,
+        address="0.0.0.0",
+        port=7109,
+        start_browser=False,
+        multiple_instance=False,
+        enable_file_cache=False,
+    )
 
-    # --------------------------------------------------------------------------- MAIN
 if __name__ == "__main__":
     threading.Thread(target=run_remi, daemon=True).start()
-    # local_ip = get_local_ip()
+    threading.Thread(target=run_autosweep, daemon=True).start()
+
     local_ip = '127.0.0.1'
     webview.create_window(
         "Main Window",
@@ -649,4 +646,13 @@ if __name__ == "__main__":
         resizable=True,
         hidden=True,
     )
+    webview.create_window(
+        "Automeasure Sweep Settings",
+        f"http://{local_ip}:7109",
+        width=0,
+        height=0,
+        resizable=True,
+        hidden=True,
+    )
+
     webview.start()

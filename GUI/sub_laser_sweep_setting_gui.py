@@ -52,97 +52,82 @@ class add_btn(App):
 
     def construct_ui(self):
         laser_sweep_container = StyledContainer(
-            variable_name="laser_sweep_container", left=0, top=0, height=249, width=240
+            variable_name="laser_sweep_container", left=0, top=0, height=224, width=240
         )
 
         StyledLabel(
-            container=laser_sweep_container, text="Speed", variable_name="sweep_speed_lb", left=0, top=10,
-            width=85, height=25, font_size=100, flex=True, justify_content="right", color="#222"
-        )
-
-        self.speed = StyledSpinBox(
-            container=laser_sweep_container, variable_name="speed_in", left=95, top=10, value=1.0,
-            width=65, height=24, min_value=0, max_value=1000, step=0.1, position="absolute"
-        )
-
-        StyledLabel(
-            container=laser_sweep_container, text="nm/s", variable_name="sweep_speed_unit", left=185, top=10,
-            width=55, height=25, font_size=100, flex=True, justify_content="left", color="#222"
-        )
-
-        StyledLabel(
-            container=laser_sweep_container, text="Power", variable_name="laser_power_lb", left=0, top=42,
+            container=laser_sweep_container, text="Power", variable_name="laser_power_lb", left=0, top=12,
             width=85, height=25, font_size=100, flex=True, justify_content="right", color="#222"
         )
 
         self.power = StyledSpinBox(
-            container=laser_sweep_container, variable_name="power_in", left=95, top=42, value=1.0,
+            container=laser_sweep_container, variable_name="power_in", left=95, top=12, value=1.0,
             width=65, height=24, min_value=-110, max_value=30, step=0.1, position="absolute"
         )
 
         StyledLabel(
-            container=laser_sweep_container, text="dBm", variable_name="laser_power_unit", left=185, top=42,
+            container=laser_sweep_container, text="dBm", variable_name="laser_power_unit", left=185, top=12,
             width=55, height=25, font_size=100, flex=True, justify_content="left", color="#222"
         )
 
         StyledLabel(
-            container=laser_sweep_container, text="Step Size", variable_name="step_size_lb", left=0, top=74,
+            container=laser_sweep_container, text="Step Size", variable_name="step_size_lb", left=0, top=44,
             width=85, height=25, font_size=100, flex=True, justify_content="right", color="#222"
         )
 
         self.step_size = StyledSpinBox(
-            container=laser_sweep_container, variable_name="step_size_in", left=95, top=74, value=0.001,
+            container=laser_sweep_container, variable_name="step_size_in", left=95, top=44, value=0.001,
             width=65, height=24, min_value=0, max_value=1000, step=0.1, position="absolute"
         )
 
         StyledLabel(
-            container=laser_sweep_container, text="nm", variable_name="step_size_unit", left=185, top=74,
+            container=laser_sweep_container, text="nm", variable_name="step_size_unit", left=185, top=44,
             width=55, height=25, font_size=100, flex=True, justify_content="left", color="#222"
         )
 
         StyledLabel(
-            container=laser_sweep_container, text="Start Wvl", variable_name="start_wvl_lb", left=0, top=106,
+            container=laser_sweep_container, text="Start Wvl", variable_name="start_wvl_lb", left=0, top=76,
             width=85, height=25, font_size=100, flex=True, justify_content="right", color="#222"
         )
 
         self.start_wvl = StyledSpinBox(
-            container=laser_sweep_container, variable_name="start_wvl_in", left=95, top=106, value=1540.0,
+            container=laser_sweep_container, variable_name="start_wvl_in", left=95, top=76, value=1540.0,
             width=65, height=24, min_value=0, max_value=2000, step=0.1, position="absolute"
         )
 
         StyledLabel(
-            container=laser_sweep_container, text="nm", variable_name="start_wvl_unit", left=185, top=106,
+            container=laser_sweep_container, text="nm", variable_name="start_wvl_unit", left=185, top=76,
             width=55, height=25, font_size=100, flex=True, justify_content="left", color="#222"
         )
 
         StyledLabel(
-            container=laser_sweep_container, text="Stop Wvl", variable_name="stop_wvl_lb", left=0, top=138,
+            container=laser_sweep_container, text="Stop Wvl", variable_name="stop_wvl_lb", left=0, top=108,
             width=85, height=25, font_size=100, flex=True, justify_content="right", color="#222"
         )
 
         self.stop_wvl = StyledSpinBox(
-            container=laser_sweep_container, variable_name="stop_wvl_in", left=95, top=138, value=1580.0,
+            container=laser_sweep_container, variable_name="stop_wvl_in", left=95, top=108, value=1580.0,
             width=65, height=24, min_value=0, max_value=2000, step=0.1, position="absolute"
         )
 
         StyledLabel(
-            container=laser_sweep_container, text="nm", variable_name="stop_wvl_unit", left=185, top=138,
+            container=laser_sweep_container, text="nm", variable_name="stop_wvl_unit", left=185, top=108,
             width=55, height=25, font_size=100, flex=True, justify_content="left", color="#222"
         )
 
         StyledLabel(
-            container=laser_sweep_container, text="When Done", variable_name="when_done_lb", left=0, top=170,
+            container=laser_sweep_container, text="When Done", variable_name="when_done_lb", left=0, top=140,
             width=85, height=25, font_size=100, flex=True, justify_content="right", color="#222"
         )
 
         self.on_off = StyledDropDown(
             container=laser_sweep_container, variable_name="when_done_dd", text=["Laser On", "Laser Off"],
-            left=95, top=170, width=110, height=24, position="absolute"
+            left=95, top=140, width=110, height=24, position="absolute"
         )
 
         self.confirm_btn = StyledButton(
             container=laser_sweep_container, text="Confirm", variable_name="confirm_btn",
-            left=88, top=210, height=25, width=70, font_size=90
+            left=88, top=180, height=25, width=70, font_size=90
         )
 
         self.confirm_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_confirm))
@@ -153,7 +138,6 @@ class add_btn(App):
     def onclick_confirm(self):
         mem = {
             "wvl": self.sweep["wvl"],
-            "speed": float(self.speed.get_value()),
             "power": float(self.power.get_value()),
             "step": float(self.step_size.get_value()),
             "start": float(self.start_wvl.get_value()),
@@ -208,8 +192,6 @@ class add_btn(App):
                 record = 1
                 new_command[key] = val
 
-            elif key == "sweep_speed":
-                self.speed.set_value(val)
             elif key == "sweep_power":
                 self.power.set_value(val)
             elif key == "sweep_step_size":
@@ -235,7 +217,7 @@ if __name__ == "__main__":
     configuration = {
         "config_project_name": "add_btn",
         "config_address": "0.0.0.0",
-        "config_port": 7001,
+        "config_port": 7101,
         "config_multiple_instance": False,
         "config_enable_file_cache": False,
         "config_start_browser": False,

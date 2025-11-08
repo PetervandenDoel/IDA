@@ -236,7 +236,7 @@ class SrsLdc502(LdcHAL):
             resp = self._inst.read()
             temp = float(resp.strip())
             
-            self._log(f"Temperature: {temp}°C")
+            self._log(f"Temperature: {temp}C")
             
             # Emit temperature reading event
             self._emit_event(LDCEventType.TEMP_CHANGED, {
@@ -259,7 +259,7 @@ class SrsLdc502(LdcHAL):
         try:
             # Check temperature limits
             if temperature > 75.0 or temperature < 15.0:
-                raise ValueError("Temperature outside safe limits (15-75°C)")
+                raise ValueError("Temperature outside safe limits (15-75C)")
             
             old_setpoint = self._temp_setpoint
             
@@ -272,7 +272,7 @@ class SrsLdc502(LdcHAL):
             # Verify by reading back
             current_temp = self.get_temp()
             
-            self._log(f"Temperature setpoint changed: {old_setpoint}°C -> {temperature}°C")
+            self._log(f"Temperature setpoint changed: {old_setpoint}C -> {temperature}C")
             
             # Emit setpoint change event
             self._emit_event(LDCEventType.TEMP_SETPOINT_CHANGED, {

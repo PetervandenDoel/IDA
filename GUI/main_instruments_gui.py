@@ -34,8 +34,9 @@ class instruments(App):
             try:
                 with open(shared_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
-                    self.configuration_check = data.get("Configuration_check", {})
-                    self.configuration_check = 1
+                    config_check = data.get("Configuration_check", {})
+                    if isinstance(config_check, dict):
+                        self.configuration_check = config_check
             except Exception as e:
                 print(f"[Warn] read json failed: {e}")
 
@@ -100,7 +101,6 @@ class instruments(App):
             self.lock_all(0)
 
     def lock_all(self, value):
-        print('lock all instr')
         enabled = value == 0
         widgets_to_check = [self.instruments_container]
         while widgets_to_check:
