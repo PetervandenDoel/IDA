@@ -134,6 +134,7 @@ def is_target(p: pathlib.Path) -> bool:
         "sub_data_window_setting_gui",
         "sub_fine_align_setting_gui",
         "sub_laser_sweep_setting_gui",
+        "sub_automeasure_gui"
         "sub_limit_setting_gui",
     }
 

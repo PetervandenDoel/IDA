@@ -575,17 +575,19 @@ class AutoSweepConfig(App):
         )
 
 
-def run_autosweep_standalone():
-    """Run only the AutoSweepConfig app for debugging."""
-    start(
-            AutoSweepConfig,
-            address="0.0.0.0",
-            port=7109,
-            start_browser=False,
-            multiple_instance=False,
-            enable_file_cache=False,
-    )
-
-
 if __name__ == "__main__":
-    run_autosweep_standalone()
+    configuration = {
+        "config_project_name": "auto_sweep_config",
+        "config_address": "0.0.0.0",
+        "config_port": 7109,
+        "config_multiple_instance": False,
+        "config_enable_file_cache": False,
+        "config_start_browser": False,
+        "config_resourcepath": "./res/"
+    }
+    start(AutoSweepConfig,
+          address=configuration["config_address"],
+          port=configuration["config_port"],
+          multiple_instance=configuration["config_multiple_instance"],
+          enable_file_cache=configuration["config_enable_file_cache"],
+          start_browser=configuration["config_start_browser"])

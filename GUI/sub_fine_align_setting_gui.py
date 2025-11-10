@@ -100,7 +100,7 @@ class fine_align(App):
             justify_content="left", color="#222"
         )
 
-        # ----- Max Iters (keep at original row ~74) -----
+        # ----- Max Iters -----
         StyledLabel(
             container=fine_align_setting_container, text="Max Iters",
             variable_name="max_iters_lb",
@@ -130,7 +130,7 @@ class fine_align(App):
             justify_content="left", color="#222"
         )
 
-        # ----- Min Grad SS (new row below Max Iters) -----
+        # ----- Min Grad SS -----
         StyledLabel(
             container=fine_align_setting_container, text="Min Grad SS",
             variable_name="min_grad_ss_lb",

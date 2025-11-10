@@ -181,7 +181,6 @@ class instruments(App):
     def onclick_stage_connect_btn(self):
         if self.stage_connect_btn.get_text() == "Connect":
             self.configuration["stage"] = self.stage_dd.get_value()
-            print(f"Connection pressed and conf set to {self.configuration['stage']}")
             file = File("shared_memory", "Configuration", self.configuration)
             file.save()
             self.stage_connect_btn.set_text("Connecting")

@@ -406,7 +406,7 @@ class testing(App):
         self.load_btn.do_onclick(lambda *_: self.run_in_thread(self.load_file))
         self.open_btn.do_onclick(lambda *_: self.run_in_thread(self.open_file_path))
         self.save_btn.do_onclick(lambda *_: self.run_in_thread(self.save_file))
-        self.setting_btn.do_onclick(lambda *_: self.run_in_thread(self.laser_sweep_setting))
+        self.setting_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_laser_sweep_setting_btn))
 
         # -------------------------------------------------- TERMINAL BLOCK
         terminal_container = StyledContainer(
@@ -601,16 +601,19 @@ class testing(App):
             file = File("command", "command", new_command)
             file.save()
 
-    def laser_sweep_setting(self):
+    def onclick_laser_sweep_setting_btn(self):
+        # local_ip = get_local_ip()
         local_ip = '127.0.0.1'
         webview.create_window(
-            "Auto Sweep Settings",
+            "Setting",
             f"http://{local_ip}:7109",
             width=287,
             height=237,
             resizable=True,
             on_top=True,
+            hidden=False
         )
+
 def run_remi():
     start(
         testing,
@@ -621,23 +624,20 @@ def run_remi():
         enable_file_cache=False,
     )
 
-from GUI.sub_automeasure_gui import AutoSweepConfig
-
-def run_autosweep():
-    start(
-        AutoSweepConfig,
-        address="0.0.0.0",
-        port=7109,
-        start_browser=False,
-        multiple_instance=False,
-        enable_file_cache=False,
-    )
 
 if __name__ == "__main__":
     threading.Thread(target=run_remi, daemon=True).start()
-    threading.Thread(target=run_autosweep, daemon=True).start()
-
     local_ip = '127.0.0.1'
+    
+    # webview.create_window(
+    #     "Setting",
+    #     f"http://{local_ip}:7109",
+    #     width=222,
+    #     height=236,
+    #     resizable=True,
+    #     on_top=True,
+    #     hidden=True
+    # )
     webview.create_window(
         "Main Window",
         f"http://{local_ip}:9104",
@@ -646,13 +646,4 @@ if __name__ == "__main__":
         resizable=True,
         hidden=True,
     )
-    webview.create_window(
-        "Automeasure Sweep Settings",
-        f"http://{local_ip}:7109",
-        width=0,
-        height=0,
-        resizable=True,
-        hidden=True,
-    )
-
     webview.start()
