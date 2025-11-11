@@ -558,7 +558,7 @@ class HP816xLambdaScan:
         }
 
     def lambda_scan(self, start_nm: float = 1490, stop_nm: float = 1600, step_pm: float = 0.5,
-                    power_dbm: float = 3.0, num_scans: int = 0, channels: list = [1, 2],
+                    power_dbm: float = 3.0, num_scans: int = 0, channels: list = [1],
                     args: list = [1,-80,-20]):
         """
         Mainframe lambda scan, only to be taken with internal power detectors and TLS.
