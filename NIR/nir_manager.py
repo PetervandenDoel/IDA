@@ -412,6 +412,7 @@ class NIRManager:
                 num_scans, args)
             self.controller.cleanup_scan()
             self.controller.set_wavelength(self.config.initial_wavelength_nm)
+            self.controller.configure_units()
 
             if results is not None:
                 self._log("Lambda scan completed successfully")

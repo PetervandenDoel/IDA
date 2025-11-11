@@ -18,7 +18,7 @@ Cameron Basara, 2025
 ######################################################################
 
 class NIR8164(LaserHAL):
-    def __init__(self, com_port: int = 3, gpib_addr: int = 20,
+    def __init__(self, com_port: int = 4, gpib_addr: int = 20,
                  laser_slot: int = 1, detector_slots: List[int] = [1, 2],
                  safety_password: str = "1234", timeout_ms: int = 30000):
 

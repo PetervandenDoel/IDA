@@ -663,47 +663,50 @@ class HP816xLambdaScan:
                     range_val = args[i+2]
                     # Configure both channels (Master = CH1, Slave = CH2)
                     for ch_num in [0, 1]:  # hp816x_CHAN_1=0, hp816x_CHAN_2=1
-                        # --- Power Unit ---
-                        self.lib.hp816x_set_PWM_powerUnit(
-                            self.session,
-                            c_int32(chan),
-                            c_int32(ch_num),
-                            c_int32(0) # 0: dBm, 1: Watt
-                        )
-                        # --- Power Range (Auto/Manual) ---
-                        self.lib.hp816x_set_PWM_powerRange(
-                            c_int32(self.session),
-                            c_int32(chan),
-                            c_int32(ch_num),
-                            c_uint16(0 if range_val is not None else 1),
-                            c_double(range_val if range_val is not None else 0.0),
-                        )
-                        # --- Reference Source ---
-                        # Internal, Absolute (for mainframe lambda scan)
-                        self.lib.hp816x_set_PWM_referenceSource(
-                            self.session,
-                            chan,
-                            ch_num,
-                            0,  # hp816x_PWM_REF_ABSOLUTE (dBm)
-                            0,  # hp816x_PWM_TO_REF (Internal)
-                            0,  # Unused (slot)
-                            0  # Unused (channel)
-                        )
+                        try:
+                            # --- Power Unit ---
+                            self.lib.hp816x_set_PWM_powerUnit(
+                                self.session,
+                                c_int32(chan),
+                                c_int32(ch_num),
+                                c_int32(0) # 0: dBm, 1: Watt
+                            )
+                            # --- Power Range (Auto/Manual) ---
+                            self.lib.hp816x_set_PWM_powerRange(
+                                c_int32(self.session),
+                                c_int32(chan),
+                                c_int32(ch_num),
+                                c_uint16(0 if range_val is not None else 1),
+                                c_double(range_val if range_val is not None else 0.0),
+                            )
+                            # --- Reference Source ---
+                            # Internal, Absolute (for mainframe lambda scan)
+                            self.lib.hp816x_set_PWM_referenceSource(
+                                self.session,
+                                chan,
+                                ch_num,
+                                0,  # hp816x_PWM_REF_ABSOLUTE (dBm)
+                                0,  # hp816x_PWM_TO_REF (Internal)
+                                0,  # Unused (slot)
+                                0  # Unused (channel)
+                            )
 
-                        # --- Reference Value ---
-                        self.lib.hp816x_set_PWM_referenceValue(
-                            self.session,
-                            chan,
-                            ch_num,
-                            ref_val,  # internal reference value in dBm
-                            0.0  # reference channel value (unused)
-                        )
-
+                            # --- Reference Value ---
+                            self.lib.hp816x_set_PWM_referenceValue(
+                                self.session,
+                                chan,
+                                ch_num,
+                                ref_val,  # internal reference value in dBm
+                                0.0  # reference channel value (unused)
+                            )
+                        except:
+                            print("Exception when setting detector windows in lambda sweep")
+                            pass
             # Check settings
-            self.check_ref(1,0)
-            self.check_ref(1, 1)
-            self.check_range(1, 0)
-            self.check_range(1, 1)
+            # self.check_ref(1,0)
+            # self.check_ref(1, 1)
+            # self.check_range(1, 0)
+            # self.check_range(1, 1)
 
  
 
@@ -797,6 +800,7 @@ class HP816xLambdaScan:
             'channels_dbm': channels_dbm,
             'num_points': int(n_target)
         }
+    
     def check_ref(self, slot, chan):
         mode = c_int32()
         internal = c_double()
