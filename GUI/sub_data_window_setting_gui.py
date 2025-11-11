@@ -160,7 +160,7 @@ class data_window(App):
         File(
             "shared_memory", "DetectorAutoRange_Ch1",
             {"channel": 1, "timestamp": datetime.datetime.now().isoformat()}).save()        
-        print("Applied Auto Range for CH1")
+        # print("Applied Auto Range for CH1")
 
     def onclick_apply_ch1_range(self):
         # First clear auto ranging
@@ -171,7 +171,7 @@ class data_window(App):
             {"channel": 1,
                      "range_dbm": range_val,
                      "timestamp": datetime.datetime.now().isoformat()}).save()
-        print(f"Applied CH1 Range: {range_val} dBm")
+        # print(f"Applied CH1 Range: {range_val} dBm")
 
     def onclick_apply_ch1_ref(self):
         ref_val = float(self.ch1_ref.get_value())
@@ -180,7 +180,7 @@ class data_window(App):
              {"channel": 1,
                       "ref_dbm": ref_val,
                       "timestamp": datetime.datetime.now().isoformat()}).save()
-        print(f"Applied CH1 Reference: {ref_val} dBm")
+        # print(f"Applied CH1 Reference: {ref_val} dBm")
 
     def onclick_apply_ch2_autorange(self):
         # Delete manual instance
@@ -188,7 +188,7 @@ class data_window(App):
         File(
             "shared_memory", "DetectorAutoRange_Ch2",
             {"channel": 2, "timestamp": datetime.datetime.now().isoformat()}).save()
-        print("Applied CH2 Autorange")
+        # print("Applied CH2 Autorange")
 
     def onclick_apply_ch2_range(self):
         # Delete auto instance
@@ -198,7 +198,7 @@ class data_window(App):
              {"channel": 2,
               "range_dbm": range_val,
               "timestamp": datetime.datetime.now().isoformat()}).save()
-        print(f"Applied CH2 Range: {range_val} dBm")
+        # print(f"Applied CH2 Range: {range_val} dBm")
 
     def onclick_apply_ch2_ref(self):
         ref_val = float(self.ch2_ref.get_value())
@@ -206,7 +206,7 @@ class data_window(App):
              {"channel": 2,
               "range_dbm": ref_val,
               "timestamp": datetime.datetime.now().isoformat()}).save()
-        print(f"Applied CH2 Reference: {ref_val} dBm")
+        # print(f"Applied CH2 Reference: {ref_val} dBm")
 
     def execute_command(self, path=command_path):
         dw = 0

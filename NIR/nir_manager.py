@@ -319,7 +319,7 @@ class NIRManager:
 
             ok = self.controller.set_power_range_auto(channel)
             if ok:
-                self._log(f"Set power range auto: {channel}")
+                self._log(f"[NIR Manager] Set power range auto: {channel}")
                 return True
             self._log(f"Failed to set power range auto: {channel}dBm", "error")
             return False

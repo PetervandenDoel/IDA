@@ -134,23 +134,76 @@ class stage_control(App):
                     self.detector_auto_ch1 = data.get("DetectorAutoRange_Ch1", {})
                     self.detector_auto_ch2 = data.get("DetectorAutoRange_Ch2", {})
 
-                    # Apply detector settings if NIR manager is available
-                    if hasattr(self, 'nir_manager') and self.nir_manager and self.configuration_sensor == 1:
-                        if self.detector_range_ch1.get("range_dbm") is not None:
-                            self.nir_manager.set_power_range(self.detector_range_ch1["range_dbm"], 1)
-                        if self.detector_range_ch2.get("range_dbm") is not None:
-                            self.nir_manager.set_power_range(self.detector_range_ch2["range_dbm"], 2)
-                        if self.detector_ref_ch1.get("ref_dbm") is not None:
-                            self.nir_manager.set_power_reference(self.detector_ref_ch1["ref_dbm"], 1)
-                        if self.detector_ref_ch2.get("ref_dbm") is not None:
-                            self.nir_manager.set_power_reference(self.detector_ref_ch2["ref_dbm"], 2)
-                        if self.detector_auto_ch1:
-                            self.nir_manager.set_power_range_auto(1)
-                            File("shared_memory", "DetectorAutoRange_Ch1", {}).save()
-                        if self.detector_auto_ch2:
-                            self.nir_manager.set_power_range_auto(2)
-                            File("shared_memory", "DetectorAutoRange_Ch2", {}).save()
+                    # Lazy-init caches for last-applied values
+                    if not hasattr(self, "_last_det_range_ch1"):
+                        self._last_det_range_ch1 = None
+                    if not hasattr(self, "_last_det_range_ch2"):
+                        self._last_det_range_ch2 = None
+                    if not hasattr(self, "_last_det_ref_ch1"):
+                        self._last_det_ref_ch1 = None
+                    if not hasattr(self, "_last_det_ref_ch2"):
+                        self._last_det_ref_ch2 = None
+                    if not hasattr(self, "_last_det_auto_ch1"):
+                        self._last_det_auto_ch1 = None
+                    if not hasattr(self, "_last_det_auto_ch2"):
+                        self._last_det_auto_ch2 = None
 
+                    # Apply detector settings if NIR manager is available
+                    if hasattr(self, "nir_manager") and self.nir_manager and self.configuration_sensor == 1:
+
+                        # ---- Channel 1 range ----
+                        r1 = self.detector_range_ch1.get("range_dbm")
+                        if r1 is not None:
+                            if self.detector_range_ch1 != self._last_det_range_ch1:
+                                self.nir_manager.set_power_range(r1, 1)
+                                time.sleep(0.1)
+                                # keep the same dict in shared memory (do NOT clear)
+                                File("shared_memory", "DetectorRange_Ch1", self.detector_range_ch1).save()
+                                self._last_det_range_ch1 = dict(self.detector_range_ch1)
+
+                        # ---- Channel 2 range ----
+                        r2 = self.detector_range_ch2.get("range_dbm")
+                        if r2 is not None:
+                            if self.detector_range_ch2 != self._last_det_range_ch2:
+                                self.nir_manager.set_power_range(r2, 2)
+                                time.sleep(0.1)
+                                File("shared_memory", "DetectorRange_Ch2", self.detector_range_ch2).save()
+                                self._last_det_range_ch2 = dict(self.detector_range_ch2)
+
+                        # ---- Channel 1 reference ----
+                        ref1 = self.detector_ref_ch1.get("ref_dbm")
+                        if ref1 is not None:
+                            if self.detector_ref_ch1 != self._last_det_ref_ch1:
+                                self.nir_manager.set_power_reference(ref1, 1)
+                                time.sleep(0.1)
+                                File("shared_memory", "DetectorReference_Ch1", self.detector_ref_ch1).save()
+                                self._last_det_ref_ch1 = dict(self.detector_ref_ch1)
+
+                        # ---- Channel 2 reference ----
+                        ref2 = self.detector_ref_ch2.get("ref_dbm")
+                        if ref2 is not None:
+                            if self.detector_ref_ch2 != self._last_det_ref_ch2:
+                                self.nir_manager.set_power_reference(ref2, 2)
+                                time.sleep(0.1)
+                                File("shared_memory", "DetectorReference_Ch2", self.detector_ref_ch2).save()
+                                self._last_det_ref_ch2 = dict(self.detector_ref_ch2)
+
+                        # ---- Channel 1 auto range ----
+                        if self.detector_auto_ch1:
+                            if self.detector_auto_ch1 != self._last_det_auto_ch1:
+                                self.apply_detector_auto_range(1)
+                                time.sleep(0.1)
+                                # persist "auto" state instead of clearing
+                                File("shared_memory", "DetectorAutoRange_Ch1", self.detector_auto_ch1).save()
+                                self._last_det_auto_ch1 = dict(self.detector_auto_ch1) if isinstance(self.detector_auto_ch1, dict) else self.detector_auto_ch1
+
+                        # ---- Channel 2 auto range ----
+                        if self.detector_auto_ch2:
+                            if self.detector_auto_ch2 != self._last_det_auto_ch2:
+                                self.nir_manager.set_power_range_auto(2)
+                                time.sleep(0.1)
+                                File("shared_memory", "DetectorAutoRange_Ch2", self.detector_auto_ch2).save()
+                                self._last_det_auto_ch2 = dict(self.detector_auto_ch2) if isinstance(self.detector_auto_ch2, dict) else self.detector_auto_ch2
             except Exception as e:
                 print(f"[Warn] read json failed: {e}")
 
@@ -173,6 +226,34 @@ class stage_control(App):
     def laser_on(self):
         self.nir_manager.enable_laser(self.sweep["on"])
         self.sweep_count = 0
+    
+    def apply_detector_auto_range(self, channel):
+        success = self.nir_manager.set_power_range_auto(channel)
+        if success:
+            print(f"Applied detector autorange to  CH{channel}")
+
+            # Call to make sure its set
+            print("COrrect,", self.nir_manager.get_power_range())
+
+        else:
+            print(f"Failed to apply detector autorange to  CH{channel}")
+        return success
+
+    def apply_detector_range(self, range_dbm, channel):
+        success = self.nir_manager.set_power_range(range_dbm, channel)
+        if success:
+            print(f"Applied detector range {range_dbm} dBm to channel {channel}")
+        else:
+            print(f"Failed to apply detector range {range_dbm} dBm to channel {channel}")
+        return success
+    
+    def apply_detector_reference(self, ref_dbm, channel):
+        success = self.nir_manager.set_power_reference(ref_dbm, channel)
+        if success:
+            print(f"Applied detector reference {ref_dbm} dBm to channel {channel}")
+        else:
+            print(f"Failed to apply detector reference {ref_dbm} dBm to channel {channel}")
+        return success
 
     def laser_sweep(self, name=None):
         print("Sweep Start")
@@ -312,6 +393,7 @@ class stage_control(App):
     def after_configuration(self):
         if self.configuration["stage"] != "" and self.configuration_stage == 0 and self.configuration_check[
             "stage"] == 0:
+            # Connect stage control instance
             self.gds = lib_coordinates.coordinates(("./res/" + filename), read_file=False,
                                                    name="./database/coordinates.json")
             self.number = self.gds.listdeviceparam("number")
@@ -320,7 +402,6 @@ class stage_control(App):
             self.wavelength = self.gds.listdeviceparam("wavelength")
             self.type = self.gds.listdeviceparam("type")
             self.devices = [f"{name} ({num})" for name, num in zip(self.gds.listdeviceparam("devicename"), self.number)]
-            # print('yesyes')
             self.memory = Memory()
             self.configure = StageConfiguration()
             self.configure.driver_types[AxisType.X] = self.configuration["stage"]
@@ -375,6 +456,7 @@ class stage_control(App):
                 file.save()
 
         elif self.configuration["stage"] == "" and self.configuration_stage == 1:
+            # Disconnect instance
             self.configuration_stage = 0
             if self.stage_window:
                 self.stage_window.destroy()
@@ -384,6 +466,7 @@ class stage_control(App):
 
         if self.configuration["sensor"] != "" and self.configuration_sensor == 0 and self.configuration_check[
             "sensor"] == 0:
+            # Connect sensor instance
             self.nir_configure = NIRConfiguration()
             self.nir_configure.gpib_addr = self.port["sensor"]
             self.nir_manager = NIRManager(self.nir_configure)
@@ -412,6 +495,7 @@ class stage_control(App):
                 file.save()
 
         elif self.configuration["sensor"] == "" and self.configuration_sensor == 1:
+            # Disconnect sensor constrol instance
             self.configuration_sensor = 0
             if self.sensor_window:
                 self.sensor_window.destroy()
@@ -420,6 +504,7 @@ class stage_control(App):
             print("Sensor Disconnected")
 
         if self.configuration_stage == 1:
+            # Change positions using shared mem, if changed
             self.memory.reader_pos()
             if self.memory.x_pos != float(self.x_position_lb.get_text()):
                 self.x_position_lb.set_text(str(self.memory.x_pos))
@@ -1710,59 +1795,7 @@ class stage_control(App):
             file = File("command", "command", new_command)
             file.save()
 
-    def apply_detector_auto_range(self, channel):
-        """Apply detector autorange to specified channel"""
-        try:
-            if self.nir_manager and self.configuration_sensor == 1:
-                success = self.nir_manager.set_power_range_auto(channel)
-                if success:
-                    print(f"Applied detector autorange to  CH{channel}")
-                else:
-                    print(f"Failed to apply detector autorange to  CH{channel}")
-                return success
-            else:
-                print("NIR manager not available")
-                return False
-        except Exception as e:
-            print(f"Error applying detector auto-range: {e}")
-            return False
-
-
-    def apply_detector_range(self, range_dbm, channel):
-        """Apply detector range setting via NIR manager"""
-        try:
-            if self.nir_manager and self.configuration_sensor == 1:
-                success = self.nir_manager.set_power_range(range_dbm, channel)
-                if success:
-                    print(f"Applied detector range {range_dbm} dBm to channel {channel}")
-                else:
-                    print(f"Failed to apply detector range {range_dbm} dBm to channel {channel}")
-                return success
-            else:
-                print("NIR manager not available")
-                return False
-        except Exception as e:
-            print(f"Error applying detector range: {e}")
-            return False
-
-    def apply_detector_reference(self, ref_dbm, channel):
-        """Apply detector reference setting via NIR manager"""
-        try:
-            if self.nir_manager and self.configuration_sensor == 1:
-                success = self.nir_manager.set_power_reference(ref_dbm, channel)
-                if success:
-                    print(f"Applied detector reference {ref_dbm} dBm to channel {channel}")
-                else:
-                    print(f"Failed to apply detector reference {ref_dbm} dBm to channel {channel}")
-                return success
-            else:
-                print("NIR manager not available")
-                return False
-        except Exception as e:
-            print(f"Error applying detector reference: {e}")
-            return False
-
-
+   
 def get_local_ip():
     """Automatically detect local LAN IP address"""
     try:
