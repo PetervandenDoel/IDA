@@ -391,7 +391,7 @@ class NIRManager:
             step_nm[nm]: step size of sweep in nm
             laser_power_dbm[dbm]: laser power in dBm
             num_scans[int]: num scans zero indexes up to 3,
-            :param *args: input arguments for changing the reference and ranging before
+            :param args: input arguments for changing the reference and ranging before
                       a sweep has been taken. Use these parameter naming convention,
                       should be taken from shared memory config. If more than 1 channel,
                       group *args into 3 pairs, eg.

@@ -108,7 +108,7 @@ class AreaSweep:
             x_step = float(getattr(cfg, "x_step", getattr(cfg, "step_size", 1.0)))
             y_step = float(getattr(cfg, "y_step", getattr(cfg, "step_size", 1.0)))
             if x_step <= 0 or y_step <= 0:
-                raise ValueError("x_step/y_step must be > 0 µm")
+                raise ValueError("x_step/y_step must be > 0 um")
 
             # inclusive endpoints => floor(extent/step) + 1
             # (e.g., 0..100 step 50 => col indices 0,1,2 => 3 cols)
@@ -207,8 +207,8 @@ class AreaSweep:
             # The "step" is the pitch between samples in both axes
             step = float(getattr(cfg, "step_size", getattr(cfg, "x_step", 1.0)))
             if step <= 0:
-                raise ValueError("step_size must be > 0 µm")
-            print(f"HHHHHHHHHERE: {self.primary_detector}")
+                raise ValueError("step_size must be > 0 um")
+            
             # inclusive endpoints => floor(extent/step) + 1
             def samples_along(extent_um: float, pitch_um: float) -> int:
                 return max(1, int(extent_um // pitch_um) + 1)
@@ -299,7 +299,7 @@ class AreaSweep:
             await self.stage_manager.move_axis(AxisType.Y, y0, relative=False, wait_for_completion=True)
 
             self._report(100.0, "Area sweep (spiral): completed")
-            self._log(f"Centered spiral completed {x_cells}x{y_cells} at {step:g} µm pitch")
+            self._log(f"Centered spiral completed {x_cells}x{y_cells} at {step:g} um pitch")
             return data
 
         except Exception as e:

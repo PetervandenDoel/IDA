@@ -173,7 +173,7 @@ class fine_align(App):
         self.detector = StyledDropDown(
             container=fine_align_setting_container,
             variable_name="detector",
-            text=["ch1", "ch2", "None"],
+            text=["ch1", "ch2", "Max"],
             left=80, top=138,
             width=60, height=25,
             position="absolute"

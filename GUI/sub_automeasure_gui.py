@@ -28,6 +28,7 @@ class AutoSweepConfig(App):
         self.range_mode_dd = None
         self.manual_range = None
         self.ref_value = None
+        self.detector = None
         self.confirm_btn = None
 
         # REMI init (support editing_mode)
@@ -87,7 +88,7 @@ class AutoSweepConfig(App):
             left=0,
             top=0,
             width=280,
-            height=230,
+            height=260,
         )
 
         y = 10
@@ -334,6 +335,32 @@ class AutoSweepConfig(App):
             color="#222",
         )
 
+        # FA detector selection (FineA.detector)
+        y += row_h
+        StyledLabel(
+            container=root,
+            text="FA Detector",
+            variable_name="detector_lb",
+            left=5,
+            top=y,
+            width=95,
+            height=25,
+            font_size=100,
+            flex=True,
+            justify_content="right",
+            color="#222",
+        )
+        self.detector = StyledDropDown(
+            container=root,
+            variable_name="detector",
+            text=["ch1", "ch2", "Max"],
+            left=105,
+            top=y,
+            width=70,
+            height=25,
+            position="absolute",
+        )
+
         # Confirm button
         y += row_h
         self.confirm_btn = StyledButton(
@@ -356,11 +383,6 @@ class AutoSweepConfig(App):
     # ---------------- LOAD EXISTING STATE ----------------
 
     def _load_from_shared(self):
-        """
-        Load:
-        - Sweep from shared_memory["Sweep"]
-        - Range/AutoRange/Reference from Ch1 keys.
-        """
         try:
             with open(SHARED_PATH, "r", encoding="utf-8") as f:
                 data = json.load(f)
@@ -368,11 +390,11 @@ class AutoSweepConfig(App):
             return
 
         # Sweep
-        sweep = data.get("Sweep", {}) or {}
-        self._set_spin_safely(self.power, sweep.get("power"))
-        self._set_spin_safely(self.step_size, sweep.get("step"))
-        self._set_spin_safely(self.start_wvl, sweep.get("start"))
-        self._set_spin_safely(self.stop_wvl, sweep.get("end"))
+        self.sweep = data.get("Sweep", {}) or {}
+        self._set_spin_safely(self.power, self.sweep.get("power"))
+        self._set_spin_safely(self.step_size, self.sweep.get("step"))
+        self._set_spin_safely(self.start_wvl, self.sweep.get("start"))
+        self._set_spin_safely(self.stop_wvl, self.sweep.get("end"))
 
         # Range / AutoRange for Ch1
         mode = "Auto"
@@ -415,32 +437,62 @@ class AutoSweepConfig(App):
         if self.ref_value is not None and ref_dbm is not None:
             self._set_spin_safely(self.ref_value, ref_dbm)
 
+        # FineA.detector -> FA Detector dropdown (read-only / non-destructive)
+        finea = data.get("FineA")
+        if isinstance(finea, dict) and self.detector is not None:
+            det = str(finea.get("detector", "")).lower()
+            if det == "ch1":
+                target = "ch1"
+            elif det == "ch2":
+                target = "ch2"
+            elif det == "max":
+                target = "Max"
+            else:
+                target = None
+
+            if target:
+                try:
+                    self.detector.set_value(target)
+                except Exception:
+                    pass
+
     # ---------------- CONFIRM: WRITE BACK ----------------
 
     def onclick_confirm(self):
-        """
-        Save:
-        - Sweep -> shared_memory["Sweep"]
-        - Ch1 range / auto-range / reference
-        """
-        # Sweep
+        # Load current shared_memory
         try:
-            sweep = {
-                "power": float(self.power.get_value()),
-                "step": float(self.step_size.get_value()),
-                "start": float(self.start_wvl.get_value()),
-                "end": float(self.stop_wvl.get_value()),
-            }
+            with open(SHARED_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception:
+            data = {}
+
+        if not isinstance(data, dict):
+            data = {}
+
+        # ---- Sweep (merge) ----
+        existing_sweep = data.get("Sweep", {})
+        if not isinstance(existing_sweep, dict):
+            existing_sweep = {}
+
+        try:
+            existing_sweep.update(
+                {
+                    "power": float(self.power.get_value()),
+                    "step": float(self.step_size.get_value()),
+                    "start": float(self.start_wvl.get_value()),
+                    "end": float(self.stop_wvl.get_value()),
+                }
+            )
         except Exception as exc:
             print(f"[AutoSweepConfig] Invalid sweep input: {exc}")
             return
 
-        File("shared_memory", "Sweep", sweep).save()
+        File("shared_memory", "Sweep", existing_sweep).save()
 
         ts = datetime.datetime.now().isoformat()
         ch = 1
 
-        # Range / AutoRange for Ch1
+        # ---- Ch1 Range / AutoRange ----
         mode = (
             self.range_mode_dd.get_value()
             if self.range_mode_dd is not None
@@ -456,7 +508,7 @@ class AutoSweepConfig(App):
         ref_key = "DetectorReference_Ch1"
 
         if mode == "Manual":
-            # Manual range: clear auto, set range_dbm
+            # Manual: clear auto, set range_dbm
             File("shared_memory", auto_key, {}).save()
             File(
                 "shared_memory",
@@ -468,7 +520,7 @@ class AutoSweepConfig(App):
                 },
             ).save()
         else:
-            # Auto range: clear manual, set autorange
+            # Auto: clear manual, set autorange
             File("shared_memory", range_key, {}).save()
             File(
                 "shared_memory",
@@ -479,7 +531,7 @@ class AutoSweepConfig(App):
                 },
             ).save()
 
-        # Reference for Ch1
+        # ---- Ch1 Reference ----
         try:
             ref_dbm = float(self.ref_value.get_value())
         except Exception:
@@ -495,8 +547,34 @@ class AutoSweepConfig(App):
             },
         ).save()
 
-        print("[AutoSweepConfig] Saved Sweep and Ch1 range/reference")
+        # ---- FineA.detector (only if FineA exists & is valid) ----
+        finea = data.get("FineA")
+        if isinstance(finea, dict) and self.detector is not None:
+            try:
+                det_ui = str(self.detector.get_value())
+            except Exception:
+                det_ui = ""
 
+            det_norm = det_ui.lower()
+            if det_norm == "max":
+                det_norm = "max"
+            elif det_norm in ("ch1", "ch2"):
+                pass
+            else:
+                # If invalid choice, keep existing detector
+                current = str(finea.get("detector", "")).lower()
+                if current in ("ch1", "ch2", "max"):
+                    det_norm = current
+                else:
+                    det_norm = "max"
+
+            finea["detector"] = det_norm
+            File("shared_memory", "FineA", finea).save()
+
+        print(
+            "[AutoSweepConfig] Updated Sweep (merged), "
+            "Ch1 range/auto/ref, and FineA.detector (if present)"
+        )
 
 
 if __name__ == "__main__":
@@ -518,4 +596,3 @@ if __name__ == "__main__":
         enable_file_cache=configuration["config_enable_file_cache"],
         start_browser=configuration["config_start_browser"],
     )
-

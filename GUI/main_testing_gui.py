@@ -607,8 +607,8 @@ class testing(App):
         webview.create_window(
             "Setting",
             f"http://{local_ip}:7109",
-            width=287,
-            height=237,
+            width=302,
+            height=302,
             resizable=True,
             on_top=True,
             hidden=False

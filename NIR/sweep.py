@@ -230,6 +230,7 @@ class HP816xLambdaScan:
         #   Power range: +10 to -80dBm
         #   Wavelength range 800 nm – 1650 nm
         ###############################################################
+        self._cancel = False  # unflag
         # Constain values to limits if out of range
         start_nm = 1490 if start_nm < 1490 else start_nm
         stop_nm = 1640 if stop_nm > 1640 else stop_nm
@@ -343,6 +344,7 @@ class HP816xLambdaScan:
             'channels_dbm': channels_dbm,
             'num_points': int(n_target)
         }
+    
     def lambda_scan_mf2(self, start_nm: float = 1490, stop_nm: float = 1600, step_pm: float = 0.5,
                     power_dbm: float = 3.0, num_scans: int = 0, channels: list = (1, 2),
                     args: list = (1, -80.0, None)):
@@ -364,9 +366,10 @@ class HP816xLambdaScan:
         """
         if not self.session:
             raise RuntimeError("Not connected to instrument")
-    
-        # ---- Clamp requested span/step to safe limits (match your other methods) ----
-        # 81635A spec band in your file: 1490..1640 nm, step >= 0.1 pm
+
+        self._cancel = False  # unflag
+
+        # 81635A specs
         start_nm = max(1490.0, float(start_nm))
         stop_nm  = min(1640.0, float(stop_nm))
         if stop_nm <= start_nm:
@@ -384,7 +387,7 @@ class HP816xLambdaScan:
         n_target = int(round((stop_nm - start_nm) / step_nm)) + 1
         wl_target = start_nm + np.arange(n_target, dtype=np.float64) * step_nm
     
-        # ---- Segmentation with guard-bands (match your lambda_scan approach) ----
+        # ---- Segmentation with guard-bands ----
         max_points_per_scan = 20001
         guard_pre_pm  = 90.0
         guard_post_pm = 90.0
@@ -476,6 +479,7 @@ class HP816xLambdaScan:
                         _pm_set_unit_dbm(slot, chn)
                         _pm_set_range(slot, chn, range_dbm)
                         _pm_set_ref_rel_internal(slot, chn, ref_dbm)
+                        time.sleep(0.3)
     
             # ---- EXECUTE (MF; wavelengths only) ----
             wl_buf = (c_double * points_seg)()
@@ -584,6 +588,8 @@ class HP816xLambdaScan:
         """
         if not self.session:
             raise RuntimeError("Not connected to instrument")
+
+        self._cancel = False  # unflag
 
         # Constrain to instrument limits
         start_nm = 1490 if start_nm < 1490 else start_nm
