@@ -926,13 +926,13 @@ import os
 from pathlib import Path
 
 def run_busy_dialog(done_val: Value, cancel_evt: Event, progress_config: dict = None):
-    print(f"[Dialog Process] Starting with PID {os.getpid()}")
+    # print(f"[Dialog Process] Starting with PID {os.getpid()}")
     
     # Use simple tkinter instead of PyQt5
     try:
         import tkinter as tk
         from tkinter import ttk
-        print("[Dialog Process] Using tkinter for progress display")
+        # print("[Dialog Process] Using tkinter for progress display")
         return _run_tkinter_progress(done_val, cancel_evt, progress_config)
     except Exception as e:
         print(f"[Dialog Process] Failed to create tkinter dialog: {e}")
@@ -944,7 +944,7 @@ def _run_tkinter_progress(done_val: Value, cancel_evt: Event, progress_config: d
     import tkinter as tk
     from tkinter import ttk
     
-    print("[Tkinter] Creating progress dialog...")
+    print("[Progress Dialog] Creating progress dialog...")
     
     root = tk.Tk()
     root.title("Process Progress")
@@ -992,12 +992,12 @@ def _run_tkinter_progress(done_val: Value, cancel_evt: Event, progress_config: d
                 activity_var.set(activity)
                 percent_var.set(f"{progress:.1f}%")
         except Exception as e:
-            print(f"[Tkinter] Error reading progress: {e}")
+            print(f"[Progress Dialog] Error reading progress: {e}")
         
         root.after(200, update_progress)  # Check every 200ms
     
     def on_cancel():
-        print("[Tkinter] Cancel requested")
+        print("[Progress Dialog] Cancel requested")
         with done_val.get_lock():
             done_val.value = -1
         cancel_evt.set()
@@ -1010,9 +1010,9 @@ def _run_tkinter_progress(done_val: Value, cancel_evt: Event, progress_config: d
     # Start updating
     root.after(100, update_progress)
     
-    print("[Tkinter] Starting dialog event loop...")
+    print("[Progress Dialog] Starting dialog event loop...")
     root.mainloop()
-    print("[Tkinter] Dialog closed")
+    print("[Progress Dialog] Dialog closed")
 
 def _run_console_progress(done_val: Value, cancel_evt: Event, progress_config: dict = None):
     """Console-based progress display when PyQt5 is not available"""

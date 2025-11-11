@@ -4,21 +4,21 @@ import os
 import threading
 
 from remi import App, start
-
 from GUI.lib_gui import *
 
 SHARED_PATH = os.path.join("database", "shared_memory.json")
 
 
 class AutoSweepConfig(App):
+    """Auto sweep settings panel."""
+
     def __init__(self, *args, **kwargs):
-        # File modification tracking
+        # Track shared_memory.json changes
         self._user_stime = None
         self._first_check = True
 
-        # Cached configuration
+        # Cached sweep block
         self.sweep = {}
-        self.finea = {}
 
         # Widgets
         self.power = None
@@ -28,14 +28,14 @@ class AutoSweepConfig(App):
         self.range_mode_dd = None
         self.manual_range = None
         self.ref_value = None
-        self.primary_dd = None
         self.confirm_btn = None
 
-        if "editing_mode" not in kwargs:
-            super(AutoSweepConfig, self).__init__(
-                *args,
-                **{"static_file_path": {"my_res": "./res/"}}
-            )
+        # REMI init (support editing_mode)
+        editing_mode = kwargs.pop("editing_mode", False)
+        super_kwargs = {}
+        if not editing_mode:
+            super_kwargs["static_file_path"] = {"my_res": "./res/"}
+        super(AutoSweepConfig, self).__init__(*args, **super_kwargs)
 
     # ---------------- REMI HOOKS ----------------
 
@@ -45,7 +45,7 @@ class AutoSweepConfig(App):
         return ui
 
     def idle(self):
-        """Reload settings if shared_memory.json changes."""
+        """Reload when shared_memory.json changes on disk."""
         try:
             stime = os.path.getmtime(SHARED_PATH)
         except FileNotFoundError:
@@ -65,6 +65,19 @@ class AutoSweepConfig(App):
     def run_in_thread(self, target, *args):
         thread = threading.Thread(target=target, args=args, daemon=True)
         thread.start()
+
+    @staticmethod
+    def _set_spin_safely(widget, value):
+        """Set a spinbox if widget/value are valid."""
+        if widget is None or value is None:
+            return
+        try:
+            widget.set_value(float(value))
+        except Exception:
+            try:
+                widget.set_value(value)
+            except Exception:
+                pass
 
     # ---------------- UI ----------------
 
@@ -243,11 +256,11 @@ class AutoSweepConfig(App):
             color="#222",
         )
 
-        # Range mode + manual range (for primary detector)
+        # Range + manual range (Ch1)
         y += row_h
         StyledLabel(
             container=root,
-            text="Range",
+            text="Range (Ch1)",
             variable_name="range_lb",
             left=5,
             top=y,
@@ -258,7 +271,6 @@ class AutoSweepConfig(App):
             justify_content="right",
             color="#222",
         )
-
         self.range_mode_dd = StyledDropDown(
             container=root,
             text=["Auto", "Manual"],
@@ -268,7 +280,6 @@ class AutoSweepConfig(App):
             width=70,
             height=24,
         )
-
         self.manual_range = StyledSpinBox(
             container=root,
             variable_name="manual_range",
@@ -282,11 +293,11 @@ class AutoSweepConfig(App):
             step=1,
         )
 
-        # Reference (numeric, dBm) for primary detector
+        # Reference (Ch1)
         y += row_h
         StyledLabel(
             container=root,
-            text="Reference",
+            text="Ref (Ch1)",
             variable_name="ref_lb",
             left=5,
             top=y,
@@ -297,7 +308,6 @@ class AutoSweepConfig(App):
             justify_content="right",
             color="#222",
         )
-
         self.ref_value = StyledSpinBox(
             container=root,
             variable_name="ref_value",
@@ -310,7 +320,6 @@ class AutoSweepConfig(App):
             max_value=20,
             step=1,
         )
-
         StyledLabel(
             container=root,
             text="dBm",
@@ -325,32 +334,6 @@ class AutoSweepConfig(App):
             color="#222",
         )
 
-        # Primary detector selection (for FineA and mapping)
-        y += row_h
-        StyledLabel(
-            container=root,
-            text="(FA) Primary Det",
-            variable_name="primary_lb",
-            left=5,
-            top=y,
-            width=170,
-            height=row_h,
-            font_size=100,
-            flex=True,
-            justify_content="right",
-            color="#222",
-        )
-
-        self.primary_dd = StyledDropDown(
-            container=root,
-            text=["CH1", "CH2", "MAX"],
-            variable_name="primary_dd",
-            left=195,
-            top=y,
-            width=70,
-            height=24,
-        )
-
         # Confirm button
         y += row_h
         self.confirm_btn = StyledButton(
@@ -363,9 +346,8 @@ class AutoSweepConfig(App):
             height=24,
             font_size=90,
         )
-
         self.confirm_btn.do_onclick(
-            lambda *args, **kwargs: self.run_in_thread(self.onclick_confirm)
+            lambda *_: self.run_in_thread(self.onclick_confirm)
         )
 
         self.auto_sweep_container = root
@@ -374,7 +356,11 @@ class AutoSweepConfig(App):
     # ---------------- LOAD EXISTING STATE ----------------
 
     def _load_from_shared(self):
-        """Sync UI from shared_memory.json without altering unrelated keys."""
+        """
+        Load:
+        - Sweep from shared_memory["Sweep"]
+        - Range/AutoRange/Reference from Ch1 keys.
+        """
         try:
             with open(SHARED_PATH, "r", encoding="utf-8") as f:
                 data = json.load(f)
@@ -382,197 +368,135 @@ class AutoSweepConfig(App):
             return
 
         # Sweep
-        self.sweep = data.get("Sweep", {}) or {}
+        sweep = data.get("Sweep", {}) or {}
+        self._set_spin_safely(self.power, sweep.get("power"))
+        self._set_spin_safely(self.step_size, sweep.get("step"))
+        self._set_spin_safely(self.start_wvl, sweep.get("start"))
+        self._set_spin_safely(self.stop_wvl, sweep.get("end"))
 
-        if self.power is not None:
-            self.power.set_value(
-                self.sweep.get("power", self.power.get_value())
-            )
-        if self.step_size is not None:
-            self.step_size.set_value(
-                self.sweep.get("step", self.step_size.get_value())
-            )
-        if self.start_wvl is not None:
-            self.start_wvl.set_value(
-                self.sweep.get("start", self.start_wvl.get_value())
-            )
-        if self.stop_wvl is not None:
-            self.stop_wvl.set_value(
-                self.sweep.get("end", self.stop_wvl.get_value())
-            )
-
-        # Primary detector from FineA.detector
-        self.finea = data.get("FineA", {}) or {}
-        fa_det = (self.finea.get("detector") or "").lower()
-
-        if fa_det == "ch1":
-            primary = "CH1"
-        elif fa_det == "ch2":
-            primary = "CH2"
-        elif fa_det == "max":
-            primary = "MAX"
-        else:
-            primary = "CH1"
-
-        if self.primary_dd is not None:
-            self.primary_dd.set_value(primary)
-
-        # Range for primary
+        # Range / AutoRange for Ch1
         mode = "Auto"
-        manual_val = (
-            self.manual_range.get_value()
-            if self.manual_range is not None
-            else -10
-        )
+        manual_val = -10.0
 
-        if primary == "CH1":
-            dr1 = data.get("DetectorRange_Ch1") or {}
-            ar1 = data.get("DetectorAutoRange_Ch1") or {}
-            if dr1:
-                mode = "Manual"
-                manual_val = dr1.get("range_dbm", manual_val)
-            elif ar1:
-                mode = "Auto"
-        elif primary == "CH2":
-            dr2 = data.get("DetectorRange_Ch2") or {}
-            ar2 = data.get("DetectorAutoRange_Ch2") or {}
-            if dr2:
-                mode = "Manual"
-                manual_val = dr2.get("range_dbm", manual_val)
-            elif ar2:
-                mode = "Auto"
-        else:
-            # MAX: do not override mode/value; rely on current UI
-            if self.range_mode_dd is not None:
-                mode = self.range_mode_dd.get_value()
-            if self.manual_range is not None:
-                manual_val = self.manual_range.get_value()
+        dr1 = data.get("DetectorRange_Ch1") or {}
+        ar1 = data.get("DetectorAutoRange_Ch1") or {}
+
+        if dr1:
+            mode = "Manual"
+            manual_val = dr1.get("range_dbm", manual_val)
+        elif ar1:
+            mode = "Auto"
 
         if self.range_mode_dd is not None:
-            self.range_mode_dd.set_value(mode)
+            try:
+                self.range_mode_dd.set_value(mode)
+            except Exception:
+                pass
+
         if self.manual_range is not None:
-            self.manual_range.set_value(float(manual_val))
+            self._set_spin_safely(self.manual_range, manual_val)
 
-        # Reference value for primary
+        # Reference for Ch1
         ref_dbm = None
-        if primary in ("CH1", "CH2"):
-            ch = 1 if primary == "CH1" else 2
-            ref_key = f"DetectorReference_Ch{ch}"
-            ref_info = data.get(ref_key) or {}
-            if isinstance(ref_info, dict):
-                ref_dbm = ref_info.get("ref_dbm")
+        ref_info = data.get("DetectorReference_Ch1") or {}
+        if isinstance(ref_info, dict):
+            val = ref_info.get("ref_dbm")
+            try:
+                ref_dbm = float(val)
+            except (TypeError, ValueError):
+                ref_dbm = None
 
-        if ref_dbm is None:
-            if self.ref_value is not None:
-                try:
-                    ref_dbm = float(self.ref_value.get_value())
-                except Exception:
-                    ref_dbm = -80.0
-            else:
-                ref_dbm = -80.0
-
-        if self.ref_value is not None:
-            self.ref_value.set_value(float(ref_dbm))
-
-    # ---------------- CONFIRM: WRITE BACK ----------------
-
-    def onclick_confirm(self):
-        """Write current settings to shared_memory.json."""
-        try:
-            with open(SHARED_PATH, "r", encoding="utf-8") as f:
-                data = json.load(f)
-        except Exception:
-            data = {}
-
-        # Sweep
-        sweep = data.get("Sweep", {}) or {}
-        sweep.update(
-            {
-                "power": float(self.power.get_value()),
-                "step": float(self.step_size.get_value()),
-                "start": float(self.start_wvl.get_value()),
-                "end": float(self.stop_wvl.get_value()),
-            }
-        )
-        data["Sweep"] = sweep
-
-        # Primary detector selection
-        primary_label = (
-            self.primary_dd.get_value()
-            if self.primary_dd is not None
-            else "CH1"
-        )
-
-        if primary_label == "CH1":
-            primary_ch = 1
-            fa_det = "ch1"
-        elif primary_label == "CH2":
-            primary_ch = 2
-            fa_det = "ch2"
-        else:
-            primary_ch = None
-            fa_det = "max"
-
-        mode = (
-            self.range_mode_dd.get_value()
-            if self.range_mode_dd is not None
-            else "Auto"
-        )
-
-        manual_val = (
-            float(self.manual_range.get_value())
-            if self.manual_range is not None
-            else -10.0
-        )
-
-        ts = datetime.datetime.now().isoformat()
-
-        # Range mapping for primary channel
-        if primary_ch is not None:
-            range_key = f"DetectorRange_Ch{primary_ch}"
-            auto_key = f"DetectorAutoRange_Ch{primary_ch}"
-
-            if mode == "Auto":
-                data[range_key] = {}
-                data[auto_key] = {
-                    "channel": primary_ch,
-                    "timestamp": ts,
-                }
-            else:
-                data[auto_key] = {}
-                data[range_key] = {
-                    "channel": primary_ch,
-                    "range_dbm": manual_val,
-                    "timestamp": ts,
-                }
-
-        # Reference value for primary channel
-        if primary_ch is not None and self.ref_value is not None:
+        if ref_dbm is None and self.ref_value is not None:
             try:
                 ref_dbm = float(self.ref_value.get_value())
             except Exception:
                 ref_dbm = -80.0
 
-            ref_key = f"DetectorReference_Ch{primary_ch}"
-            data[ref_key] = {
-                "channel": primary_ch,
+        if self.ref_value is not None and ref_dbm is not None:
+            self._set_spin_safely(self.ref_value, ref_dbm)
+
+    # ---------------- CONFIRM: WRITE BACK ----------------
+
+    def onclick_confirm(self):
+        """
+        Save:
+        - Sweep -> shared_memory["Sweep"]
+        - Ch1 range / auto-range / reference
+        """
+        # Sweep
+        try:
+            sweep = {
+                "power": float(self.power.get_value()),
+                "step": float(self.step_size.get_value()),
+                "start": float(self.start_wvl.get_value()),
+                "end": float(self.stop_wvl.get_value()),
+            }
+        except Exception as exc:
+            print(f"[AutoSweepConfig] Invalid sweep input: {exc}")
+            return
+
+        File("shared_memory", "Sweep", sweep).save()
+
+        ts = datetime.datetime.now().isoformat()
+        ch = 1
+
+        # Range / AutoRange for Ch1
+        mode = (
+            self.range_mode_dd.get_value()
+            if self.range_mode_dd is not None
+            else "Auto"
+        )
+        try:
+            manual_val = float(self.manual_range.get_value())
+        except Exception:
+            manual_val = -10.0
+
+        range_key = "DetectorRange_Ch1"
+        auto_key = "DetectorAutoRange_Ch1"
+        ref_key = "DetectorReference_Ch1"
+
+        if mode == "Manual":
+            # Manual range: clear auto, set range_dbm
+            File("shared_memory", auto_key, {}).save()
+            File(
+                "shared_memory",
+                range_key,
+                {
+                    "channel": ch,
+                    "range_dbm": manual_val,
+                    "timestamp": ts,
+                },
+            ).save()
+        else:
+            # Auto range: clear manual, set autorange
+            File("shared_memory", range_key, {}).save()
+            File(
+                "shared_memory",
+                auto_key,
+                {
+                    "channel": ch,
+                    "timestamp": ts,
+                },
+            ).save()
+
+        # Reference for Ch1
+        try:
+            ref_dbm = float(self.ref_value.get_value())
+        except Exception:
+            ref_dbm = -80.0
+
+        File(
+            "shared_memory",
+            ref_key,
+            {
+                "channel": ch,
                 "ref_dbm": ref_dbm,
                 "timestamp": ts,
-            }
+            },
+        ).save()
 
-        # FineA.detector
-        finea = data.get("FineA", {}) or {}
-        finea["detector"] = fa_det
-        data["FineA"] = finea
+        print("[AutoSweepConfig] Saved Sweep and Ch1 range/reference")
 
-        # Atomic save via File helper
-        tmp = File("shared_memory", "_", {})
-        tmp._safe_write(data, SHARED_PATH)
-
-        print(
-            "[AutoSweepConfig] Updated Sweep, FineA.detector, range, and "
-            "reference for primary detector"
-        )
 
 
 if __name__ == "__main__":
@@ -583,11 +507,15 @@ if __name__ == "__main__":
         "config_multiple_instance": False,
         "config_enable_file_cache": False,
         "config_start_browser": False,
-        "config_resourcepath": "./res/"
+        "config_resourcepath": "./res/",
     }
-    start(AutoSweepConfig,
-          address=configuration["config_address"],
-          port=configuration["config_port"],
-          multiple_instance=configuration["config_multiple_instance"],
-          enable_file_cache=configuration["config_enable_file_cache"],
-          start_browser=configuration["config_start_browser"])
+
+    start(
+        AutoSweepConfig,
+        address=configuration["config_address"],
+        port=configuration["config_port"],
+        multiple_instance=configuration["config_multiple_instance"],
+        enable_file_cache=configuration["config_enable_file_cache"],
+        start_browser=configuration["config_start_browser"],
+    )
+
