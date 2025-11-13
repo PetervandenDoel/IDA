@@ -130,7 +130,7 @@ def is_target(p: pathlib.Path) -> bool:
         "mainframe_elec_probe_control_gui",
         "sub_add_btn_gui",
         "sub_area_scan_setting_gui",
-        "sub_connect_config_gui",
+        # "sub_connect_config_gui",
         "sub_data_window_setting_gui",
         "sub_fine_align_setting_gui",
         "sub_laser_sweep_setting_gui",

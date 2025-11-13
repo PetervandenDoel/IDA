@@ -201,7 +201,6 @@ class stage_control(App):
     
     def apply_detector_window(self, channel):
         try:
-            print(f"[DEBUG] [Stage Control::Apply Detector Window]")
             # If auto is empty, and manual is set apply manual ranging
             auto_range_attr = getattr(self, f'detector_auto_ch{channel}', {})
             manual_range_attr = getattr(self, f'detector_range_ch{channel}', {})
@@ -1112,15 +1111,8 @@ class stage_control(App):
             except Exception:
                 pass
 
-            # ---- IMPORTANT: wait until alignment truly finishes ----
-            # If begin_fine_align() is blocking until completion, this is enough:
+            # Wait until FA finishes
             asyncio.run(self.fine_align.begin_fine_align())
-
-            # If begin_fine_align() returns quickly and runs work in the background,
-            # swap the line above with a polling loop like this (uncomment/change if your API exposes a flag):
-            # asyncio.run(self.fine_align.begin_fine_align())
-            # while getattr(self.fine_align, "is_running", False):
-            #     time.sleep(0.2)
 
             # (Optional) final update
             try:
@@ -1565,19 +1557,12 @@ class stage_control(App):
             print(f"[Error] Failed to move to device {selected_device}: {e}")
 
     def onchange_lock_box(self, emitter, value):
-        print("onchange_lock_box")
+        # Locking applications except stop button
         enabled = value == 0
         widgets_to_check = [self.stage_control_container]
         while widgets_to_check:
             widget = widgets_to_check.pop()
 
-            # if hasattr(widget, "variable_name") and widget.variable_name == "lock_box":
-            #     continue
-
-            # # keep per-axis lock checkboxes enabled
-            # if hasattr(widget, "variable_name") and isinstance(widget.variable_name,
-            #                                                    str) and widget.variable_name.endswith("_lock"):
-            #     pass
             if hasattr(widget, "variable_name"):
                 vn = widget.variable_name
                 case1 = vn in ("lock_box", "stop_button")

@@ -219,14 +219,21 @@ class instruments(App):
 
     def onclick_configure_btn(self):
         # local_ip = get_local_ip()
-        local_ip = '127.0.0.1'
-        webview.create_window(
-            'Stage Control',
-            f'http://{local_ip}:7005',
-            width=222+web_w, height=236+web_h,
-            resizable=True,
-            on_top=True
-        )
+        # local_ip = '127.0.0.1'
+        # webview.create_window(
+        #     'Stage Control',
+        #     f'http://{local_ip}:7005',
+        #     width=222+web_w, height=236+web_h,
+        #     resizable=True,
+        #     on_top=True
+        # )
+        ### Issues with RM in sub connect configure
+        import subprocess
+        from GUI.runner import GUI_DIR
+        subprocess.Popen(
+            [sys.executable, "-u", str(GUI_DIR / "sub_connect_config_gui.py")],
+            env=os.environ.copy()
+            )
 
 def run_remi():
     start(

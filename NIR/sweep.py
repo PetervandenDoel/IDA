@@ -174,6 +174,19 @@ class HP816xLambdaScan:
             msg += f" | Instrument Error {inst_code.value}: {buf2.value.decode(errors='replace')}"
         return msg
 
+    def clear_fifo(self):
+        inst_code = c_int32()
+        buf = create_string_buffer(512)
+        # Drain errors
+        while True:
+            self.lib.hp816x_error_query(
+                self.session,
+                byref(inst_code),
+                buf)
+            if inst_code.value == 0:
+                # Success code
+                break
+
     @staticmethod
     def _round_to_pm_grid(value_nm: float, step_pm: float) -> float:
         pm = step_pm
@@ -652,6 +665,7 @@ class HP816xLambdaScan:
             )
             if result != 0:
                 raise RuntimeError(f"Prepare scan failed: {result} :: {self._err_msg(result)}")
+            self.clear_fifo()
             
             # Prepare power ranging
             if len(args) > 0:
@@ -679,7 +693,7 @@ class HP816xLambdaScan:
                                 c_uint16(0 if range_val is not None else 1),
                                 c_double(range_val if range_val is not None else 0.0),
                             )
-                            time.sleep(0.1)
+                            self.clear_fifo()
                             # --- Reference Source ---
                             # Internal, Absolute (for mainframe lambda scan)
                             self.lib.hp816x_set_PWM_referenceSource(
@@ -691,7 +705,7 @@ class HP816xLambdaScan:
                                 0,  # Unused (slot)
                                 0  # Unused (channel)
                             )
-                            time.sleep(0.1)
+                            self.clear_fifo()
                             # --- Reference Value ---
                             self.lib.hp816x_set_PWM_referenceValue(
                                 self.session,
@@ -700,7 +714,7 @@ class HP816xLambdaScan:
                                 ref_val,  # internal reference value in dBm
                                 0.0  # reference channel value (unused)
                             )
-                            time.sleep(0.1)
+                            self.clear_fifo()
                         except:
                             print("Exception when setting detector windows in lambda sweep")
                             pass
@@ -751,7 +765,8 @@ class HP816xLambdaScan:
             )
             if result != 0:
                 raise RuntimeError(f"Execute scan failed: {result} :: {self._err_msg(result)}")
-
+            self.clear_fifo()
+            
             # -------- Convert wl + guard-trim + index into global grid --------
             wl_seg_nm_full = np.ctypeslib.as_array(wl_buf, shape=(points_seg,)).copy() * 1e9
             # Keep only [bottom_r, top_r] (drop 90 pm guards)
