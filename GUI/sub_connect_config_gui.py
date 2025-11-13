@@ -288,23 +288,29 @@ if __name__ == "__main__":
         "config_multiple_instance": False,
         "config_enable_file_cache": False,
         "config_start_browser": False,
-        "config_resourcepath": "./res/",
     }
 
-    start(
-        connect_config,
-        address=configuration["config_address"],
-        port=configuration["config_port"],
-        multiple_instance=configuration["config_multiple_instance"],
-        enable_file_cache=configuration["config_enable_file_cache"],
-        start_browser=configuration["config_start_browser"],
-    )
+    # --- Launch Remi in a background thread ---
+    def run_remi():
+        start(
+            connect_config,
+            address=configuration["config_address"],
+            port=configuration["config_port"],
+            multiple_instance=configuration["config_multiple_instance"],
+            enable_file_cache=configuration["config_enable_file_cache"],
+            start_browser=False,
+        )
+
+    threading.Thread(target=run_remi, daemon=True).start()
+
+    # --- Now launch WebView on the main thread ---
     local_ip = "127.0.0.1"
     webview.create_window(
-            'Stage Control',
-            f'http://{local_ip}:7005',
-            width=222+web_w, height=236+web_h,
-            resizable=True,
-            on_top=True,
-            hidden=False
-        )
+        "Stage Control",
+        f"http://{local_ip}:7005",
+        width=300,
+        height=260,
+        resizable=True,
+        on_top=True,
+    )
+    webview.start()
