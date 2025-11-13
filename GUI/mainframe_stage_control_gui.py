@@ -22,6 +22,8 @@ shared_path = os.path.join("database", "shared_memory.json")
 
 class stage_control(App):
     def __init__(self, *args, **kwargs):
+        self.debug_counter = 0
+        # Mixed Label + (high level) State vars
         self.memory = None
         self.configure = None
         self.stage_manager = None
@@ -33,11 +35,12 @@ class stage_control(App):
         self._user_mtime = None
         self._first_command_check = True
         self._user_stime = None
+        
+        # Config vars
         self.user = "Guest"
         self.limit = {}
         self.area_s = {}
         self.fine_a = {}
-        self.auto_sweep = 0
         self.count = 0
         self.filter = {}
         self.configuration = {}
@@ -45,6 +48,8 @@ class stage_control(App):
         self.port = {}
         self.data_window = {}
 
+        # State vars
+        self.auto_sweep = 0
         self.configuration_stage = 0
         self.configuration_sensor = 0
         self.project = None
@@ -64,6 +69,7 @@ class stage_control(App):
         self.file_format = {}
         self.file_path = None
 
+        # Misc vars, managers, progress bar and locks
         self.nir_configure = None
         self.nir_manager = None
 
@@ -133,77 +139,19 @@ class stage_control(App):
                     self.detector_ref_ch2 = data.get("DetectorReference_Ch2", {})
                     self.detector_auto_ch1 = data.get("DetectorAutoRange_Ch1", {})
                     self.detector_auto_ch2 = data.get("DetectorAutoRange_Ch2", {})
+                    self.detector_window_change = data.get("Detector_Change", "0") or "0"
 
-                    # Lazy-init caches for last-applied values
-                    if not hasattr(self, "_last_det_range_ch1"):
-                        self._last_det_range_ch1 = None
-                    if not hasattr(self, "_last_det_range_ch2"):
-                        self._last_det_range_ch2 = None
-                    if not hasattr(self, "_last_det_ref_ch1"):
-                        self._last_det_ref_ch1 = None
-                    if not hasattr(self, "_last_det_ref_ch2"):
-                        self._last_det_ref_ch2 = None
-                    if not hasattr(self, "_last_det_auto_ch1"):
-                        self._last_det_auto_ch1 = None
-                    if not hasattr(self, "_last_det_auto_ch2"):
-                        self._last_det_auto_ch2 = None
+                if self.detector_window_change == "1":
+                    self.debug_counter += 1
+                    print("Am I being run?", self.debug_counter)
+                    self.apply_detector_window(1)
 
-                    # Apply detector settings if NIR manager is available
-                    if hasattr(self, "nir_manager") and self.nir_manager and self.configuration_sensor == 1:
+                    data["Detector_Change"] = "0"   # reset flag
 
-                        # ---- Channel 1 range ----
-                        r1 = self.detector_range_ch1.get("range_dbm")
-                        if r1 is not None:
-                            if self.detector_range_ch1 != self._last_det_range_ch1:
-                                self.nir_manager.set_power_range(r1, 1)
-                                time.sleep(0.1)
-                                # keep the same dict in shared memory (do NOT clear)
-                                File("shared_memory", "DetectorRange_Ch1", self.detector_range_ch1).save()
-                                self._last_det_range_ch1 = dict(self.detector_range_ch1)
-
-                        # ---- Channel 2 range ----
-                        r2 = self.detector_range_ch2.get("range_dbm")
-                        if r2 is not None:
-                            if self.detector_range_ch2 != self._last_det_range_ch2:
-                                self.nir_manager.set_power_range(r2, 2)
-                                time.sleep(0.1)
-                                File("shared_memory", "DetectorRange_Ch2", self.detector_range_ch2).save()
-                                self._last_det_range_ch2 = dict(self.detector_range_ch2)
-
-                        # ---- Channel 1 reference ----
-                        ref1 = self.detector_ref_ch1.get("ref_dbm")
-                        if ref1 is not None:
-                            if self.detector_ref_ch1 != self._last_det_ref_ch1:
-                                self.nir_manager.set_power_reference(ref1, 1)
-                                time.sleep(0.1)
-                                File("shared_memory", "DetectorReference_Ch1", self.detector_ref_ch1).save()
-                                self._last_det_ref_ch1 = dict(self.detector_ref_ch1)
-
-                        # ---- Channel 2 reference ----
-                        ref2 = self.detector_ref_ch2.get("ref_dbm")
-                        if ref2 is not None:
-                            if self.detector_ref_ch2 != self._last_det_ref_ch2:
-                                self.nir_manager.set_power_reference(ref2, 2)
-                                time.sleep(0.1)
-                                File("shared_memory", "DetectorReference_Ch2", self.detector_ref_ch2).save()
-                                self._last_det_ref_ch2 = dict(self.detector_ref_ch2)
-
-                        # ---- Channel 1 auto range ----
-                        if self.detector_auto_ch1:
-                            if self.detector_auto_ch1 != self._last_det_auto_ch1:
-                                self.apply_detector_auto_range(1)
-                                time.sleep(0.1)
-                                # persist "auto" state instead of clearing
-                                File("shared_memory", "DetectorAutoRange_Ch1", self.detector_auto_ch1).save()
-                                self._last_det_auto_ch1 = dict(self.detector_auto_ch1) if isinstance(self.detector_auto_ch1, dict) else self.detector_auto_ch1
-
-                        # ---- Channel 2 auto range ----
-                        if self.detector_auto_ch2:
-                            if self.detector_auto_ch2 != self._last_det_auto_ch2:
-                                self.nir_manager.set_power_range_auto(2)
-                                time.sleep(0.1)
-                                File("shared_memory", "DetectorAutoRange_Ch2", self.detector_auto_ch2).save()
-                                self._last_det_auto_ch2 = dict(self.detector_auto_ch2) if isinstance(self.detector_auto_ch2, dict) else self.detector_auto_ch2
+                # write back to disk
+                with open(shared_path, "w", encoding="utf-8") as f:
+                    json.dump(data, f, indent=2)
+                time.sleep(1)
             except Exception as e:
                 print(f"[Warn] read json failed: {e}")
 
@@ -231,10 +179,6 @@ class stage_control(App):
         success = self.nir_manager.set_power_range_auto(channel)
         if success:
             print(f"Applied detector autorange to  CH{channel}")
-
-            # Call to make sure its set
-            print("COrrect,", self.nir_manager.get_power_range())
-
         else:
             print(f"Failed to apply detector autorange to  CH{channel}")
         return success
@@ -254,17 +198,57 @@ class stage_control(App):
         else:
             print(f"Failed to apply detector reference {ref_dbm} dBm to channel {channel}")
         return success
+    
+    def apply_detector_window(self, channel):
+        try:
+            print(f"[DEBUG] [Stage Control::Apply Detector Window]")
+            # If auto is empty, and manual is set apply manual ranging
+            auto_range_attr = getattr(self, f'detector_auto_ch{channel}', {})
+            manual_range_attr = getattr(self, f'detector_range_ch{channel}', {})
+            ref_attr = getattr(self, f'detector_ref_ch{channel}', {})
+            if auto_range_attr == {} and manual_range_attr.get("range_dbm") is not None:
+                self.apply_detector_range(
+                    manual_range_attr.get("range_dbm"),
+                    channel=channel
+                )
+            else:
+                self.apply_detector_auto_range(
+                    channel=channel
+                )  # Default to auto / set to auto
+
+            # Reference
+            if ref_attr.get("ref_dbm") is not None:
+                self.apply_detector_reference(
+                    ref_dbm=ref_attr.get("ref_dbm"),
+                    channel=channel
+                )
+            else:
+                # Don't apply for now
+                # self.apply_detector_reference(
+                #     ref_dbm=-80,  # dBm default
+                #     channel=channel
+                # )
+                pass
+            return True
+        except Exception as e:
+            print(f'Detector window error: {e}')
+            return False
+             
 
     def laser_sweep(self, name=None):
         print("Sweep Start")
         auto = 0
         if name is None:
+            # This is for manual measurements
+            # Name is None if not auto
+            # Assign a name and compute a single sweep
             name = self.name
             self.busy_dialog()
             self.task_start = 1
             self.task_laser = 1
             self.lock_all(1)
         else:
+            # Auto measuremnets, so already locked
             self.task_start = 1
             auto = 1
 
@@ -274,10 +258,11 @@ class stage_control(App):
             if self.detector_auto_ch1 == {} and self.detector_range_ch1.get("range_dbm") is not None:
                 ch1_range = self.detector_range_ch1["range_dbm"]
             elif self.detector_range_ch1 == {} and self.detector_auto_ch1:
+                # 
                 # Machine expects None for auto
                 ch1_range = None
             else:
-                ch1_range = -10 # dBm default
+                ch1_range = None  # Default to auto
 
             # Reference
             if self.detector_ref_ch1.get("ref_dbm") is not None:
@@ -290,8 +275,11 @@ class stage_control(App):
                 stop_nm=self.sweep["end"],
                 step_nm=self.sweep["step"],
                 laser_power_dbm=self.sweep["power"],
-                args=[1,ch1_ref,ch1_range]
+                args=(1,ch1_ref,ch1_range)
             )
+        
+            # Apply detector window settings once again 
+            self.apply_detector_window(channel=1)
         except Exception as e:
             print(f"[Error] Sweep failed: {e}")
             wl, d1, d2 = [], [], []
@@ -337,19 +325,6 @@ class stage_control(App):
         print("Sweep Done")
 
     def scan_move(self):
-        """
-        x_pos = self.scanpos["x"] * self.area_s["x_step"] + self.stage_x_pos
-        y_pos = self.scanpos["y"] * self.area_s["y_step"] + self.stage_y_pos
-        # Respect per-axis locks
-        if not self.axis_locked["x"]:
-            asyncio.run(self.stage_manager.move_axis(AxisType.X, x_pos, False))
-        if not self.axis_locked["y"]:
-            asyncio.run(self.stage_manager.move_axis(AxisType.Y, y_pos, False))
-        print(f"Move to: {x_pos}, {y_pos}")
-        self.scanpos["move"] = 0
-        file = File("shared_memory", "ScanPos", self.scanpos)
-        file.save()
-        """
         import asyncio
 
         sp = self.scanpos
@@ -685,13 +660,11 @@ class stage_control(App):
         file = File("shared_memory", "AutoSweep", 0)
         file.save()
 
-    # NEW: enable/disable a single axis row widgets together
     def set_axis_enabled(self, prefix: str, enabled: bool):
         getattr(self, f"{prefix}_left_btn").set_enabled(enabled)
         getattr(self, f"{prefix}_right_btn").set_enabled(enabled)
         getattr(self, f"{prefix}_input").set_enabled(enabled)
 
-    # NEW: checkbox handler updating the lock state
     def onchange_axis_lock(self, prefix: str, value):
         # remi CheckBox sends 1 for checked, 0 for unchecked
         self.axis_locked[prefix] = bool(value)

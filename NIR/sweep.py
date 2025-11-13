@@ -559,7 +559,7 @@ class HP816xLambdaScan:
 
     def lambda_scan(self, start_nm: float = 1490, stop_nm: float = 1600, step_pm: float = 0.5,
                     power_dbm: float = 3.0, num_scans: int = 0, channels: list = [1],
-                    args: list = [1,-80,-20]):
+                    args: list = [1,-80,None]):
         """
         Mainframe lambda scan, only to be taken with internal power detectors and TLS.
         Internal triggering is set as the default. Equally spaced datapoints in enabled
@@ -577,7 +577,7 @@ class HP816xLambdaScan:
                       group *args into 3 pairs, eg. lambda_scan(..., args = [1,-80, -10, 2, -70, -20])
                       :param channel[int]: master/slave channel slot
                       :param ref[float]: reference value in dBm (PWM relative internal)
-                      :param rang[float]: range value in dBm, if unspecified autorange
+                      :param rang[float]: range value in dBm, if None => autorange
 
         return: Dict {
             'wavelengths_nm': wl_target,
@@ -664,13 +664,13 @@ class HP816xLambdaScan:
                     # Configure both channels (Master = CH1, Slave = CH2)
                     for ch_num in [0, 1]:  # hp816x_CHAN_1=0, hp816x_CHAN_2=1
                         try:
-                            # --- Power Unit ---
-                            self.lib.hp816x_set_PWM_powerUnit(
-                                self.session,
-                                c_int32(chan),
-                                c_int32(ch_num),
-                                c_int32(0) # 0: dBm, 1: Watt
-                            )
+                            # # --- Power Unit ---
+                            # self.lib.hp816x_set_PWM_powerUnit(
+                            #     self.session,
+                            #     c_int32(chan),
+                            #     c_int32(ch_num),
+                            #     c_int32(0) # 0: dBm, 1: Watt
+                            # )
                             # --- Power Range (Auto/Manual) ---
                             self.lib.hp816x_set_PWM_powerRange(
                                 c_int32(self.session),
@@ -679,6 +679,7 @@ class HP816xLambdaScan:
                                 c_uint16(0 if range_val is not None else 1),
                                 c_double(range_val if range_val is not None else 0.0),
                             )
+                            time.sleep(0.1)
                             # --- Reference Source ---
                             # Internal, Absolute (for mainframe lambda scan)
                             self.lib.hp816x_set_PWM_referenceSource(
@@ -690,7 +691,7 @@ class HP816xLambdaScan:
                                 0,  # Unused (slot)
                                 0  # Unused (channel)
                             )
-
+                            time.sleep(0.1)
                             # --- Reference Value ---
                             self.lib.hp816x_set_PWM_referenceValue(
                                 self.session,
@@ -699,17 +700,17 @@ class HP816xLambdaScan:
                                 ref_val,  # internal reference value in dBm
                                 0.0  # reference channel value (unused)
                             )
+                            time.sleep(0.1)
                         except:
                             print("Exception when setting detector windows in lambda sweep")
                             pass
-            # Check settings
-            # self.check_ref(1,0)
-            # self.check_ref(1, 1)
-            # self.check_range(1, 0)
-            # self.check_range(1, 1)
-
- 
-
+            # Experiencing some query interuptions,
+            # May be because of detector window
+            # Settings, let us sleep a bit to ensure 
+            # The commands settle, since this
+            # Solution seemed to work for Bobby
+            time.sleep(1)
+            # Create segments
             points_seg = int(num_points_seg.value)
             C = int(num_arrays_seg.value)
             if C < 1:
