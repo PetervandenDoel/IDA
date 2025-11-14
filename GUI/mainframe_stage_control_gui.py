@@ -22,7 +22,6 @@ shared_path = os.path.join("database", "shared_memory.json")
 
 class stage_control(App):
     def __init__(self, *args, **kwargs):
-        self.debug_counter = 0
         # Mixed Label + (high level) State vars
         self.memory = None
         self.configure = None
@@ -88,6 +87,7 @@ class stage_control(App):
         self.area_sweep = None
         self.fine_align = None
         self.task_laser = 0
+        self._progress_lock = threading.Lock()  # For progress.json 'w'
 
         if "editing_mode" not in kwargs:
             super(stage_control, self).__init__(*args, **{"static_file_path": {"my_res": "./res/"}})
@@ -142,16 +142,13 @@ class stage_control(App):
                     self.detector_window_change = data.get("Detector_Change", "0") or "0"
 
                 if self.detector_window_change == "1":
-                    self.debug_counter += 1
-                    print("Am I being run?", self.debug_counter)
                     self.apply_detector_window(1)
-
                     data["Detector_Change"] = "0"   # reset flag
 
-                # write back to disk
-                with open(shared_path, "w", encoding="utf-8") as f:
-                    json.dump(data, f, indent=2)
-                time.sleep(1)
+                    # write back to disk
+                    with open(shared_path, "w", encoding="utf-8") as f:
+                        json.dump(data, f, indent=2)
+            
             except Exception as e:
                 print(f"[Warn] read json failed: {e}")
 
@@ -178,7 +175,8 @@ class stage_control(App):
     def apply_detector_auto_range(self, channel):
         success = self.nir_manager.set_power_range_auto(channel)
         if success:
-            print(f"Applied detector autorange to  CH{channel}")
+            # print(f"Applied detector autorange to  CH{channel}")
+            pass
         else:
             print(f"Failed to apply detector autorange to  CH{channel}")
         return success
@@ -186,7 +184,8 @@ class stage_control(App):
     def apply_detector_range(self, range_dbm, channel):
         success = self.nir_manager.set_power_range(range_dbm, channel)
         if success:
-            print(f"Applied detector range {range_dbm} dBm to channel {channel}")
+            # print(f"Applied detector range {range_dbm} dBm to channel {channel}")
+            pass
         else:
             print(f"Failed to apply detector range {range_dbm} dBm to channel {channel}")
         return success
@@ -194,7 +193,8 @@ class stage_control(App):
     def apply_detector_reference(self, ref_dbm, channel):
         success = self.nir_manager.set_power_reference(ref_dbm, channel)
         if success:
-            print(f"Applied detector reference {ref_dbm} dBm to channel {channel}")
+            # print(f"Applied detector reference {ref_dbm} dBm to channel {channel}")
+            pass
         else:
             print(f"Failed to apply detector reference {ref_dbm} dBm to channel {channel}")
         return success
@@ -276,13 +276,16 @@ class stage_control(App):
                 laser_power_dbm=self.sweep["power"],
                 args=(1,ch1_ref,ch1_range)
             )
-        
+            print("[Stage Control] Laser Sweep completed Successfully")
+
             # Apply detector window settings once again 
             self.apply_detector_window(channel=1)
+        
         except Exception as e:
             print(f"[Error] Sweep failed: {e}")
             wl, d1, d2 = [], [], []
-
+        
+        # Plotting the data
         x = wl
         y = np.vstack([d1, d2])
         fileTime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -304,7 +307,7 @@ class stage_control(App):
                 resizable=True,
                 hidden=False
             )
-
+        
         if auto == 0:
             if self.sweep["done"] == "Laser On":
                 self.nir_manager.enable_laser(True)
@@ -1090,10 +1093,10 @@ class stage_control(App):
 
             # Build config
             config = FineAlignConfiguration()
-            config.scan_window = self.fine_a["window_size"]
-            config.step_size = self.fine_a["step_size"]
-            config.min_gradient_ss = self.fine_a["min_gradient_ss"]
-            config.gradient_iters = self.fine_a["max_iters"]
+            config.scan_window = self.fine_a.get("window_size", 10.0) or 10.0
+            config.step_size = self.fine_a.get("step_size", 1.0) or 1.0
+            config.min_gradient_ss = self.fine_a.get("min_gradient_ss", 0.1) or 0.1
+            config.gradient_iters = self.fine_a.get("max_iters", 10) or 10.0
 
             # Create aligner
             self.fine_align = FineAlign(
@@ -1198,9 +1201,9 @@ class stage_control(App):
 
         time_per_device = sweep_time + area_time + align_time + overhead_time
         return device_count * time_per_device
-
+    
     def _write_progress_file(self, current_device, activity, progress_percent):
-        """Atomically write progress for the PyQt dialog to read."""
+        """Atomically write progress for the PyQt dialog to read (thread-safe on Windows)."""
         from pathlib import Path
         import os, json, time
 
@@ -1221,11 +1224,67 @@ class stage_control(App):
         }
 
         tmp_path = PROGRESS_PATH.with_suffix(PROGRESS_PATH.suffix + ".tmp")
-        with open(tmp_path, "w", encoding="utf-8") as f:
-            json.dump(progress_data, f)
-            f.flush()
-            os.fsync(f.fileno())  # ensure contents hit disk on some platforms
-        os.replace(tmp_path, PROGRESS_PATH)  # atomic swap
+
+        # Ensure we have a lock even if __init__ somehow didn't run fully
+        lock = getattr(self, "_progress_lock", None)
+        if lock is None:
+            lock = threading.Lock()
+            self._progress_lock = lock
+
+        # Only one thread at a time writes/renames this file
+        with lock:
+            # Small retry loop in case another PROCESS has the file open
+            for attempt in range(5):
+                try:
+                    with open(tmp_path, "w", encoding="utf-8") as f:
+                        json.dump(progress_data, f)
+                        f.flush()
+                        os.fsync(f.fileno())  # ensure contents hit disk where possible
+
+                    os.replace(tmp_path, PROGRESS_PATH)  # atomic swap (if allowed by OS)
+                    break
+                except PermissionError as e:
+                    # If some other process (e.g., the PyQt dialog) briefly locks the file,
+                    # wait a bit and retry instead of crashing the autosweep thread.
+                    if attempt == 4:
+                        print(f"[Progress] Failed to update progress file after retries: {e}")
+                    else:
+                        time.sleep(0.05)  # 50 ms backoff and try again
+                except Exception as e:
+                    # Any other I/O error, just log and bail out of the loop
+                    print(f"[Progress] Unexpected error writing progress file: {e}")
+                    break
+
+    # def _write_progress_file(self, current_device, activity, progress_percent):
+    #     """Atomically write progress for the PyQt dialog to read."""
+    #     #####################
+    #     # RACE CONDITIONSSSSS
+    #     #####################
+    #     from pathlib import Path
+    #     import os, json, time
+
+    #     try:
+    #         # Import the same path the dialog reads
+    #         from lib_gui import PROGRESS_PATH  # uses absolute path defined in lib_gui.py
+    #     except Exception:
+    #         # Fallback to a sane default if import fails
+    #         PROGRESS_PATH = Path(__file__).resolve().parent / "database" / "progress.json"
+
+    #     PROGRESS_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+    #     progress_data = {
+    #         "current_device": int(current_device),
+    #         "activity": str(activity),
+    #         "progress_percent": float(progress_percent),
+    #         "timestamp": time.time(),
+    #     }
+
+    #     tmp_path = PROGRESS_PATH.with_suffix(PROGRESS_PATH.suffix + ".tmp")
+    #     with open(tmp_path, "w", encoding="utf-8") as f:
+    #         json.dump(progress_data, f)
+    #         f.flush()
+    #         os.fsync(f.fileno())  # ensure contents hit disk on some platforms
+    #     os.replace(tmp_path, PROGRESS_PATH)  # atomic swap
 
     def _fa_progress(self, percent: float, msg: str):
         """Bridge FineAlign -> progress dialog (file the dialog is polling)."""

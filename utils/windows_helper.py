@@ -8,6 +8,19 @@ def launch_window_with_hide(url: str, title: str, width=300, height=260, on_conf
       - Hides itself when the user presses X
       - Hides itself when the Remi Confirm button requests a hide
       - Keeps the process alive (runner handles cleanup)
+
+    Usage:
+        Simply import this module and call
+        
+        `launch_window_with_hide(
+            url=your_url
+            title=your_title
+            width=your_width
+            height=your_height
+            )`
+        
+        The same way a pywebview window is being
+        launched.
     """
 
     # --- INTERNAL FLAG -----------------------

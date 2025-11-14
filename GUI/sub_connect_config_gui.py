@@ -7,17 +7,26 @@ import os
 import pyvisa
 import re
 import time
-from typing import Optional
-# ---- Global lifecycle flags ----
+
+"""
+Scan all visa resources and refresh the drop down.
+This calls the ResourceManager so I've hosted the 
+subprocess on the clicking of the button found in
+
+"GUI\main_instruments_gui.py"
+
+I was a little concerned about the case where Users
+do not click confirm, so I've added that functionality
+when a user e"x"its.
+
+Cameron Basara, 2025
+"""
+
+# Global vars for event handling
 SHOULD_EXIT = False     # set True when user presses Confirm
-MAIN_WINDOW: Optional[webview.Window] = None    # assigned when WebView window is created
+MAIN_WINDOW = None    # assigned when WebView window is created
 
 command_path = os.path.join("database", "command.json")
-
-
-# =============================================================================
-#                               REMI APPLICATION
-# =============================================================================
 
 class connect_config(App):
     def __init__(self, *args, **kwargs):
@@ -64,7 +73,7 @@ class connect_config(App):
 
         except Exception as e:
             print("[Connect Config][idle] Error:", e)
-
+    
     # ------------------ UI construction ------------------
 
     def construct_ui(self):
@@ -242,6 +251,11 @@ def close_and_exit(window):
     print("[Connect Config] Window destroyed. Exiting.")
     os._exit(0)
 
+def on_close():
+        # print("User clicked 'X', shutting down Connect Config Gui")
+        # print("Abrutly done, ignore err")
+        os._exit(0)
+
 
 # =============================================================================
 #                MAIN LAUNCHER (REMI + WEBVIEW)
@@ -269,16 +283,16 @@ if __name__ == "__main__":
     threading.Thread(target=run_remi, daemon=True).start()
 
     # --- Create main PyWebView window ---
-    global MAIN_WINDOW
     local_ip = "127.0.0.1"
     MAIN_WINDOW = webview.create_window(
         "Stage Control",
         f"http://{local_ip}:7005",
-        width=300,
-        height=260,
+        width=217,
+        height=224,
         resizable=True,
         on_top=True,
     )
+    MAIN_WINDOW.events.closing += on_close
 
     # Start UI loop and attach our destroy callback
     webview.start(close_and_exit, MAIN_WINDOW)

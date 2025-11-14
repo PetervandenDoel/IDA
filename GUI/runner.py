@@ -110,11 +110,13 @@ assert (PROJECT_ROOT / "motors").is_dir()
 #     message=r"pkg_resources is deprecated as an API\.",
 #     module=r"remi(\.|$)",
 # )
-
+EXCLUDE_GUIS = ["sub_connect_config_gui"]
 def is_target(p: pathlib.Path) -> bool:
     if any(ex in p.parents for ex in EXCLUDE_DIRS):
         return False
     s = p.stem.lower()
+    if s in EXCLUDE_GUIS:
+        return False
     if s.endswith("gui"):
         return True
     return s in {

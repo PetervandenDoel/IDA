@@ -665,7 +665,7 @@ class HP816xLambdaScan:
             )
             if result != 0:
                 raise RuntimeError(f"Prepare scan failed: {result} :: {self._err_msg(result)}")
-            self.clear_fifo()
+            
             
             # Prepare power ranging
             if len(args) > 0:
@@ -693,7 +693,7 @@ class HP816xLambdaScan:
                                 c_uint16(0 if range_val is not None else 1),
                                 c_double(range_val if range_val is not None else 0.0),
                             )
-                            self.clear_fifo()
+                            time.sleep(0.15)
                             # --- Reference Source ---
                             # Internal, Absolute (for mainframe lambda scan)
                             self.lib.hp816x_set_PWM_referenceSource(
@@ -705,7 +705,7 @@ class HP816xLambdaScan:
                                 0,  # Unused (slot)
                                 0  # Unused (channel)
                             )
-                            self.clear_fifo()
+                            time.sleep(0.15)
                             # --- Reference Value ---
                             self.lib.hp816x_set_PWM_referenceValue(
                                 self.session,
@@ -714,16 +714,10 @@ class HP816xLambdaScan:
                                 ref_val,  # internal reference value in dBm
                                 0.0  # reference channel value (unused)
                             )
-                            self.clear_fifo()
+                            time.sleep(0.15)
                         except:
                             print("Exception when setting detector windows in lambda sweep")
                             pass
-            # Experiencing some query interuptions,
-            # May be because of detector window
-            # Settings, let us sleep a bit to ensure 
-            # The commands settle, since this
-            # Solution seemed to work for Bobby
-            time.sleep(1)
             # Create segments
             points_seg = int(num_points_seg.value)
             C = int(num_arrays_seg.value)
@@ -765,7 +759,7 @@ class HP816xLambdaScan:
             )
             if result != 0:
                 raise RuntimeError(f"Execute scan failed: {result} :: {self._err_msg(result)}")
-            self.clear_fifo()
+            
             
             # -------- Convert wl + guard-trim + index into global grid --------
             wl_seg_nm_full = np.ctypeslib.as_array(wl_buf, shape=(points_seg,)).copy() * 1e9

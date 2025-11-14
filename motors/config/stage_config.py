@@ -7,10 +7,10 @@ from motors.hal.motors_hal import AxisType
 class StageConfiguration:
     """Stage config data class to load data to manager"""
     velocities: Dict[AxisType, float] = field(default_factory=lambda:
-        {ax:10000.0 for ax in AxisType if ax.name!="ALL"}
+        {ax:3000.0 for ax in AxisType if ax.name!="ALL"}
     ) # field dict values
     accelerations: Dict[AxisType, float] = field(default_factory=lambda:
-        {ax:20000.0 for ax in AxisType if ax.name!="ALL"}
+        {ax:2000.0 for ax in AxisType if ax.name!="ALL"}
     ) # field dict values
     position_limits: Dict[AxisType, Tuple[float,float]] = field(default_factory=lambda:
         {

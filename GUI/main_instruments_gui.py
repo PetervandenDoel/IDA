@@ -229,7 +229,8 @@ class instruments(App):
         # )
         ### Issues with RM in sub connect configure
         import subprocess
-        from GUI.runner import GUI_DIR
+        from pathlib import Path
+        GUI_DIR = Path(__file__).resolve().parent  # GUI dir
         subprocess.Popen(
             [sys.executable, "-u", str(GUI_DIR / "sub_connect_config_gui.py")],
             env=os.environ.copy()
