@@ -10,58 +10,20 @@ pyvisa_logger = logging.getLogger('pyvisa')
 pyvisa_logger.setLevel(logging.WARNING)
 
 class LambdaScanProtocol:
-    def __init__(self, config = None, laser=None, com_port=5):
-        self.laser = laser
-        self.com_port = com_port
-        self.rm = None
-        self.instrument = None
-        self.stitching = False
+    """
+    Pass the activate VISA instrument instance, complete
+    optical sweep using VISA protocol instead of DLL.
+    """
+    def __init__(self, inst=None):
+        self.inst = inst
 
-        # If laser is provided and already connected, use its instrument
-        if self.laser and hasattr(self.laser, 'instrument') and self.laser.instrument:
-            self.instrument = self.laser.instrument
-        
-        # Lambda scan parameters
-        self.start_wavelength = None if not config else config.start_nm 
-        self.stop_wavelength = None if not config else config.stop_nm
-        self.step_size = None if not config else config.step_nm
-        self.num_points = None
-        self.laser_power = None if not config else config.laser_power_dbm
-        self.averaging_time = None
-        
     def connect(self):
         """Connect using proven working method."""
         try:
-            if self.laser:
-                self.instrument = self.laser.instrument
-            else:
-                self.rm = pyvisa.ResourceManager()
-                visa_address = f"ASRL{self.com_port}::INSTR"
-                
-                self.instrument = self.rm.open_resource(
-                    visa_address,
-                    baud_rate=115200,
-                    timeout=30000, # high to read lots of binary data
-                    write_termination='\n',
-                    read_termination=None
-                )
-                
-                # Clear and configure Prologix
-                self.instrument.clear()
-                time.sleep(0.2)
-                self.instrument.write('++mode 1')
-                time.sleep(0.1)
-                # ++addr managed by controller; do not set here
-                time.sleep(0.1)
-                self.instrument.write('++auto 0')
-                time.sleep(0.1)
-                self.instrument.write('++eos 2')
-                self.instrument.write('++eoi 1')
-                time.sleep(0.1)
-                
-                # Max binary block size that can be read from 1 block
-                self.instrument.chunk_size = 204050 * 2 + 8 # Represents 100k data points + header, EOF
-            
+            if self.inst is None:
+                logging.error(f"[Lambda Sweep] Please pass a open ressource instance") 
+
+           
             # Test connection
             resp = self._send_command("*IDN?").strip()
             logging.info(f"Connected to: {resp}")
@@ -73,17 +35,12 @@ class LambdaScanProtocol:
             return False
     
     def _send_command(self, command, expect_response=True):
-        """Send command using proven working method."""
         if not self.instrument:
             raise RuntimeError("Not connected")
-        
         try:
-            # ++addr managed by controller; do not set here
-            
             if expect_response:
                 self.instrument.write(command)
                 time.sleep(0.05)
-                self.instrument.write('++read eoi')
                 return self.instrument.read().strip()
             else:
                 self.instrument.write(command)
@@ -121,10 +78,7 @@ class LambdaScanProtocol:
     def _query_binary_and_parse(self, command):
         if not self.instrument:
             raise RuntimeError("Not connected")
-        # ++addr managed by controller; do not set here
         self.instrument.write(command)
-        time.sleep(0.5)
-        self.instrument.write('++read eoi')
 
         # Read header first
         header = self.instrument.read_bytes(2)  
@@ -166,12 +120,13 @@ class LambdaScanProtocol:
             # points calc
             points_f = (float(stop_nm) - float(start_nm)) / float(step_nm)
             points = int(points_f + 1.0000001)  # guard for fp rounding
+            stitching = False
 
             # segmentation width
             if points > 20001:
-                self.stitching = True
+                stitching = True
 
-            if self.stitching:
+            if stitching:
                 segments = int(np.ceil(points / 20001.0))
                 seg_span = int(np.ceil((stop_nm - start_nm) / segments))  # in nm, positive
                 bottom = int(start_nm)
@@ -182,8 +137,10 @@ class LambdaScanProtocol:
                     self.execute_lambda_scan()
                     wls, ch1, ch2 = self.retrieve_scan_data()
                     if not flag:
+                        # First case
                         wavelengths = wls; power_ch1 = ch1; power_ch2 = ch2; flag = True
                     else:
+                        # Rest of stitching
                         power_ch1 = np.concatenate([power_ch1, ch1])
                         power_ch2 = np.concatenate([power_ch2, ch2])
                         wavelengths = np.concatenate([wavelengths, wls])
@@ -196,10 +153,14 @@ class LambdaScanProtocol:
             # sanitize
             power_ch1 = np.where(power_ch1 > 0, np.nan, power_ch1)
             power_ch2 = np.where(power_ch2 > 0, np.nan, power_ch2)
-            return wavelengths, power_ch1, power_ch2
+            out = {
+                'wavelengths_nm': wavelengths,
+                'channels_dbm': [power_ch1, power_ch2]
+            }
+            return out
         except Exception as e:
             logging.error(f"Found error in optical sweep: {e}")
-            return None, None, None
+            return {'wavelengths_nm': [], 'channels_dbm': []}
         
     def configure_units(self):
         """Configure all channels to use consistent units."""
@@ -294,8 +255,7 @@ class LambdaScanProtocol:
             err = self._query("SYST:ERR?")
             logging.error(f"Instrument error: {err}")
             return False
-    
-    
+   
     def execute_lambda_scan(self):
         """
         Execute the complete lambda scan with data logging.
@@ -389,16 +349,13 @@ class LambdaScanProtocol:
         try:
             if self.instrument:
                 self.cleanup_scan()
-                self.instrument.close()
                 self.instrument = None
-        self.stitching = False
-            if self.rm:
-                self.rm.close()
-                self.rm = None
             logging.info("Disconnected successfully")
+            return True
         except Exception as e:
             logging.error(f"Error during disconnect: {e}")
-
+            return False
+        
 ############# ZOMBIES##################
     #  def optical_sweep2(self, start_nm, stop_nm, step_nm, laser_power_dbm, averaging_time_s=0.02):
     #     """Full sweep procedure"""
