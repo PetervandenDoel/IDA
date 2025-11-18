@@ -1097,6 +1097,7 @@ class stage_control(App):
             config.step_size = self.fine_a.get("step_size", 1.0) or 1.0
             config.min_gradient_ss = self.fine_a.get("min_gradient_ss", 0.1) or 0.1
             config.gradient_iters = self.fine_a.get("max_iters", 10) or 10.0
+            config.primary_detector = self.fina_a.get("detector", "ch1") or "ch1"
 
             # Create aligner
             self.fine_align = FineAlign(
@@ -1323,12 +1324,12 @@ class stage_control(App):
             self.stage_x_pos = self.memory.x_pos
             self.stage_y_pos = self.memory.y_pos
             config = AreaSweepConfiguration()
-            config.pattern = str(self.area_s["pattern"])
-            config.x_size = int(self.area_s["x_size"])
-            config.x_step = int(self.area_s["x_step"])
-            config.y_size = int(self.area_s["y_size"])
-            config.y_step = int(self.area_s["y_step"])
-            config.primary_detector = str(self.area_s["primary_detector"])
+            config.pattern = str(self.area_s.get("pattern", "spiral") or "spiral")
+            config.x_size = int(self.area_s.get("x_size", "x_size") or "x_size")
+            config.x_step = int(self.area_s.get("x_step", "x_step") or "x_step")
+            config.y_size = int(self.area_s.get("y_size", "y_size") or "y_size")
+            config.y_step = int(self.area_s.get("y_step", "y_step") or "y_step")
+            config.primary_detector = str(self.area_s.get("primary_detector", "ch1") or "ch1")
             self.area_sweep = AreaSweep(
                 config, self.stage_manager, self.nir_manager,
                 progress=self._as_progress,
