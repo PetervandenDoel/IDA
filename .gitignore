@@ -9,6 +9,7 @@ __pycache__/
 *.pyc
 .vscode/
 GUI/UserData/
+GUI/res/TSP/
 GUI/res/spectral_sweep/
 GUI/log.txt
 GUI/database/shared_memory.json
