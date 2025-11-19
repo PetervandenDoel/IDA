@@ -23,11 +23,12 @@ class LambdaScanProtocol:
             if self.inst is None:
                 logging.error(f"[Lambda Sweep] Please pass a open ressource instance") 
 
-           
+            self.inst.timeout = 30000
+        
             # Test connection
             resp = self._send_command("*IDN?").strip()
             logging.info(f"Connected to: {resp}")
-            self.configure_units()
+            # self.configure_units()
             return resp
             
         except Exception as e:
@@ -35,15 +36,15 @@ class LambdaScanProtocol:
             return False
     
     def _send_command(self, command, expect_response=True):
-        if not self.instrument:
+        if not self.inst:
             raise RuntimeError("Not connected")
         try:
             if expect_response:
-                self.instrument.write(command)
+                self.inst.write(command)
                 time.sleep(0.05)
-                return self.instrument.read().strip()
+                return self.inst.read().strip()
             else:
-                self.instrument.write(command)
+                self.inst.write(command)
                 return ""
                 
         except Exception as e:
@@ -60,15 +61,13 @@ class LambdaScanProtocol:
     
     def _query_binary(self, command):
         """Query command expecting binary response."""
-        if not self.instrument:
+        if not self.inst:
             raise RuntimeError("Not connected")
         
         try:
-            # ++addr managed by controller; do not set here
-            self.instrument.write(command)
+            self.inst.write(command)
             time.sleep(0.1)
-            self.instrument.write('++read eoi')
-            raw_data = self.instrument.read_raw()
+            raw_data = self.inst.read_raw()
             return raw_data
         
         except Exception as e:
@@ -76,30 +75,30 @@ class LambdaScanProtocol:
             raise
 
     def _query_binary_and_parse(self, command):
-        if not self.instrument:
+        if not self.inst:
             raise RuntimeError("Not connected")
-        self.instrument.write(command)
+        self.inst.write(command)
 
         # Read header first
-        header = self.instrument.read_bytes(2)  
+        header = self.inst.read_bytes(2)  
         if header[0:1] != b"#":
             raise ValueError("Invalid SCPI block header")
 
         num_digits = int(header[1:2].decode())
-        len_field = self.instrument.read_bytes(num_digits)
+        len_field = self.inst.read_bytes(num_digits)
         data_len = int(len_field.decode())
 
         # Read binary data in chunks until complete
         data_block = b""
         remaining = data_len
         while remaining > 0:
-            chunk = self.instrument.read_bytes(min(remaining, 4096))
+            chunk = self.inst.read_bytes(min(remaining, 4096))
             data_block += chunk
             remaining -= len(chunk)
 
         # Flush leftovers 
         try:
-            self.instrument.read()  # Read trailing \n
+            self.inst.read()  # Read trailing \n
         except Exception:
             pass
 
@@ -171,12 +170,12 @@ class LambdaScanProtocol:
         self._write("SENS1:CHAN1:POW:UNIT 0")  # 0 = dBm
         self._write("SENS1:CHAN2:POW:UNIT 0")  # 0 = dBm
         
-        # Verify settings
-        source_unit = self._query("SOUR0:POW:UNIT?")
-        det1_unit = self._query("SENS1:CHAN1:POW:UNIT?")
-        det2_unit = self._query("SENS1:CHAN2:POW:UNIT?")
+        # # Verify settings
+        # source_unit = self._query("SOUR0:POW:UNIT?")
+        # det1_unit = self._query("SENS1:CHAN1:POW:UNIT?")
+        # det2_unit = self._query("SENS1:CHAN2:POW:UNIT?")
         
-        logging.info(f"Units configured - Source: {source_unit}, Det1: {det1_unit}, Det2: {det2_unit}")
+        # logging.info(f"Units configured - Source: {source_unit}, Det1: {det1_unit}, Det2: {det2_unit}")
     
     def parse_binary_block(self, raw_data):
         """
@@ -225,28 +224,37 @@ class LambdaScanProtocol:
             self.step_width_nm = step_nm 
 
             # 1. Clear system and set power
-            self._write("*CLS")
+            # self._write("*CLS")
             self._write(f"SOUR0:POW {laser_power_dbm}")
+            time.sleep(0.1)
             self._write("SOUR0:POW:STAT ON")
-            
+            time.sleep(0.1)
             # 2. Initial wavelength
             self._write(f"SOUR0:WAV {self.start_wavelength}")
-            
+            time.sleep(0.1)
             # 3. Configure sweep
             self._write("SOUR0:WAV:SWE:MODE CONT")
+            time.sleep(0.1)
             self._write(f"SOUR0:WAV:SWE:STAR {self.start_wavelength}")
+            time.sleep(0.1)            
             self._write(f"SOUR0:WAV:SWE:STOP {self.stop_wavelength}")
+            time.sleep(0.1)            
             self._write(f"SOUR0:WAV:SWE:STEP {self.step_width_nm}NM")
+            time.sleep(0.1)
             self._write("SOUR0:WAV:SWE:REP ONEW")
+            time.sleep(0.1)
             self._write("SOUR0:WAV:SWE:CYCL 1")
-            
+            time.sleep(0.1)
             # 4. Configure logging
             self._write("SENS1:FUNC 'POWer'")
+            time.sleep(0.1)
             self._write(f"SENS1:FUNC:PAR:LOGG {self.num_points},{avg_time_s}")
+            time.sleep(0.1)
             self._write("SENS1:FUNC:STAT LOGG,START")
             
             # 5. Start sweep
             self._write("SOUR0:WAV:SWE:STAT START")
+            _ = self._query('*OPC?').strip()
             logging.info("Lambda sweep started.")
             return True
             
@@ -256,42 +264,77 @@ class LambdaScanProtocol:
             logging.error(f"Instrument error: {err}")
             return False
    
+    # def execute_lambda_scan(self):
+    #     """
+    #     Execute the complete lambda scan with data logging.
+    #     """
+    #     try: 
+    #         # Monitor sweep progress
+    #         sweep_complete = False
+    #         flag = True
+    #         scan_start_time = time.time()
+    #         timeout = 300  # 5 minute timeout
+            
+    #         while not sweep_complete and (time.time() - scan_start_time) < timeout:
+    #             # Check sweep status
+    #             sweep_status = self._query("SOUR0:WAV:SWE:STAT?").strip()
+    #             time.sleep(0.15)
+    #             # Check logging function status
+    #             func_status = self._query("SENS1:CHAN1:FUNC:STAT?").strip()
+    #             time.sleep(0.15)
+    #             if "COMPLETE" in func_status:
+    #                 sweep_complete = True
+                
+    #             time.sleep(1.0)  # Check every second
+            
+    #         if time.time() - scan_start_time >= timeout:
+    #             logging.error("Lambda scan timed out")
+    #             return False
+            
+    #         logging.info("Lambda scan completed successfully")
+    #         return True
+            
+    #     except Exception as e:
+    #         logging.error(f"Lambda scan execution failed: {e}")
+    #         error = self._query("SYST:ERR?")
+    #         logging.error(f"System error: {error}")
+    #         return False
+    
     def execute_lambda_scan(self):
         """
         Execute the complete lambda scan with data logging.
+        Uses *OPC? to wait for sweep+logging to fully complete.
         """
-        try: 
-            # Monitor sweep progress
-            sweep_complete = False
-            flag = True
-            scan_start_time = time.time()
-            timeout = 300  # 5 minute timeout
-            
-            while not sweep_complete and (time.time() - scan_start_time) < timeout:
-                # Check sweep status
-                sweep_status = self._query("SOUR0:WAV:SWE:STAT?").strip()
-                
-                # Check logging function status
-                func_status = self._query("SENS1:CHAN1:FUNC:STAT?").strip()
-                
-                if "COMPLETE" in func_status:
-                    sweep_complete = True
-                
-                time.sleep(1.0)  # Check every second
-            
-            if time.time() - scan_start_time >= timeout:
-                logging.error("Lambda scan timed out")
-                return False
-            
+        try:
+            # Estimate how long this segment will take
+            # N points * averaging time + 10s margin
+            if self.num_points is not None and self.averaging_time is not None:
+                est_time_s = self.num_points * self.averaging_time + 30.0
+            else:
+                est_time_s = 30.0  # fallback
+
+            # Ensure VISA timeout is long enough
+            if self.inst.timeout < est_time_s * 1000:
+                self.inst.timeout = int(est_time_s * 1000)
+
+            # ---- WAIT FOR SWEEP + LOGGING IN ONE GO ----
+            # This will block until the sweep engine AND the logging engine finish.
+            _ = self._query("*OPC?").strip()
+
             logging.info("Lambda scan completed successfully")
             return True
-            
+
         except Exception as e:
             logging.error(f"Lambda scan execution failed: {e}")
-            error = self._query("SYST:ERR?")
-            logging.error(f"System error: {error}")
+
+            # Try to un-stuff the I/O if possible
+            try:
+                self.inst.clear()
+                self._write("*CLS")
+            except Exception:
+                pass
+
             return False
-    
     def retrieve_scan_data(self):
         """
         Retrieve logged data from a measurement, without stitching
@@ -347,149 +390,12 @@ class LambdaScanProtocol:
     def disconnect(self):
         """Safely disconnect from instrument."""
         try:
-            if self.instrument:
+            if self.inst:
                 self.cleanup_scan()
-                self.instrument = None
+                self.inst = None
             logging.info("Disconnected successfully")
             return True
         except Exception as e:
             logging.error(f"Error during disconnect: {e}")
             return False
         
-############# ZOMBIES##################
-    #  def optical_sweep2(self, start_nm, stop_nm, step_nm, laser_power_dbm, averaging_time_s=0.02):
-    #     """Full sweep procedure"""
-    #     # Pass lambda scan params
-    #     self.configure_and_start_lambda_sweep(start_nm, stop_nm, step_nm, laser_power_dbm, averaging_time_s)
-        
-    #     self.execute_lambda_scan()
-
-    #     # Retrieve data
-    #     # wavelengths, power_ch1, power_ch2 = self.retrieve_scan_data()
-    #     wavelengths, power_ch1, power_ch2 = self.retrieve_scan_data_logged()
-        
-    #     # if wavelengths is not None:
-    #     #     logging.debug("Data retrieved")
-    #     #     logging.debug(f"   Points: {len(wavelengths)}")
-    #     #     logging.debug(f"   Wavelengths: {wavelengths[0]:.1f} - {wavelengths[-1]:.1f} nm")
-            
-    #     #     # Check for valid data
-    #     #     valid_ch1 = ~np.isnan(power_ch1) & (np.abs(power_ch1) < 1e10)
-    #     #     valid_ch2 = ~np.isnan(power_ch2) & (np.abs(power_ch2) < 1e10)
-            
-    #     #     if np.any(valid_ch1):
-    #     #         logging.debug(f"   Ch1 range: {np.min(power_ch1[valid_ch1]):.2f} - {np.max(power_ch1[valid_ch1]):.2f} dBm")
-    #     #     else:
-    #     #         logging.debug("   Ch1: No valid data")
-                
-    #     #     if np.any(valid_ch2):
-    #     #         logging.debug(f"   Ch2 range: {np.min(power_ch2[valid_ch2]):.2f} - {np.max(power_ch2[valid_ch2]):.2f} dBm")
-    #     #     else:
-    #     #         logging.debug("   Ch2: No valid data")
-            
-    #     #     logging.debug("\nSample points:")
-    #     #     for i in range(0, len(wavelengths), max(1, len(wavelengths)//3)):
-    #     #         ch1_val = f"{power_ch1[i]:.2f}" if valid_ch1[i] else "INVALID"
-    #     #         ch2_val = f"{power_ch2[i]:.2f}" if valid_ch2[i] else "INVALID"
-    #     #         logging.debug(f"   {wavelengths[i]:.1f}nm: Ch1={ch1_val}dBm, Ch2={ch2_val}dBm")
-                
-    #     # else:
-    #     #     logging.debug("Data retrieval failed")
-    #     #     return None, None, None
-        
-    #     return wavelengths, power_ch1, power_ch2
-
-    # def retrieve_scan_data_logged(self):
-    #     """
-    #     Try to retrieve logged data using binary block parsing with error handling.
-    #     """
-    #     try:
-    #         logging.info("Attempting to retrieve logged binary data...")
-            
-    #         # Check if logging function completed successfully
-    #         func_status = self._query("SENS1:CHAN1:FUNC:STAT?")
-    #         logging.info(f"Function status before data retrieval: {func_status}")
-    #         # logging.debug("Stopping logging...")
-    #         # self._write("SENS1:CHAN1:FUNC:STAT LOGG,STOP")
-    #         time.sleep(1) # give some time to stop the logging
-    #         # Try to get the logged data
-    #         raw_data = self._query_binary("SENS1:CHAN1:FUNC:RES?") # CORRECT DATAAAAAAAAAAAAAAAAAAAAA
-    #         time.sleep(0.4) 
-    #         rd2 = self._query_binary("SENS1:CHAN2:FUNC:RES?")
-    #         logging.debug(f"rawdata: {raw_data}\n s2: {rd2}")
-    #         time.sleep(0.4)
-
-    #         # logging.debug("Stopping logging...")
-    #         # self._write("SENS1:CHAN1:FUNC:STAT LOGG,STOP")
-    #         # time.sleep(1) # give some time to stop the logging
-
-    #         get_pt = self._query("SENSe1:CHANnel1:FUNCtion:PARameter:LOGGing?")
-    #         pts = get_pt.split("+")[1].replace(",","")
-    #         # logging.debug(f"PTS: {pts}")
-
-    #         # Check if logging function completed successfully
-    #         # func_status = self._query("SENS1:CHAN1:FUNC:STAT?")
-    #         # logging.info(f"Function status before data retrieval: {func_status}")
-
-    #         # get_block_ch1 = self._query_binary(f"SENS1:CHAN1:FUNC:RES:BLOCk? 0,{pts}")
-            
-    #         # get_block = self._query_binary("SENS1:CHAN1:FUNC:RES:MAXBlocksize?") # b'+204050\n' or 51,012 data points (floor(bytes/4))
-    #         # logging.debug(f"\nblockdataraw : {get_block}")
-    #         time.sleep(0.5)
-    #         # get_block_ch2 =  self._query_binary(f"SENS1:CHAN2:FUNC:RES:BLOCk? 0,{pts}")
-    #         # get_pt = self._query(":SENSe1:CHANnel1:FUNCtion:PARameter:LOGGing?")
-    #         # pts = float(get_pt.split("+")[1].replace(",",""))
-    #         # logging.debug(f"PTS: {pts}")
-
-    #         # Parse the binary block
-    #         power_data = self.parse_binary_block(raw_data)
-    #         pow_data = self.parse_binary_block(rd2)
-
-    #         logging.debug(f"pow1: {power_data}\n pow2: {pow_data}\n")
-            
-    #         if power_data is not None and len(power_data) > 0:
-    #             # Calculate corresponding wavelengths
-    #             wavelengths_nm = np.linspace(
-    #                 self.start_wavelength * 1e9,
-    #                 self.stop_wavelength * 1e9,
-    #                 len(power_data)
-    #             )
-                
-    #             logging.info(f"Retrieved {len(power_data)} logged data points")
-    #             logging.info(f"Power data range: {np.min(power_data):.2f} to {np.max(power_data):.2f} dBm")
-                
-    #             return wavelengths_nm, power_data, pow_data
-    #         else:
-    #             logging.error("No valid power data retrieved from logging")
-    #             return None, None, None
-                
-    #     except Exception as e:
-    #         logging.error(f"Logged data retrieval failed: {e}")
-    #         return None, None, None
-
-def main_sweep():
-    import argparse
-    p = argparse.ArgumentParser()
-    p.add_argument("--com", type=int, required=True)
-    p.add_argument("--addr", type=int, default=20)
-    p.add_argument("--start", type=float, default=1520.0)
-    p.add_argument("--stop", type=float, default=1570.0)
-    p.add_argument("--step", type=float, default=0.1)
-    p.add_argument("--power", type=float, default=-10.0)
-    args = p.parse_args()
-    from NIR.nir_controller import Agilent8164Controller
-    ctl = Agilent8164Controller(com_port=args.com, gpib_addr=args.addr)
-    if not ctl.connect():
-        print("Connect failed")
-        return 2
-    try:
-        proto = LambdaScanProtocol(laser=ctl)
-        proto.configure_units()
-        proto.start_wavelength = args.start
-        proto.stop_wavelength = args.stop
-        proto.step_size = args.step
-        proto.laser_power = args.power
-        print(proto.execute_lambda_scan())
-    finally:
-        ctl.disconnect()
-    return 0

@@ -1097,7 +1097,7 @@ class stage_control(App):
             config.step_size = self.fine_a.get("step_size", 1.0) or 1.0
             config.min_gradient_ss = self.fine_a.get("min_gradient_ss", 0.1) or 0.1
             config.gradient_iters = self.fine_a.get("max_iters", 10) or 10.0
-            config.primary_detector = self.fina_a.get("detector", "ch1") or "ch1"
+            config.primary_detector = self.fine_a.get("detector", "ch1") or "ch1"
 
             # Create aligner
             self.fine_align = FineAlign(
