@@ -193,55 +193,91 @@ class LambdaScanProtocol:
             logging.error(f"Binary block parsing failed: {e}")
             return None
     
-    
     def configure_and_start_lambda_sweep(self, start_nm, stop_nm, step_nm,
-                                         laser_power_dbm=-10, avg_time_s=0.01):
+                                         laser_power_dbm=1, avg_time_s=0.01):
         try:
             # Convert to meters for SCPI commands
             self.start_wavelength = start_nm * 1e-9
             self.stop_wavelength = stop_nm * 1e-9
-            self.step_size = str(step_nm) + "NM" 
+            self.step_size = str(step_nm) + "NM"
             self.laser_power = laser_power_dbm
             self.averaging_time = avg_time_s
-
             # Calculate number of points
             self.num_points = int((stop_nm - start_nm) / step_nm) + 1
             self.step_width_nm = step_nm 
-
-            # 1. Clear system and set power
-            # self._write("*CLS")
+            
+            # 1. CRITICAL: Stop any ongoing sweeps and clear states
+            self._write("SOUR0:WAV:SWE:STAT STOP")
+            time.sleep(0.1)
+            self._write("*CLS")  # Clear status registers
+            time.sleep(0.1)
+            
+            # 2. Configure power and initial wavelength
             self._write(f"SOUR0:POW {laser_power_dbm}")
             time.sleep(0.1)
             self._write("SOUR0:POW:STAT ON")
             time.sleep(0.1)
-            # 2. Initial wavelength
             self._write(f"SOUR0:WAV {self.start_wavelength}")
+            time.sleep(0.2)  # Give more time for wavelength to settle
+            
+            # 3. CRITICAL CHANGE: Use STEP mode for internal triggering, not CONT
+            self._write("SOUR0:WAV:SWE:MODE STEP")  # STEP mode for triggered operation
             time.sleep(0.1)
-            # 3. Configure sweep
-            self._write("SOUR0:WAV:SWE:MODE CONT")
-            time.sleep(0.1)
+            
+            # 4. Configure sweep parameters
             self._write(f"SOUR0:WAV:SWE:STAR {self.start_wavelength}")
             time.sleep(0.1)            
             self._write(f"SOUR0:WAV:SWE:STOP {self.stop_wavelength}")
             time.sleep(0.1)            
             self._write(f"SOUR0:WAV:SWE:STEP {self.step_width_nm}NM")
             time.sleep(0.1)
-            self._write("SOUR0:WAV:SWE:REP ONEW")
-            time.sleep(0.1)
-            self._write("SOUR0:WAV:SWE:CYCL 1")
-            time.sleep(0.1)
-            self._write(f"SOUR0:WAV:SWE:SPE {self.sweep_speed_nm_per_s}NM/S")
             
-            # 4. Configure logging
-            self._write("SENS1:FUNC 'POWer'")
+            # CRITICAL: Set repeat OFF for single sweep
+            self._write("SOUR0:WAV:SWE:REP OFF")  # Not ONEW - use OFF for controlled sweep
             time.sleep(0.1)
+            
+            # 5. Configure sweep speed (even in STEP mode, this affects step timing)
+            self._write(f"SOUR0:WAV:SWE:SPE {self.sweep_speed_nm_per_s}NM/S")
+            time.sleep(0.1)
+            
+            # 6. CRITICAL: Configure internal triggering
+            self._write("TRIG:CONF LOOP")  # Configure trigger for looped operation
+            time.sleep(0.1)
+            self._write("TRIG:INP IGN")    # Ignore external triggers
+            time.sleep(0.1)
+            self._write("TRIG:OUTP:MODE LOOP")  # Output trigger at each step
+            time.sleep(0.1)
+            
+            # 7. Configure detector logging with proper parameters
+            self._write("SENS1:FUNC:STOP")  # Stop any ongoing logging first
+            time.sleep(0.2)
+            
+            # Set detector to power measurement mode
+            self._write("SENS1:CHAN1:FUNC:MODE POW")  # Explicitly set to power mode
+            time.sleep(0.1)
+            
+            # Configure averaging time on the detector
+            self._write(f"SENS1:CHAN1:POW:ATIM {avg_time_s}")
+            time.sleep(0.1)
+            
+            # Configure logging parameters - CRITICAL: Use correct syntax
+            # For 8164B, logging parameters are: number of points, averaging time
             self._write(f"SENS1:FUNC:PAR:LOGG {self.num_points},{avg_time_s}")
             time.sleep(0.1)
-            self._write("SENS1:FUNC:STAT LOGG,START")
             
-            # 5. Start sweep
+            # 8. CRITICAL: Start logging BEFORE starting sweep
+            self._write("SENS1:FUNC:STAT LOGG,START")
+            time.sleep(0.5)  # Give logging time to initialize
+            
+            # Verify logging is ready
+            status = self._query("SENS1:FUNC:STAT?")
+            if "PROGRESS" not in status and "LOGGING" not in status:
+                logging.warning(f"Logging may not be ready. Status: {status}")
+            
+            # 9. Start the sweep - this will trigger the synchronized data collection
             self._write("SOUR0:WAV:SWE:STAT START")
-            logging.info("Lambda sweep started.")
+            logging.info(f"Lambda sweep started: {start_nm}-{stop_nm}nm, {self.num_points} points")
+            
             return True
             
         except Exception as e:
@@ -249,6 +285,62 @@ class LambdaScanProtocol:
             err = self._query("SYST:ERR?")
             logging.error(f"Instrument error: {err}")
             return False
+        
+    # def configure_and_start_lambda_sweep(self, start_nm, stop_nm, step_nm,
+    #                                      laser_power_dbm=-10, avg_time_s=0.01):
+    #     try:
+    #         # Convert to meters for SCPI commands
+    #         self.start_wavelength = start_nm * 1e-9
+    #         self.stop_wavelength = stop_nm * 1e-9
+    #         self.step_size = str(step_nm) + "NM" 
+    #         self.laser_power = laser_power_dbm
+    #         self.averaging_time = avg_time_s
+
+    #         # Calculate number of points
+    #         self.num_points = int((stop_nm - start_nm) / step_nm) + 1
+    #         self.step_width_nm = step_nm 
+
+    #         # 1. Clear system and set power
+    #         # self._write("*CLS")
+    #         self._write(f"SOUR0:POW {laser_power_dbm}")
+    #         time.sleep(0.1)
+    #         self._write("SOUR0:POW:STAT ON")
+    #         time.sleep(0.1)
+    #         # 2. Initial wavelength
+    #         self._write(f"SOUR0:WAV {self.start_wavelength}")
+    #         time.sleep(0.1)
+    #         # 3. Configure sweep
+    #         self._write("SOUR0:WAV:SWE:MODE CONT")
+    #         time.sleep(0.1)
+    #         self._write(f"SOUR0:WAV:SWE:STAR {self.start_wavelength}")
+    #         time.sleep(0.1)            
+    #         self._write(f"SOUR0:WAV:SWE:STOP {self.stop_wavelength}")
+    #         time.sleep(0.1)            
+    #         self._write(f"SOUR0:WAV:SWE:STEP {self.step_width_nm}NM")
+    #         time.sleep(0.1)
+    #         self._write("SOUR0:WAV:SWE:REP ONEW")
+    #         time.sleep(0.1)
+    #         self._write("SOUR0:WAV:SWE:CYCL 1")
+    #         time.sleep(0.1)
+    #         self._write(f"SOUR0:WAV:SWE:SPE {self.sweep_speed_nm_per_s}NM/S")
+            
+    #         # 4. Configure logging
+    #         self._write("SENS1:FUNC 'POWer'")
+    #         time.sleep(0.1)
+    #         self._write(f"SENS1:FUNC:PAR:LOGG {self.num_points},{avg_time_s}")
+    #         time.sleep(0.1)
+    #         self._write("SENS1:FUNC:STAT LOGG,START")
+            
+    #         # 5. Start sweep
+    #         self._write("SOUR0:WAV:SWE:STAT START")
+    #         logging.info("Lambda sweep started.")
+    #         return True
+            
+    #     except Exception as e:
+    #         logging.error(f"Failed to configure and start lambda sweep: {e}")
+    #         err = self._query("SYST:ERR?")
+    #         logging.error(f"Instrument error: {err}")
+    #         return False
    
     def execute_lambda_scan(self):
         try:
