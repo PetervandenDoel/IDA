@@ -26,7 +26,6 @@ class NIRManager:
 
         # Initialize controller
         self.controller = NIR8164(
-            com_port=config.com_port,
             gpib_addr=config.gpib_addr,
             laser_slot=config.laser_slot,
             detector_slots=config.detector_slots,

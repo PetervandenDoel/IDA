@@ -260,17 +260,12 @@ class LambdaScanProtocol:
             # 6. Configure detector logging
             # First ensure detector is in power measurement mode
             self._write("SENS1:CHAN1:POW:UNIT DBM")  # Set to dBm units
+            self._write("SENS1:CHAN2:POW:UNIT DBM")
             time.sleep(0.1)
             
             # Configure logging parameters: number of points, averaging time
             self._write(f"SENS1:FUNC:PAR:LOGG {self.num_points},{avg_time_s}")
             time.sleep(0.1)
-            
-            # If you have dual channel detector, configure both channels
-            if self.has_dual_channel:
-                self._write(f"SENS1:CHAN2:POW:UNIT DBM")
-                time.sleep(0.1)
-                # Note: For dual sensors, logging params are set on master channel only
             
             # 7. Start logging BEFORE starting sweep
             self._write("SENS1:FUNC:STAT LOGG,START")
@@ -361,7 +356,7 @@ class LambdaScanProtocol:
                 time.sleep(0.05)
                 func_status = self._query("SENS1:CHAN1:FUNC:STAT?").strip()
                 print(f"Sweep: {sweep_status}  |  Func: {func_status}  \n")
-                if "COMPLETE" in func_status and "+0" in sweep_status:
+                if "COMPLETE" in func_status or "+0" in sweep_status:
                     print(f'Execution completion ')
                     break 
                 time.sleep(1)  

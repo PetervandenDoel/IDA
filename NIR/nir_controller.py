@@ -288,44 +288,29 @@ class NIR8164(LaserHAL):
     def optical_sweep(
             self, start_nm: float, stop_nm: float, step_nm: float,
             laser_power_dbm: float, num_scans: int = 0,
-            args: list = [], mode="old"
+            args: list = []
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        if mode == "old":
-            from NIR.sweep import HP816xLambdaScan
-            step_pm = float(step_nm) * 1000.0
-        else:
-            from NIR.lambda_sweep import LambdaScanProtocol
-            step_nm = float(step_nm)  
+        from NIR.sweep import HP816xLambdaScan
+        step_pm = float(step_nm) * 1000.0
         try:
             self._preflight_cleanup()
         except Exception:
             pass
-        if mode == "old":
-            hp = HP816xLambdaScan()
-        else:
-            hp = LambdaScanProtocol(self.inst)
+        hp = HP816xLambdaScan()
         self.sweep_module = hp
         try:
             ok = hp.connect()
             if not ok:
                 raise RuntimeError("HP816xLambdaScan.connect() failed")
-            if mode == "old":
-                res = hp.lambda_scan(
-                    start_nm=float(start_nm),
-                    stop_nm=float(stop_nm),
-                    step_pm=step_pm,
-                    power_dbm=float(laser_power_dbm),
-                    num_scans=0,
-                    channels=self.detector_slots,
-                    args=args
-                )
-            else:
-                res = hp.optical_sweep(
-                    start_nm=start_nm,
-                    stop_nm=stop_nm,
-                    step_nm=step_nm,
-                    laser_power_dbm=laser_power_dbm
-                )  # For now just use 0.02 avg time
+            res = hp.lambda_scan2(
+                start_nm=float(start_nm),
+                stop_nm=float(stop_nm),
+                step_pm=step_pm,
+                power_dbm=float(laser_power_dbm),
+                num_scans=0,
+                channels=self.detector_slots,
+                args=args
+            )
         finally:
             try:
                 hp.disconnect()

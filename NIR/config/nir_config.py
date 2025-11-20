@@ -11,7 +11,6 @@ class NIRConfiguration:
     """Simple configuration for NIR system"""
     
     # Connection settings
-    com_port: int = 3
     gpib_addr: int = 20 
     laser_slot: int = 0
     detector_slots: List[int] = field(default_factory=lambda: [1,2])
@@ -36,7 +35,6 @@ class NIRConfiguration:
     def to_dict(self) -> dict:
         """Convert to dictionary"""
         return {
-            'com_port': self.com_port,
             'laser_slot': self.laser_slot,
             'detector_slots': self.detector_slots,
             'safety_password': self.safety_password,

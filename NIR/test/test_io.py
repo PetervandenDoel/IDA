@@ -4,9 +4,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import logging
 logging.getLogger("matplotlib").setLevel(logging.ERROR)
+from utils.timing_helper import timed_function
 
 def main():
-    dev = NIR8164(com_port=4, gpib_addr=20)
+    dev = NIR8164()
     # print("Laser power/wavelength...")
     # dev.set_power(-10)
     # print("P =", dev.get_power())
@@ -80,71 +81,31 @@ def main():
         plt.tight_layout()
         plt.show()
 
-    # print("Trial 1: No settings")
-    # wl, ch1, ch2 = dev.optical_sweep(1500.0, 1600.0, 0.1, 1.0, 0)
-    # p(wl, ch1, ch2, "Trial 1")
-    # print("Trial 2: (-10, Auto)")
-    # wl, ch1, ch2 = dev.optical_sweep(1500.0, 1600.0, 0.1, 1.0, 0, (1, -10, None))
-    # p(wl, ch1, ch2, "Trial 2")
-    # print("Trial 3: (-10, -30 dBm)")
-    # wl, ch1, ch2 = dev.optical_sweep(1500.0, 1600.0, 0.1, 1.0, 0, (1, -10, -30))
-    # p(wl, ch1, ch2, "Trial 3")
-    # print("Trial 4: (-30, -30 dBm)")
-    # wl, ch1, ch2 = dev.optical_sweep(1500.0, 1600.0, 0.1, 1.0, 0, (1, -30, -30))
-    # p(wl, ch1, ch2, "Trial 4")
-
-    print("Running sweeps...")
+    @timed_function
+    def optical_function(range):
+        return dev.optical_sweep(1400.0, 1700.0, 0.0001, 1.0, args=(1, -30, range))
+    
     trials = []
 
-    print("Trial 1: No settings")
-    wl, ch1, ch2 = dev.optical_sweep(1500.0, 1600.0, 0.1, 1.0, 0)
+    for x in [-i for i in range(10,30, 10)]:
+        wl, ch1, ch2 = optical_function(x)
+        trials.append(
+            {
+                "label": f"{x} dBm Range",
+                "wl": wl,
+                "channels": [ch1, ch2]
+            }
+        )
+    
+    wl, ch1, ch2 = optical_function(None)
     trials.append({
-        "label": "Trial 1: No settings",
+        "label": "Auto dBm Range",
         "wl": wl,
         "channels": [ch1, ch2],
     })
 
-    print("Trial 2: (-10, Auto)")
-    wl, ch1, ch2 = dev.optical_sweep(1500.0, 1600.0, 0.1, 1.0, 0, (1, -30, -10))
-    trials.append({
-        "label": "Trial 2: (-10, Auto)",
-        "wl": wl,
-        "channels": [ch1, ch2],
-    })
-
-    print("Trial 3: (-10, -30 dBm)")
-    wl, ch1, ch2 = dev.optical_sweep(1500.0, 1600.0, 0.1, 1.0, 0, (1, -30, -20))
-    trials.append({
-        "label": "Trial 3: (-10, -30 dBm)",
-        "wl": wl,
-        "channels": [ch1, ch2],
-    })
-
-    print("Trial 4: (-30, -30 dBm)")
-    wl, ch1, ch2 = dev.optical_sweep(1500.0, 1600.0, 0.1, 1.0, 0, (1, -30, -30))
-    trials.append({
-        "label": "Trial 4: (-30, -30 dBm)",
-        "wl": wl,
-        "channels": [ch1, ch2],
-    })
-    print("Trial 5: (-50, -30 dBm)")
-    wl, ch1, ch2 = dev.optical_sweep(1500.0, 1600.0, 0.1, 1.0, 0, (1, -30, -40))
-    trials.append({
-        "label": "Trial 5: (-50, -30 dBm)",
-        "wl": wl,
-        "channels": [ch1, ch2],
-    })
-    print("Trial 6: (-60, -30 dBm)")
-    wl, ch1, ch2 = dev.optical_sweep(1500.0, 1600.0, 0.1, 1.0, 0, (1, -30, -50))
-    trials.append({
-        "label": "Trial 6: (-60, -30 dBm)",
-        "wl": wl,
-        "channels": [ch1, ch2],
-    })
     # Now show all trials side by side
     plot_trials_side_by_side(trials)
-    # wl, ch1, ch2 = dev.optical_sweep(1500.0, 1600.0, 0.1, 1.0, 0, (1, -10, -20))
-    # p(wl, ch1, ch2)
 
     dev.cleanup_scan()
     dev.configure_units()
