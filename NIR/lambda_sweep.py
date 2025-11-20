@@ -194,19 +194,19 @@ class LambdaScanProtocol:
             return None
     
     def configure_and_start_lambda_sweep(self, start_nm, stop_nm, step_nm,
-                                         laser_power_dbm=1, avg_time_s=0.01):
+                                     laser_power_dbm=-10, avg_time_s=0.01):
         try:
             # Convert to meters for SCPI commands
             self.start_wavelength = start_nm * 1e-9
             self.stop_wavelength = stop_nm * 1e-9
-            self.step_size = str(step_nm) + "NM"
+            self.step_size = str(step_nm) + "NM" 
             self.laser_power = laser_power_dbm
             self.averaging_time = avg_time_s
             # Calculate number of points
             self.num_points = int((stop_nm - start_nm) / step_nm) + 1
             self.step_width_nm = step_nm 
             
-            # 1. CRITICAL: Stop any ongoing sweeps and clear states
+            # 1. Stop any ongoing sweeps and clear states
             self._write("SOUR0:WAV:SWE:STAT STOP")
             time.sleep(0.1)
             self._write("*CLS")  # Clear status registers
@@ -217,11 +217,13 @@ class LambdaScanProtocol:
             time.sleep(0.1)
             self._write("SOUR0:POW:STAT ON")
             time.sleep(0.1)
-            self._write(f"SOUR0:WAV {self.start_wavelength}")
-            time.sleep(0.2)  # Give more time for wavelength to settle
             
-            # 3. CRITICAL CHANGE: Use STEP mode for internal triggering, not CONT
-            self._write("SOUR0:WAV:SWE:MODE STEP")  # STEP mode for triggered operation
+            # Set to start wavelength
+            self._write(f"SOUR0:WAV {self.start_wavelength}")
+            time.sleep(0.2)  # Give time for wavelength to settle
+            
+            # 3. Configure sweep mode - CONT for continuous sweep
+            self._write("SOUR0:WAV:SWE:MODE CONT")  # Continuous mode for smooth sweeps
             time.sleep(0.1)
             
             # 4. Configure sweep parameters
@@ -232,49 +234,54 @@ class LambdaScanProtocol:
             self._write(f"SOUR0:WAV:SWE:STEP {self.step_width_nm}NM")
             time.sleep(0.1)
             
-            # CRITICAL: Set repeat OFF for single sweep
-            self._write("SOUR0:WAV:SWE:REP OFF")  # Not ONEW - use OFF for controlled sweep
+            # Set repeat mode and cycles
+            self._write("SOUR0:WAV:SWE:REP ONEW")  # One-way sweep
+            time.sleep(0.1)
+            self._write("SOUR0:WAV:SWE:CYCL 1")  # Single cycle
             time.sleep(0.1)
             
-            # 5. Configure sweep speed (even in STEP mode, this affects step timing)
+            # Set sweep speed
             self._write(f"SOUR0:WAV:SWE:SPE {self.sweep_speed_nm_per_s}NM/S")
             time.sleep(0.1)
             
-            # 6. CRITICAL: Configure internal triggering
-            self._write("TRIG:CONF LOOP")  # Configure trigger for looped operation
-            time.sleep(0.1)
-            self._write("TRIG:INP IGN")    # Ignore external triggers
-            time.sleep(0.1)
-            self._write("TRIG:OUTP:MODE LOOP")  # Output trigger at each step
+            # 5. Configure triggering for synchronized measurements
+            # Set trigger configuration to DEFAULT mode (enables triggering)
+            self._write("TRIG:CONF DEF")  # Default trigger configuration
             time.sleep(0.1)
             
-            # 7. Configure detector logging with proper parameters
-            self._write("SENS1:FUNC:STOP")  # Stop any ongoing logging first
-            time.sleep(0.2)
-            
-            # Set detector to power measurement mode
-            self._write("SENS1:CHAN1:FUNC:MODE POW")  # Explicitly set to power mode
+            # Configure laser to output trigger at each step
+            self._write("TRIG0:OUTP STF")  # STFinished - trigger when step finished
             time.sleep(0.1)
             
-            # Configure averaging time on the detector
-            self._write(f"SENS1:CHAN1:POW:ATIM {avg_time_s}")
+            # Configure detectors to trigger on incoming signals
+            self._write("TRIG1:INP SME")  # Single measurement on trigger
             time.sleep(0.1)
             
-            # Configure logging parameters - CRITICAL: Use correct syntax
-            # For 8164B, logging parameters are: number of points, averaging time
+            # 6. Configure detector logging
+            # First ensure detector is in power measurement mode
+            self._write("SENS1:CHAN1:POW:UNIT DBM")  # Set to dBm units
+            time.sleep(0.1)
+            
+            # Configure logging parameters: number of points, averaging time
             self._write(f"SENS1:FUNC:PAR:LOGG {self.num_points},{avg_time_s}")
             time.sleep(0.1)
             
-            # 8. CRITICAL: Start logging BEFORE starting sweep
+            # If you have dual channel detector, configure both channels
+            if self.has_dual_channel:
+                self._write(f"SENS1:CHAN2:POW:UNIT DBM")
+                time.sleep(0.1)
+                # Note: For dual sensors, logging params are set on master channel only
+            
+            # 7. Start logging BEFORE starting sweep
             self._write("SENS1:FUNC:STAT LOGG,START")
             time.sleep(0.5)  # Give logging time to initialize
             
             # Verify logging is ready
             status = self._query("SENS1:FUNC:STAT?")
-            if "PROGRESS" not in status and "LOGGING" not in status:
+            if "LOGG" not in status.upper() and "PROGRESS" not in status.upper():
                 logging.warning(f"Logging may not be ready. Status: {status}")
             
-            # 9. Start the sweep - this will trigger the synchronized data collection
+            # 8. Start the sweep
             self._write("SOUR0:WAV:SWE:STAT START")
             logging.info(f"Lambda sweep started: {start_nm}-{stop_nm}nm, {self.num_points} points")
             
