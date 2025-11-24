@@ -96,9 +96,9 @@ class NIR8164(LaserHAL):
             self.write("SOUR0:POW:UNIT 0")
             self.write("SENS1:CHAN1:POW:UNIT 0")
             self.write("SENS1:CHAN2:POW:UNIT 0")
-            _ = self.query("SOUR0:POW:UNIT?")
-            _ = self.query("SENS1:CHAN1:POW:UNIT?")
-            _ = self.query("SENS1:CHAN2:POW:UNIT?")
+            # _ = self.query("SOUR0:POW:UNIT?")
+            # _ = self.query("SENS1:CHAN1:POW:UNIT?")
+            # _ = self.query("SENS1:CHAN2:POW:UNIT?")
             return True
         except Exception as e:
             return False
@@ -288,7 +288,7 @@ class NIR8164(LaserHAL):
     def optical_sweep(
             self, start_nm: float, stop_nm: float, step_nm: float,
             laser_power_dbm: float, num_scans: int = 0,
-            args: list = []
+            args: list = [], autorange = None
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         from NIR.sweep import HP816xLambdaScan
         step_pm = float(step_nm) * 1000.0
@@ -309,7 +309,8 @@ class NIR8164(LaserHAL):
                 power_dbm=float(laser_power_dbm),
                 num_scans=0,
                 channels=self.detector_slots,
-                args=args
+                args=args,
+                auto_range=autorange
             )
         finally:
             try:
@@ -318,13 +319,14 @@ class NIR8164(LaserHAL):
                 self.configure_units()
             except Exception:
                 pass
-
+        
         wl = np.asarray(res.get('wavelengths_nm', []), dtype=np.float64)
         chs = res.get('channels_dbm', [])
         ch1 = np.asarray(chs[0], dtype=np.float64) if len(chs) >= 1 else np.full_like(wl, np.nan)
         ch2 = np.asarray(chs[1], dtype=np.float64) if len(chs) >= 2 else np.full_like(wl, np.nan)
-
-        return wl, ch1, ch2
+        ch3 = np.asarray(chs[2], dtype=np.float64) if len(chs) >= 3 else np.full_like(wl, np.nan)
+        ch4 = np.asarray(chs[3], dtype=np.float64) if len(chs) >= 4 else np.full_like(wl, np.nan)
+        return wl, ch1, ch2, ch3, ch4
 
     def sweep_cancel(self):
         try:
@@ -348,6 +350,7 @@ class NIR8164(LaserHAL):
         try:
             # self.write("*CLS")
             self.configure_units()
+            self.enable_output(True)
             pass
         except:
             pass
@@ -359,10 +362,6 @@ class NIR8164(LaserHAL):
             pass
         try:
             self.write("SOUR0:WAV:SWE:STAT STOP")
-        except Exception:
-            pass
-        try:
-            self.write("SOUR0:POW:STAT OFF")
         except Exception:
             pass
         try:

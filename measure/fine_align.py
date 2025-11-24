@@ -83,6 +83,7 @@ class FineAlign:
         try:
             self.log("Fine alignment starting…", "info")
             self._report(0.0, "Fine alignment: starting…")
+            self.nir_manager.enable_laser(True)  # Enforce laser on
             self.nir_manager.set_wavelength(self.ref_wl)
             self._start_time = time.monotonic()
 

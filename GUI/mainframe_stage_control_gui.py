@@ -252,7 +252,7 @@ class stage_control(App):
             auto = 1
 
         try:
-            # For now, make work for 1 channel
+            # For now, make work for 1 slot
             # Ranging
             if self.detector_auto_ch1 == {} and self.detector_range_ch1.get("range_dbm") is not None:
                 ch1_range = self.detector_range_ch1["range_dbm"]
@@ -262,19 +262,26 @@ class stage_control(App):
                 ch1_range = None
             else:
                 ch1_range = None  # Default to auto
-
+            
+            ar_ch1 = -10.0  # dBm
+            if ch1_range is None:
+                ar_ch1, _ = self.nir_manager.get_power_range()
+            
             # Reference
             if self.detector_ref_ch1.get("ref_dbm") is not None:
                 ch1_ref = self.detector_ref_ch1["ref_dbm"]
             else:
-                ch1_ref = -80 # dBm default
+                ch1_ref = -30 # dBm default
 
             wl, d1, d2 = self.nir_manager.sweep(
                 start_nm=self.sweep["start"],
                 stop_nm=self.sweep["end"],
                 step_nm=self.sweep["step"],
                 laser_power_dbm=self.sweep["power"],
-                args=(1,ch1_ref,ch1_range)
+                args=(0, ch1_ref, ch1_range,
+                      1, ch1_ref, ch1_range,
+                      2, ch1_ref, ch1_range),
+                autorange = ar_ch1
             )
             print("[Stage Control] Laser Sweep completed Successfully")
 
@@ -324,6 +331,10 @@ class stage_control(App):
             self.sweep["sweep"] = 0
             file = File("shared_memory", "Sweep", self.sweep)
             file.save()
+        if auto == 1:
+            # Always have the laser on during an auto 
+            self.nir_manager.enable_laser(True)
+            
         print("Sweep Done")
 
     def scan_move(self):
@@ -657,6 +668,9 @@ class stage_control(App):
         with self._scan_done.get_lock():
             self._scan_done.value = 1
             self.task_start = 0
+            
+        # For safety, turn off laser after an automated measurement
+        self.nir_manager.enable_laser(False)
         print("The Auto Sweep Is Finished")
         time.sleep(1)
         file = File("shared_memory", "AutoSweep", 0)
@@ -1098,6 +1112,7 @@ class stage_control(App):
             config.min_gradient_ss = self.fine_a.get("min_gradient_ss", 0.1) or 0.1
             config.gradient_iters = self.fine_a.get("max_iters", 10) or 10.0
             config.primary_detector = self.fine_a.get("detector", "ch1") or "ch1"
+            config.ref_wl = self.fine_a.get("ref_wl", 1550.0) or 1550.0
 
             # Create aligner
             self.fine_align = FineAlign(
@@ -1672,7 +1687,7 @@ class stage_control(App):
             "Setting",
             f"http://{local_ip}:7003",
             width=222 + web_w,
-            height=236 + web_h,
+            height=278 + web_h,
             resizable=True,
             on_top=True,
             hidden=False

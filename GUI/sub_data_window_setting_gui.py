@@ -35,112 +35,139 @@ class data_window(App):
 
     def construct_ui(self):
         data_window_container = StyledContainer(
-            variable_name="data_window_container", left=0, top=0, height=240, width=280
+            variable_name="data_window_container", left=0, top=0, height=300, width=280
         )
 
-        # Channel 1 Settings
-        StyledLabel(
-            container=data_window_container, text="Channel 1", variable_name="ch1_label", left=10,
-            top=15, width=100, height=25, font_size=110, flex=True, justify_content="left", color="#222", bold=True
+        # =============== Channel 1 ===============
+        StyledLabel(container=data_window_container, text="Channel 1",
+            variable_name="ch1_label", left=10, top=15,
+            width=100, height=25, font_size=110, flex=True,
+            justify_content="left", color="#222", bold=True
         )
 
-        StyledLabel(
-            container=data_window_container, text="Range", variable_name="ch1_range_lb", left=10,
-            top=45, width=60, height=25, font_size=100, flex=True, justify_content="right", color="#222"
+        # Row spacing: 30 px
+        StyledLabel(container=data_window_container, text="Range",
+            variable_name="ch1_range_lb", left=10, top=50,
+            width=60, height=25, font_size=100, flex=True,
+            justify_content="right", color="#222"
+        )
+
+        self.ch1_range = StyledSpinBox(
+            container=data_window_container, variable_name="ch1_range_in",
+            left=80, top=50, value=-10, width=60, height=24,
+            min_value=-70, max_value=10, step=1, position="absolute"
+        )
+
+        StyledLabel(container=data_window_container, text="dBm",
+            variable_name="ch1_range_unit", left=160, top=50,
+            width=30, height=25, font_size=100, flex=True,
+            justify_content="left", color="#222"
+        )
+
+        StyledLabel(container=data_window_container, text="Ref",
+            variable_name="ch1_ref_lb", left=10, top=80,
+            width=60, height=25, font_size=100, flex=True,
+            justify_content="right", color="#222"
+        )
+
+        self.ch1_ref = StyledSpinBox(
+            container=data_window_container, variable_name="ch1_ref_in",
+            left=80, top=80, value=-30, width=60, height=24,
+            min_value=-100, max_value=0, step=1, position="absolute"
+        )
+
+        StyledLabel(container=data_window_container, text="dBm",
+            variable_name="ch1_ref_unit", left=160, top=80,
+            width=30, height=25, font_size=100, flex=True,
+            justify_content="left", color="#222"
+        )
+
+        # Buttons shifted accordingly
+        self.apply_range_btn = StyledButton(
+            container=data_window_container, text="Apply Range",
+            variable_name="apply_range_btn", left=190, top=50,
+            height=24, width=80, font_size=85,
+            normal_color="#007BFF", press_color="#0056B3"
+        )
+
+        self.apply_ref_btn = StyledButton(
+            container=data_window_container, text="Apply Ref",
+            variable_name="apply_ref_btn", left=190, top=80,
+            height=24, width=80, font_size=85,
+            normal_color="#007BFF", press_color="#0056B3"
         )
 
         self.apply_auto_btn1 = StyledButton(
             container=data_window_container, text="Auto Range CH1",
-            variable_name="apply_auto_btn1", left=190, top=105, width=80, height=24, font_size=85,
+            variable_name="apply_auto_btn1", left=190, top=110,
+            width=80, height=24, font_size=85,
             normal_color="#007BFF", press_color="#0056B3"
         )
 
-
-        self.ch1_range = StyledSpinBox(
-            container=data_window_container, variable_name="ch1_range_in", left=80, top=45, value=-10,
-            width=60, height=24, min_value=-70, max_value=10, step=1, position="absolute"
+        # =============== Channel 2 ===============
+        # Start CH2 lower to avoid clutter (was 115 → now 140)
+        StyledLabel(container=data_window_container, text="Channel 2",
+            variable_name="ch2_label", left=10, top=140,
+            width=100, height=25, font_size=110, flex=True,
+            justify_content="left", color="#222", bold=True
         )
 
-        StyledLabel(
-            container=data_window_container, text="dBm", variable_name="ch1_range_unit", left=160, top=45,
-            width=30, height=25, font_size=100, flex=True, justify_content="left", color="#222"
+        StyledLabel(container=data_window_container, text="Range",
+            variable_name="ch2_range_lb", left=10, top=170,
+            width=60, height=25, font_size=100, flex=True,
+            justify_content="right", color="#222"
         )
 
-        StyledLabel(
-            container=data_window_container, text="Ref", variable_name="ch1_ref_lb", left=10, top=75,
-            width=60, height=25, font_size=100, flex=True, justify_content="right", color="#222"
+        self.ch2_range = StyledSpinBox(
+            container=data_window_container, variable_name="ch2_range_in",
+            left=80, top=170, value=-10, width=60, height=24,
+            min_value=-70, max_value=10, step=1, position="absolute"
         )
 
-        self.ch1_ref = StyledSpinBox(
-            container=data_window_container, variable_name="ch1_ref_in", left=80, top=75, value=-80,
-            width=60, height=24, min_value=-100, max_value=0, step=1, position="absolute"
+        StyledLabel(container=data_window_container, text="dBm",
+            variable_name="ch2_range_unit", left=160, top=170,
+            width=30, height=25, font_size=100, flex=True,
+            justify_content="left", color="#222"
         )
 
-        StyledLabel(
-            container=data_window_container, text="dBm", variable_name="ch1_ref_unit", left=160, top=75,
-            width=30, height=25, font_size=100, flex=True, justify_content="left", color="#222"
+        StyledLabel(container=data_window_container, text="Ref",
+            variable_name="ch2_ref_lb", left=10, top=200,
+            width=60, height=25, font_size=100, flex=True,
+            justify_content="right", color="#222"
         )
 
-        # Channel 2 Settings
-        StyledLabel(
-            container=data_window_container, text="Channel 2", variable_name="ch2_label", left=10,
-            top=115, width=100, height=25, font_size=110, flex=True, justify_content="left", color="#222", bold=True
+        self.ch2_ref = StyledSpinBox(
+            container=data_window_container, variable_name="ch2_ref_in",
+            left=80, top=200, value=-30, width=60, height=24,
+            min_value=-100, max_value=0, step=1, position="absolute"
         )
 
-        StyledLabel(
-            container=data_window_container, text="Range", variable_name="ch2_range_lb", left=10,
-            top=145, width=60, height=25, font_size=100, flex=True, justify_content="right", color="#222"
+        StyledLabel(container=data_window_container, text="dBm",
+            variable_name="ch2_ref_unit", left=160, top=200,
+            width=30, height=25, font_size=100, flex=True,
+            justify_content="left", color="#222"
+        )
+
+        # Buttons spaced 30 px apart
+        self.apply_range_btn2 = StyledButton(
+            container=data_window_container, text="Apply Range",
+            variable_name="apply_range_btn2", left=190, top=170,
+            height=24, width=80, font_size=85,
+            normal_color="#007BFF", press_color="#0056B3"
+        )
+
+        self.apply_ref_btn2 = StyledButton(
+            container=data_window_container, text="Apply Ref",
+            variable_name="apply_ref_btn2", left=190, top=200,
+            height=24, width=80, font_size=85,
+            normal_color="#007BFF", press_color="#0056B3"
         )
 
         self.apply_auto_btn2 = StyledButton(
             container=data_window_container, text="Auto Range CH2",
-            variable_name="apply_auto_btn2", left=190, top=185, width=80, height=24, font_size=85,
+            variable_name="apply_auto_btn2", left=190, top=230,
+            width=80, height=24, font_size=85,
             normal_color="#007BFF", press_color="#0056B3"
-        )
-        self.ch2_range = StyledSpinBox(
-            container=data_window_container, variable_name="ch2_range_in", left=80, top=145, value=-10,
-            width=60, height=24, min_value=-70, max_value=10, step=1, position="absolute"
-        )
-
-        StyledLabel(
-            container=data_window_container, text="dBm", variable_name="ch2_range_unit", left=160, top=145,
-            width=30, height=25, font_size=100, flex=True, justify_content="left", color="#222"
-        )
-
-        StyledLabel(
-            container=data_window_container, text="Ref", variable_name="ch2_ref_lb", left=10, top=175,
-            width=60, height=25, font_size=100, flex=True, justify_content="right", color="#222"
-        )
-
-        self.ch2_ref = StyledSpinBox(
-            container=data_window_container, variable_name="ch2_ref_in", left=80, top=175, value=-80,
-            width=60, height=24, min_value=-100, max_value=0, step=1, position="absolute"
-        )
-
-        StyledLabel(
-            container=data_window_container, text="dBm", variable_name="ch2_ref_unit", left=160, top=175,
-            width=30, height=25, font_size=100, flex=True, justify_content="left", color="#222"
-        )
-
-        # Apply buttons
-        self.apply_range_btn = StyledButton(
-            container=data_window_container, text="Apply Range", variable_name="apply_range_btn",
-            left=190, top=45, height=24, width=80, font_size=85, normal_color="#007BFF", press_color="#0056B3"
-        )
-
-        self.apply_ref_btn = StyledButton(
-            container=data_window_container, text="Apply Ref", variable_name="apply_ref_btn",
-            left=190, top=75, height=24, width=80, font_size=85, normal_color="#007BFF", press_color="#0056B3"
-        )
-
-        self.apply_range_btn2 = StyledButton(
-            container=data_window_container, text="Apply Range", variable_name="apply_range_btn2",
-            left=190, top=145, height=24, width=80, font_size=85, normal_color="#007BFF", press_color="#0056B3"
-        )
-
-        self.apply_ref_btn2 = StyledButton(
-            container=data_window_container, text="Apply Ref", variable_name="apply_ref_btn2",
-            left=190, top=175, height=24, width=80, font_size=85, normal_color="#007BFF", press_color="#0056B3"
         )
 
         # Wire up events

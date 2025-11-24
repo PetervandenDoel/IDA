@@ -83,12 +83,13 @@ def main():
 
     @timed_function
     def optical_function(range):
-        return dev.optical_sweep(1400.0, 1700.0, 0.0001, 1.0, args=(1, -30, range))
+        return dev.optical_sweep(1500.0, 1600.0, 0.01, 1.0, args=(1, -30, range,
+                                                                  2, -30, range))
     
     trials = []
 
     for x in [-i for i in range(10,30, 10)]:
-        wl, ch1, ch2 = optical_function(x)
+        wl, ch1, ch2, ch3, ch4 = optical_function(x)
         trials.append(
             {
                 "label": f"{x} dBm Range",
@@ -96,12 +97,23 @@ def main():
                 "channels": [ch1, ch2]
             }
         )
-    
-    wl, ch1, ch2 = optical_function(None)
+        trials.append(
+            {
+                "label": f"{x} dBm Range",
+                "wl": wl,
+                "channels": [ch3, ch4]
+            }
+        )
+    wl, ch1, ch2, ch3, ch4 = optical_function(None)
     trials.append({
         "label": "Auto dBm Range",
         "wl": wl,
         "channels": [ch1, ch2],
+    })
+    trials.append({
+        "label": "Auto dBm Range",
+        "wl": wl,
+        "channels": [ch3, ch4],
     })
 
     # Now show all trials side by side

@@ -316,7 +316,7 @@ class AutoSweepConfig(App):
             top=y,
             width=70,
             height=24,
-            value=-80,
+            value=-30,
             min_value=-120,
             max_value=20,
             step=1,
@@ -432,7 +432,7 @@ class AutoSweepConfig(App):
             try:
                 ref_dbm = float(self.ref_value.get_value())
             except Exception:
-                ref_dbm = -80.0
+                ref_dbm = -30.0
 
         if self.ref_value is not None and ref_dbm is not None:
             self._set_spin_safely(self.ref_value, ref_dbm)
@@ -535,7 +535,7 @@ class AutoSweepConfig(App):
         try:
             ref_dbm = float(self.ref_value.get_value())
         except Exception:
-            ref_dbm = -80.0
+            ref_dbm = -30.0
 
         File(
             "shared_memory",

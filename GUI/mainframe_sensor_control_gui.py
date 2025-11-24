@@ -235,7 +235,7 @@ class stage_control(App):
             "Detector Window Settings",
             f"http://{local_ip}:7006",
             width=300+web_w,
-            height=270+web_h,
+            height=330+web_h,
             resizable=True,
             on_top=True,
             hidden=False

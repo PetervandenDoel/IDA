@@ -3,6 +3,7 @@ from remi import start, App
 
 command_path = os.path.join("database", "command.json")
 
+
 class fine_align(App):
     def __init__(self, *args, **kwargs):
         self._user_mtime = None
@@ -36,7 +37,7 @@ class fine_align(App):
             variable_name="fine_align_setting_container",
             left=0,
             top=0,
-            height=210,   
+            height=242,   # 210 + 32 to account for shifted Confirm + new ref_wl row
             width=200
         )
 
@@ -160,7 +161,7 @@ class fine_align(App):
             justify_content="left", color="#222"
         )
 
-        # ----- Detector (pushed down one row) -----
+        # ----- Detector -----
         StyledLabel(
             container=fine_align_setting_container, text="Detector",
             variable_name="detector_lb",
@@ -179,11 +180,41 @@ class fine_align(App):
             position="absolute"
         )
 
-        # ----- Confirm button (pushed down as well) -----
+        # ----- Ref WL (inserted between Detector and Confirm) -----
+        StyledLabel(
+            container=fine_align_setting_container, text="Ref WL",
+            variable_name="ref_wl_lb",
+            left=0, top=170,
+            width=70, height=25,
+            font_size=100, flex=True,
+            justify_content="right", color="#222"
+        )
+
+        self.ref_wl = StyledSpinBox(
+            container=fine_align_setting_container,
+            variable_name="ref_wl_in",
+            left=80, top=170,
+            value=1550.0,
+            width=50, height=24,
+            min_value=1450.0, max_value=1650.0,
+            step=0.01,
+            position="absolute"
+        )
+
+        StyledLabel(
+            container=fine_align_setting_container, text="nm",
+            variable_name="ref_wl_nm",
+            left=150, top=170,
+            width=20, height=25,
+            font_size=100, flex=True,
+            justify_content="left", color="#222"
+        )
+
+        # ----- Confirm button (shifted down by one row) -----
         self.confirm_btn = StyledButton(
             container=fine_align_setting_container, text="Confirm",
             variable_name="confirm_btn",
-            left=68, top=174,
+            left=68, top=202,   # was 174, now 174 + 32
             height=25, width=70,
             font_size=90
         )
@@ -193,14 +224,14 @@ class fine_align(App):
         self.fine_align_setting_container = fine_align_setting_container
         return fine_align_setting_container
 
-
     def onclick_confirm(self):
         value = {
             "window_size": float(self.window_size.get_value()),
             "step_size": float(self.step_size.get_value()),
             "max_iters": int(self.max_iters.get_value()),
             "min_gradient_ss": float(self.min_grad_ss.get_value()),
-            "detector": str(self.detector.get_value())
+            "detector": str(self.detector.get_value()),
+            "ref_wl": float(self.ref_wl.get_value())
         }
         file = File("shared_memory", "FineA", value)
         file.save()
@@ -254,9 +285,11 @@ class fine_align(App):
             elif key == "fa_max_iters":
                 self.max_iters.set_value(val)
             elif key == "fa_min_gradient_ss":
-                self.min_gradient_ss.set_value(val)
+                self.min_grad_ss.set_value(val)
             elif key == "fa_detector":
                 self.detector.set_value(str(val))
+            elif key == "fa_ref_wl":
+                self.ref_wl.set_value(float(val))
             elif key == "fa_confirm":
                 self.onclick_confirm()
 
@@ -264,6 +297,7 @@ class fine_align(App):
             print("fa record")
             file = File("command", "command", new_command)
             file.save()
+
 
 if __name__ == "__main__":
     configuration = {
