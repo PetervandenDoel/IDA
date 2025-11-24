@@ -1,14 +1,36 @@
+import sys
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from remi import start, App
 import os, threading, webview
 from GUI.lib_gui import *
+from SMU.keithley2600_manager import Keithley2600Manager
+from SMU.config.smu_config import SMUConfiguration
 
 shared_path = os.path.join("database", "shared_memory.json")
 
 class elecprobe(App):
+    # Class-level variables (shared across all instances)
+    _smu_manager_instance = None
+    _smu_initialized = False
+    
     def __init__(self, *args, **kwargs):
         self._user_stime = None
         if "editing_mode" not in kwargs:
             super(elecprobe, self).__init__(*args, **{"static_file_path": {"my_res": "./res/"}})
+        
+        # Initialize SMU Manager (only once for all instances)
+        if not elecprobe._smu_initialized:
+            self._init_smu()
+            elecprobe._smu_initialized = True
+        
+        # Use the shared instance
+        self.smu_manager = elecprobe._smu_manager_instance
+        self.smu_connected = False
 
     def idle(self):
         try:
@@ -23,6 +45,67 @@ class elecprobe(App):
                     data = json.load(f)
             except Exception as e:
                 print(f"[Warn] read json failed: {e}")
+    
+    def _init_smu(self):
+        """Initialize SMU Manager (singleton pattern)"""
+        try:
+            # Create SMU configuration with default address
+            smu_config = SMUConfiguration(
+                visa_address="GPIB0::26::INSTR",  # Default VISA address
+                nplc=1.0,
+                off_mode="NORMAL",
+                debug=False
+            )
+            
+            # Create SMU Manager instance and store in class variable
+            elecprobe._smu_manager_instance = Keithley2600Manager(
+                config=smu_config,
+                use_shared_memory=False,
+                debug=False
+            )
+            
+            print("[SMU] SMU Manager created successfully")
+            
+        except Exception as e:
+            print(f"[SMU] Initialization failed: {e}")
+            elecprobe._smu_manager_instance = None
+    
+    def connect_smu(self):
+        """Connect to SMU device"""
+        if self.smu_manager is None:
+            print("[SMU] Manager not initialized")
+            return False
+        
+        try:
+            print("[SMU] Attempting to connect to device...")
+            print("[SMU] This may take a few seconds...")
+            success = self.smu_manager.initialize()
+            if success:
+                self.smu_connected = True
+                print("[SMU] ✓ SMU connected successfully")
+            else:
+                self.smu_connected = False
+                print("[SMU] ✗ SMU connection failed")
+                print("[SMU] Check:")
+                print("  - Device is powered on")
+                print("  - GPIB/USB cable is connected")
+                print("  - GPIB address is correct (current: GPIB0::26::INSTR)")
+                print("  - No other software is using the device")
+            return success
+        except Exception as e:
+            print(f"[SMU] Connection error: {e}")
+            self.smu_connected = False
+            return False
+    
+    def disconnect_smu(self):
+        """Disconnect from SMU device"""
+        if self.smu_manager and self.smu_connected:
+            try:
+                self.smu_manager.disconnect()
+                self.smu_connected = False
+                print("[SMU] SMU disconnected")
+            except Exception as e:
+                print(f"[SMU] Disconnect error: {e}")
 
     def main(self):
         return self.construct_ui()
@@ -349,10 +432,141 @@ class elecprobe(App):
                 left=BTN_R_LEFT, top=top, width=50, height=ROW_H, normal_color="#007BFF", press_color="#0056B3"
             ))
 
-        #self.tec_configure_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_configure_btn))
+        # Bind SMU button events
+        self.set_output_on.do_onclick(lambda *_: self.run_in_thread(self.onclick_output_on))
+        self.set_output_off.do_onclick(lambda *_: self.run_in_thread(self.onclick_output_off))
+        
+        # Bind SET buttons for each parameter
+        self.set_voltage_bt.do_onclick(lambda *_: self.run_in_thread(self.onclick_set_voltage))
+        self.set_current_bt.do_onclick(lambda *_: self.run_in_thread(self.onclick_set_current))
+        self.set_v_limit_bt.do_onclick(lambda *_: self.run_in_thread(self.onclick_set_v_limit))
+        self.set_i_limit_bt.do_onclick(lambda *_: self.run_in_thread(self.onclick_set_i_limit))
+        self.set_p_limit_bt.do_onclick(lambda *_: self.run_in_thread(self.onclick_set_p_limit))
 
         self.elecprobe_container = elecprobe_container
         return elecprobe_container
+    
+    # === SMU Control Event Handlers ===
+    
+    def onclick_output_on(self):
+        """Turn on SMU output"""
+        if not self.smu_connected:
+            # Try to connect first
+            success = self.connect_smu()
+            if not success:
+                print("[SMU] Cannot turn on output: Not connected")
+                return
+        
+        try:
+            channel = self.set_output.get_value()  # Get selected channel (A or B)
+            success = self.smu_manager.output_on(channel)
+            if success:
+                print(f"[SMU] Channel {channel} output ON")
+            else:
+                print(f"[SMU] Failed to turn on channel {channel}")
+        except Exception as e:
+            print(f"[SMU] Output ON error: {e}")
+    
+    def onclick_output_off(self):
+        """Turn off SMU output"""
+        if not self.smu_connected:
+            print("[SMU] Cannot turn off output: Not connected")
+            return
+        
+        try:
+            channel = self.set_output.get_value()  # Get selected channel (A or B)
+            success = self.smu_manager.output_off(channel)
+            if success:
+                print(f"[SMU] Channel {channel} output OFF")
+            else:
+                print(f"[SMU] Failed to turn off channel {channel}")
+        except Exception as e:
+            print(f"[SMU] Output OFF error: {e}")
+    
+    def onclick_set_voltage(self):
+        """Set voltage for selected channel"""
+        if not self.smu_connected:
+            print("[SMU] Not connected")
+            return
+        
+        try:
+            channel = self.set_output.get_value()
+            voltage = float(self.set_voltage_sb.get_value())
+            success = self.smu_manager.set_voltage(voltage, channel)
+            if success:
+                print(f"[SMU] Channel {channel} voltage set to {voltage} V")
+            else:
+                print(f"[SMU] Failed to set voltage")
+        except Exception as e:
+            print(f"[SMU] Set voltage error: {e}")
+    
+    def onclick_set_current(self):
+        """Set current for selected channel"""
+        if not self.smu_connected:
+            print("[SMU] Not connected")
+            return
+        
+        try:
+            channel = self.set_output.get_value()
+            current = float(self.set_current_sb.get_value()) / 1e6  # Convert µA to A
+            success = self.smu_manager.set_current(current, channel)
+            if success:
+                print(f"[SMU] Channel {channel} current set to {current*1e6} µA")
+            else:
+                print(f"[SMU] Failed to set current")
+        except Exception as e:
+            print(f"[SMU] Set current error: {e}")
+    
+    def onclick_set_v_limit(self):
+        """Set voltage limit for selected channel"""
+        if not self.smu_connected:
+            print("[SMU] Not connected")
+            return
+        
+        try:
+            channel = self.set_output.get_value()
+            v_limit = float(self.set_v_limit_sb.get_value())
+            success = self.smu_manager.set_voltage_limit(v_limit, channel)
+            if success:
+                print(f"[SMU] Channel {channel} voltage limit set to {v_limit} V")
+            else:
+                print(f"[SMU] Failed to set voltage limit")
+        except Exception as e:
+            print(f"[SMU] Set voltage limit error: {e}")
+    
+    def onclick_set_i_limit(self):
+        """Set current limit for selected channel"""
+        if not self.smu_connected:
+            print("[SMU] Not connected")
+            return
+        
+        try:
+            channel = self.set_output.get_value()
+            i_limit = float(self.set_i_limit_sb.get_value()) / 1e6  # Convert µA to A
+            success = self.smu_manager.set_current_limit(i_limit, channel)
+            if success:
+                print(f"[SMU] Channel {channel} current limit set to {i_limit*1e6} µA")
+            else:
+                print(f"[SMU] Failed to set current limit")
+        except Exception as e:
+            print(f"[SMU] Set current limit error: {e}")
+    
+    def onclick_set_p_limit(self):
+        """Set power limit for selected channel"""
+        if not self.smu_connected:
+            print("[SMU] Not connected")
+            return
+        
+        try:
+            channel = self.set_output.get_value()
+            p_limit = float(self.set_p_limit_sb.get_value()) / 1000  # Convert mW to W
+            success = self.smu_manager.set_power_limit(p_limit, channel)
+            if success:
+                print(f"[SMU] Channel {channel} power limit set to {p_limit*1000} mW")
+            else:
+                print(f"[SMU] Failed to set power limit")
+        except Exception as e:
+            print(f"[SMU] Set power limit error: {e}")
 
 def run_remi():
     start(
