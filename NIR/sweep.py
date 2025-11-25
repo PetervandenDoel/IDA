@@ -998,85 +998,102 @@ class HP816xLambdaScan:
                 raise RuntimeError(f"Prepare scan failed: {result} :: {self._err_msg(result)}")
 
             if len(args) > 0:
-                for i in range(0, len(args), 3):
-                    slot = args[i]      
-                    ref_val = args[i+1]
-                    range_val = args[i+2]
-                    for ch_num in [0]:  # hp816x_CHAN_1=0, hp816x_CHAN_2=1
-                        try:
-                            # Acc. to Chatty, we can set the 1.1 with InitialRangeParams
-                            # but setting the range params of the slot, revokes that setting
-                            # Additionally, we can set the slave channel w/o inital range params
-                            # And only with the PWM, so lets try
-                            # Try
-                            result = self.lib.hp816x_setInitialRangeParams(
-                                self.session,
-                                slot,
-                                c_uint16(0),  # No reset to default
-                                c_double(range_val if range_val is not None else (auto_range or -10.0)),
-                                c_double(0.0)
-                            )
-                            if result != 0:
-                                raise RuntimeError(f"hp816x_setInitialRangeParams failed: {result} :: {self._err_msg(result)}")
+                # args is [slot, ref_val, range_val]
+                # Only one set provided currently
+                slot     = int(args[0])
+                ref_val  = float(args[1])
+                range_val = args[2]            # None => AUTO
 
-                            time.sleep(3)
-                            # Range (auto/manual)
-                            result = self.lib.hp816x_set_PWM_powerRange(
-                                c_int32(self.session),
-                                c_int32(slot),
-                                c_int32(ch_num),
-                                c_uint16(0),
-                                c_double(auto_range or 0.0), 
-                            )
-                            if result != 0:
-                                raise RuntimeError(f"hp816x_set_PWM_powerRange failed: {result} :: {self._err_msg(result)}")
-                            time.sleep(3)
+                #############################################
+                # MASTER CHANNEL = ch_num = 0  (channel 1.1)
+                #############################################
+                ch_num = 0
+                pwm_channel = (slot - 1) * 2 + ch_num    # Correct MF PWM index
 
-                            # self.check_range(slot, ch_num)
-                            # time.sleep(3)
-                            # Power Units
-                            # result = self.lib.hp816x_set_PWM_powerUnit(
-                            #     self.session,
-                            #     c_int32(slot),
-                            #     c_int32(ch_num),
-                            #     c_int32(0)  # dBm
-                            # )
-                            # if result != 0:
-                            #     raise RuntimeError(f"hp816x_set_PWM_powerUnit failed: {result} :: {self._err_msg(result)}")
+                # 1) INITIAL RANGE PARAMS (MASTER ONLY)
+                # Only apply if user wants MANUAL range
+                if range_val is not None:
+                    result = self.lib.hp816x_setInitialRangeParams(
+                        self.session,
+                        c_int32(pwm_channel),     # <-- CORRECTED PWM channel
+                        c_uint16(0),              # resetToDefault = NO
+                        c_double(float(range_val)),
+                        c_double(0.0)             # rangeDecrement (unused)
+                    )
+                    if result != 0:
+                        raise RuntimeError(
+                            f"hp816x_setInitialRangeParams failed: {result} :: {self._err_msg(result)}"
+                        )
 
-                            # time.sleep(0.15)
-                            # # Reference source (ABS + internal, same as original lambda_scan)
-                            # result = self.lib.hp816x_set_PWM_referenceSource(
-                            #     self.session,
-                            #     slot,
-                            #     ch_num,
-                            #     0,  # ABSOLUTE (dBm)
-                            #     0,  # TO_REF internal
-                            #     0,
-                            #     0
-                            # )
-                            # if result != 0:
-                            #     raise RuntimeError(f"hp816x_set_PWM_referenceSource failed: {result} :: {self._err_msg(result)}")
-                            
-                            # time.sleep(0.15)
-                            # # Reference value
-                            # result = self.lib.hp816x_set_PWM_referenceValue(
-                            #     self.session,
-                            #     slot,
-                            #     ch_num,
-                            #     ref_val,
-                            #     0.0
-                            # )
-                            # if result != 0:
-                            #     raise RuntimeError(f"hp816x_set_PWM_referenceValue failed: {result} :: {self._err_msg(result)}")
-                            # time.sleep(0.15)
+                #############################################
+                # 2) SET RANGE MODE (AUTO/MANUAL)
+                #############################################
+                if range_val is None:
+                    # AUTO mode
+                    mode = 1        # AUTO
+                    fullscale = 0.0
+                else:
+                    # MANUAL mode
+                    mode = 0        # MANUAL
+                    fullscale = float(range_val)
 
-                        except Exception as e:
-                            print("Exception when setting detector windows in lambda sweep")
-                            print(e)
-                            import traceback 
-                            traceback.print_exc()
-                            pass
+                result = self.lib.hp816x_set_PWM_powerRange(
+                    c_int32(self.session),
+                    c_int32(slot),
+                    c_int32(ch_num),
+                    c_uint16(mode),
+                    c_double(fullscale),
+                )
+                if result != 0:
+                    raise RuntimeError(
+                        f"hp816x_set_PWM_powerRange failed: {result} :: {self._err_msg(result)}"
+                    )
+
+                #############################################
+                # 3) POWER UNIT = DBM
+                #############################################
+                result = self.lib.hp816x_set_PWM_powerUnit(
+                    self.session,
+                    c_int32(slot),
+                    c_int32(ch_num),
+                    c_int32(0)  # 0=dBm
+                )
+                if result != 0:
+                    raise RuntimeError(
+                        f"hp816x_set_PWM_powerUnit failed: {result} :: {self._err_msg(result)}"
+                    )
+
+                #############################################
+                # 4) REFERENCE SOURCE = ABSOLUTE + INTERNAL REF
+                #############################################
+                result = self.lib.hp816x_set_PWM_referenceSource(
+                    self.session,
+                    c_int32(slot),
+                    c_int32(ch_num),
+                    c_int32(0),   # ABSOLUTE (dBm)
+                    c_int32(0),   # INTERNAL ref
+                    c_uint16(0),
+                    c_uint16(0),
+                )
+                if result != 0:
+                    raise RuntimeError(
+                        f"hp816x_set_PWM_referenceSource failed: {result} :: {self._err_msg(result)}"
+                    )
+
+                #############################################
+                # 5) REFERENCE VALUE
+                #############################################
+                result = self.lib.hp816x_set_PWM_referenceValue(
+                    self.session,
+                    c_int32(slot),
+                    c_int32(ch_num),
+                    c_double(float(ref_val)),
+                    c_double(0.0)
+                )
+                if result != 0:
+                    raise RuntimeError(
+                        f"hp816x_set_PWM_referenceValue failed: {result} :: {self._err_msg(result)}"
+                    )
 
             # print('#############################')
             # print('PRE')
