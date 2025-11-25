@@ -324,9 +324,7 @@ class NIR8164(LaserHAL):
         chs = res.get('channels_dbm', [])
         ch1 = np.asarray(chs[0], dtype=np.float64) if len(chs) >= 1 else np.full_like(wl, np.nan)
         ch2 = np.asarray(chs[1], dtype=np.float64) if len(chs) >= 2 else np.full_like(wl, np.nan)
-        ch3 = np.asarray(chs[2], dtype=np.float64) if len(chs) >= 3 else np.full_like(wl, np.nan)
-        ch4 = np.asarray(chs[3], dtype=np.float64) if len(chs) >= 4 else np.full_like(wl, np.nan)
-        return wl, ch1, ch2, ch3, ch4
+        return wl, ch1, ch2
 
     def sweep_cancel(self):
         try:

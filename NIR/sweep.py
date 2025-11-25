@@ -215,6 +215,15 @@ class HP816xLambdaScan:
         ]
         self.lib.hp816x_set_PWM_powerUnit.restype = c_int32
 
+        # Debug
+        self.lib.hp816x_PWM_slaveChannelCheck.argtypes = [
+            c_int32,  # ViSession
+            c_int32,  # PWMSlot
+            c_uint16,  # Check on/off
+        ]
+        self.lib.hp816x_PWM_slaveChannelCheck.restype = c_int32
+        
+
     def _err_msg(self, status):
         if not self.session:
             return f"(no session) status={status}"
@@ -264,6 +273,9 @@ class HP816xLambdaScan:
                 self.session = session.value
                 self.lib.hp816x_errorQueryDetect(self.session, 1)  # VI_TRUE
                 self.lib.hp816x_registerMainframe(self.session)
+                self.lib.hp816x_PWM_slaveChannelCheck(
+                    self.session, c_int32(1), c_uint16(1)
+                )
                 self.connected = True
                 return True
         except Exception as e:
@@ -990,8 +1002,24 @@ class HP816xLambdaScan:
                     slot = args[i]      
                     ref_val = args[i+1]
                     range_val = args[i+2]
-                    for ch_num in [0, 1]:  # hp816x_CHAN_1=0, hp816x_CHAN_2=1
+                    for ch_num in [0]:  # hp816x_CHAN_1=0, hp816x_CHAN_2=1
                         try:
+                            # Acc. to Chatty, we can set the 1.1 with InitialRangeParams
+                            # but setting the range params of the slot, revokes that setting
+                            # Additionally, we can set the slave channel w/o inital range params
+                            # And only with the PWM, so lets try
+                            # Try
+                            result = self.lib.hp816x_setInitialRangeParams(
+                                self.session,
+                                slot,
+                                c_uint16(0),  # No reset to default
+                                c_double(range_val if range_val is not None else (auto_range or -10.0)),
+                                c_double(0.0)
+                            )
+                            if result != 0:
+                                raise RuntimeError(f"hp816x_setInitialRangeParams failed: {result} :: {self._err_msg(result)}")
+
+                            time.sleep(3)
                             # Range (auto/manual)
                             result = self.lib.hp816x_set_PWM_powerRange(
                                 c_int32(self.session),
@@ -1002,72 +1030,64 @@ class HP816xLambdaScan:
                             )
                             if result != 0:
                                 raise RuntimeError(f"hp816x_set_PWM_powerRange failed: {result} :: {self._err_msg(result)}")
-                            time.sleep(1)
-
-                            # Try
-                            print(
-                                f's{slot}|cn{ch_num}\n',
-                                f'RV: {range_val if range_val is not None else auto_range}'
-                            )
-                            result = self.lib.hp816x_setInitialRangeParams(
-                                self.session,
-                                slot,
-                                c_uint16(0),  # No reset to default
-                                c_double(range_val if range_val is not None else auto_range),
-                                c_double(0.0)
-                            )
-                            if result != 0:
-                                raise RuntimeError(f"hp816x_setInitialRangeParams failed: {result} :: {self._err_msg(result)}")
-
                             time.sleep(3)
-                            # Power unit
-                            result = self.lib.hp816x_set_PWM_powerUnit(
-                                self.session,
-                                c_int32(slot),
-                                c_int32(ch_num),
-                                c_int32(0)  # dBm
-                            )
-                            if result != 0:
-                                raise RuntimeError(f"hp816x_set_PWM_powerUnit failed: {result} :: {self._err_msg(result)}")
 
-                            time.sleep(0.15)
-                            # Reference source (ABS + internal, same as original lambda_scan)
-                            result = self.lib.hp816x_set_PWM_referenceSource(
-                                self.session,
-                                slot,
-                                ch_num,
-                                0,  # ABSOLUTE (dBm)
-                                0,  # TO_REF internal
-                                0,
-                                0
-                            )
-                            if result != 0:
-                                raise RuntimeError(f"hp816x_set_PWM_referenceSource failed: {result} :: {self._err_msg(result)}")
+                            # self.check_range(slot, ch_num)
+                            # time.sleep(3)
+                            # Power Units
+                            # result = self.lib.hp816x_set_PWM_powerUnit(
+                            #     self.session,
+                            #     c_int32(slot),
+                            #     c_int32(ch_num),
+                            #     c_int32(0)  # dBm
+                            # )
+                            # if result != 0:
+                            #     raise RuntimeError(f"hp816x_set_PWM_powerUnit failed: {result} :: {self._err_msg(result)}")
+
+                            # time.sleep(0.15)
+                            # # Reference source (ABS + internal, same as original lambda_scan)
+                            # result = self.lib.hp816x_set_PWM_referenceSource(
+                            #     self.session,
+                            #     slot,
+                            #     ch_num,
+                            #     0,  # ABSOLUTE (dBm)
+                            #     0,  # TO_REF internal
+                            #     0,
+                            #     0
+                            # )
+                            # if result != 0:
+                            #     raise RuntimeError(f"hp816x_set_PWM_referenceSource failed: {result} :: {self._err_msg(result)}")
                             
-                            time.sleep(0.15)
-                            # Reference value
-                            result = self.lib.hp816x_set_PWM_referenceValue(
-                                self.session,
-                                slot,
-                                ch_num,
-                                ref_val,
-                                0.0
-                            )
-                            if result != 0:
-                                raise RuntimeError(f"hp816x_set_PWM_referenceValue failed: {result} :: {self._err_msg(result)}")
-                            time.sleep(0.15)
+                            # time.sleep(0.15)
+                            # # Reference value
+                            # result = self.lib.hp816x_set_PWM_referenceValue(
+                            #     self.session,
+                            #     slot,
+                            #     ch_num,
+                            #     ref_val,
+                            #     0.0
+                            # )
+                            # if result != 0:
+                            #     raise RuntimeError(f"hp816x_set_PWM_referenceValue failed: {result} :: {self._err_msg(result)}")
+                            # time.sleep(0.15)
 
-                        except Exception:
+                        except Exception as e:
                             print("Exception when setting detector windows in lambda sweep")
+                            print(e)
+                            import traceback 
+                            traceback.print_exc()
                             pass
 
             # print('#############################')
             # print('PRE')
             # print('#############################')
-            time.sleep(0.5)
-            self.check_both(1, 0)
-            time.sleep(0.5)
-            self.check_both(1, 1)
+            # time.sleep(0.5)
+            # # self.check_both(1, 0)
+            # # time.sleep(0.5)
+            # # self.check_both(1, 1)
+            # self.check_range(1,0)
+            # time.sleep(3)
+            # self.check_range(1,1)
 
             points_seg = int(num_points_seg.value)
             C = int(num_arrays_seg.value)
