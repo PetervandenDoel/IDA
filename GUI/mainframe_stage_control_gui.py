@@ -12,6 +12,7 @@ from measure.area_sweep import AreaSweep
 from measure.fine_align import FineAlign
 from measure.config.area_sweep_config import AreaSweepConfiguration
 from measure.config.fine_align_config import FineAlignConfiguration
+from utils.progress_write_helpers import write_progress_file
 import time
 
 filename = "coordinates.json"
@@ -1064,26 +1065,55 @@ class stage_control(App):
         for _, motor_class in self.stage_manager.motors.items():
             motor_class._stop_requested = False
         
+        # Progress bar update
+        p_bar = [val for val in [x, y, z, chip, fiber] if val == "Yes"]
+        total_steps = len(p_bar)
+        current_step = 0
+        
+        def update_progress(activity):
+            percent = (current_step / total_steps) * 100.0 if total_steps > 0 else 0.0
+            write_progress_file(
+                activity=activity,
+                percent=percent,
+                n=current_step,
+                total=total_steps
+            )
+
         if x == "Yes":
+            update_progress("Homing X axis")
             xok, xlim = asyncio.run(self.stage_manager.home_limits(AxisType.X))
             if xok:
                 self.x_limit_lb.set_text(f"lim: {round(xlim[0], 2)}~{round(xlim[1], 2)}")
+            current_step += 1
+            update_progress("Homed X axis")
         if y == "Yes":
+            update_progress("Homing Y axis")
             yok, ylim = asyncio.run(self.stage_manager.home_limits(AxisType.Y))
             if yok:
                 self.y_limit_lb.set_text(f"lim: {round(ylim[0], 2)}~{round(ylim[1], 2)}")
+            current_step += 1
+            update_progress("Homed Y axis")
         if z == "Yes":
+            update_progress("Homing Z axis")
             zok, zlim = asyncio.run(self.stage_manager.home_limits(AxisType.Z))
             if zok:
                 self.z_limit_lb.set_text(f"lim: {round(zlim[0], 2)}~{round(zlim[1], 2)}")
+            current_step += 1
+            update_progress("Homed Z axis")
         if chip == "Yes":
+            update_progress("Homing Chip Rotation axis")
             cok, clim = asyncio.run(self.stage_manager.home_limits(AxisType.ROTATION_CHIP))
             if cok:
                 self.chip_limit_lb.set_text(f"lim: {round(clim[0], 2)}~{3.6}")
+            current_step += 1
+            update_progress("Homed Chip Rotation axis")
         if fiber == "Yes":
+            update_progress("Homing Fiber Rotation axis")
             fok, flim = asyncio.run(self.stage_manager.home_limits(AxisType.ROTATION_FIBER))
             if fok:
                 self.fiber_limit_lb.set_text(f"lim: 0~45")
+            current_step += 1
+            update_progress("Homed Fiber Rotation axis")
 
         with self._scan_done.get_lock():
             self._scan_done.value = 1
