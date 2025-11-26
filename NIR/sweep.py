@@ -21,6 +21,8 @@ logging.basicConfig(level=logging.DEBUG, format='%(levelname)s: %(message)s')
 pyvisa_logger = logging.getLogger('pyvisa')
 pyvisa_logger.setLevel(logging.WARNING)
 
+from utils.progress_write_helpers import FileProgressTqdm, write_progress_file
+
 """
 This class currently has a few working implemenations and variations
 Its purpose it to take Multi and Single frame sweeps for a set of channels.
@@ -638,7 +640,7 @@ class HP816xLambdaScan:
 
     def lambda_scan(self, start_nm: float = 1490, stop_nm: float = 1600, step_pm: float = 0.5,
                     power_dbm: float = 3.0, num_scans: int = 0, channels: list = [1],
-                    args: list = (1,-30,None)):
+                    args: list = (1, -30, None)):
         """
         Mainframe lambda scan, only to be taken with internal power detectors and TLS.
         Internal triggering is set as the default. Equally spaced datapoints in enabled
@@ -968,7 +970,21 @@ class HP816xLambdaScan:
         out_by_ch = {ch: np.full(n_target, np.nan, dtype=np.float64) for ch in channels}
 
         bottom = float(start_nm)
-        for seg in tqdm(range(segments), desc="Lambda Scan Stitching", unit="seg"):
+
+        # Progress bar updates using helper
+        def progress_cb(percent, n, total, eta_seconds):
+            write_progress_file(
+                activity="Lambda Scan Stitching",
+                percent=percent,
+                eta_seconds=eta_seconds,
+                n=n,
+                total=total
+            )
+
+        for seg in FileProgressTqdm(range(segments),
+                                    desc="Lambda Scan Stitching",
+                                    unit="seg",
+                                    progress_cb=progress_cb):
             if self._cancel:
                 raise RuntimeError("Cancelling Lambda Scan Stitching")
 
