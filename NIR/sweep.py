@@ -1253,17 +1253,17 @@ class HP816xLambdaScan:
         auto_range: Optional[float] = None,
     ):
         if channels is None:
-            channels = [1]  # physical channels: 1.1->1, 1.2->2
+            channels = [1]
 
         if args is None:
-            args = [1, -30, None]  # [slot, reference_value, manual_range or None]
+            args = [1, -30, None]
 
         if not self.session:
             raise RuntimeError("Not connected to instrument")
 
         self._cancel = False
 
-        # --- normalize params ---
+        # --- normalize ---
         start_nm = max(start_nm, 1490)
         stop_nm = min(stop_nm, 1640)
         step_pm = max(step_pm, 0.1)
@@ -1304,15 +1304,16 @@ class HP816xLambdaScan:
         reference_val = float(args[1])
         manual_range = args[2]
 
-        # --- build MF PWM list using fixed find_pwm_channel ---
+        # --- build MF PWM list using find_pwm_channel3 ---
         mf_pwm_list: list[int] = []
         for ch in channels:
-            pwm = self.find_pwm_channel3(slot, ch)  # physical ch (1,2) → MF index
+            pwm = self.find_pwm_channel3(slot, ch)
             mf_pwm_list.append(pwm)
 
         PWMArrayType = c_int32 * len(mf_pwm_list)
 
-        total_pwm = self.get_no_of_reg_pwm_channels()
+        # *** PATCH 1: prepare MUST use len(channels), NOT total PWM count ***
+        pwm_channels_for_prepare = len(channels)
 
         for _ in FileProgressTqdm(
             range(segments),
@@ -1332,14 +1333,14 @@ class HP816xLambdaScan:
             num_pts_seg = c_uint32()
             num_arrays_seg = c_uint32()
 
-            # --- PREPARE MF SCAN (fixed signature) ---
+            # --- PREPARE MF SCAN (patched) ---
             result = self.lib.hp816x_prepareMfLambdaScan(
                 self.session,
-                c_int32(0),                     # dBm
+                c_int32(0),                 # dBm
                 c_double(power_dbm),
-                c_int32(0),                     # HIGHPOW
+                c_int32(0),                 # HIGHPOW
                 c_int32(num_scans),
-                c_int32(total_pwm),      # count of MF PWM channels
+                c_int32(pwm_channels_for_prepare),   # *** PATCHED ***
                 c_double(bottom_wl_m),
                 c_double(top_wl_m),
                 c_double(step_m),
@@ -1352,7 +1353,7 @@ class HP816xLambdaScan:
             num_pts = int(num_pts_seg.value)
             num_arrays = int(num_arrays_seg.value)
 
-            # --- RANGE/REF FOR MASTER (physical 1.1 -> channel index 0) ---
+            # --- master ch=1 handling exactly as before ---
             master_ch = 1
             master_pwm = self.find_pwm_channel(slot, master_ch)
 
@@ -1379,7 +1380,7 @@ class HP816xLambdaScan:
             result = self.lib.hp816x_set_PWM_powerRange(
                 c_int32(self.session),
                 c_int32(slot),
-                c_int32(master_ch - 1),      # 0-based: 1.1→0
+                c_int32(master_ch - 1),
                 c_uint16(range_mode),
                 c_double(fullscale),
             )
@@ -1392,7 +1393,7 @@ class HP816xLambdaScan:
                 self.session,
                 c_int32(slot),
                 c_int32(master_ch - 1),
-                c_int32(0),                  # dBm
+                c_int32(0),
             )
             if result != 0:
                 raise RuntimeError(
@@ -1403,8 +1404,8 @@ class HP816xLambdaScan:
                 self.session,
                 c_int32(slot),
                 c_int32(master_ch - 1),
-                c_int32(0),      # ABSOLUTE
-                c_int32(0),      # INTERNAL
+                c_int32(0),
+                c_int32(0),
                 c_int32(0),
                 c_int32(0),
             )
@@ -1439,7 +1440,6 @@ class HP816xLambdaScan:
                 (wl_full_nm >= bottom_nm - 1e-6)
                 & (wl_full_nm <= top_nm + 1e-6)
             )
-
             if not keep_mask.any():
                 bottom_nm = top_nm + step_nm
                 continue
@@ -1449,14 +1449,14 @@ class HP816xLambdaScan:
             valid = (idx >= 0) & (idx < n_target)
             idx = idx[valid]
 
-            # --- FETCH POWER ARRAYS (1-based index!) ---
+            # --- FETCH POWER ARRAYS ---
+            # *** PATCH 2: Use 0-based array index EXACTLY like lambda_scan2 ***
             for array_idx in range(num_arrays):
                 buf = (c_double * num_pts)()
-                power_array_index = array_idx + 1  # 1..num_arrays
 
                 result = self.lib.hp816x_getLambdaScanResult(
                     self.session,
-                    c_int32(power_array_index),
+                    c_int32(array_idx),      # *** PATCHED: 0-based ***
                     c_int32(1),
                     c_double(-80.0),
                     buf,
@@ -1464,7 +1464,7 @@ class HP816xLambdaScan:
                 )
                 if result != 0:
                     raise RuntimeError(
-                        f"getLambdaScanResult array {power_array_index} failed: "
+                        f"getLambdaScanResult array {array_idx} failed: "
                         f"{result} :: {self._err_msg(result)}"
                     )
 
@@ -1499,7 +1499,6 @@ class HP816xLambdaScan:
             "channels_dbm": [out_by_ch[ch] for ch in channels],
             "num_points": int(n_target),
         }
-
 
 
     def check_both(self, slot, chan):
