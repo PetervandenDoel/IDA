@@ -245,6 +245,18 @@ class area_scan(App):
         file = File("shared_memory", "AreaS", value)
         file.save()
         print("Confirm Area Scan Setting:", value)
+        import webview
+        # Set to a hidden window
+        local_ip = '127.0.0.1'
+        webview.create_window(
+            "Setting",
+            f"http://{local_ip}:7004",
+            width=222,
+            height=266,
+            resizable=True,
+            on_top=True,
+            hidden=True
+        )
 
     # ---------------- Commands ----------------
     def execute_command(self, path=command_path):

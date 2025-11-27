@@ -109,6 +109,19 @@ class limit(App):
         file = File("shared_memory", "Limit", lim)
         file.save()
         print("Confirm Limit Setting")
+        
+        import webview
+        # Set to a hidden window
+        local_ip = "127.0.0.1"
+        webview.create_window(
+            "Setting",
+            f"http://{local_ip}:7002",
+            width=222,
+            height=266,
+            resizable=True,
+            on_top=True,
+            hidden=True
+        )
 
     def execute_command(self, path=command_path):
         lim = 0

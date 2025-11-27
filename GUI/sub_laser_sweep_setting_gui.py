@@ -150,6 +150,18 @@ class add_btn(App):
         file.save()
 
         print("Confirm Sweep Setting")
+        import webview
+        # Set to a hidden window
+        local_ip = "127.0.0.1"
+        webview.create_window(
+            "Setting",
+            f"http://{local_ip}:7101",
+            width=222,
+            height=266,
+            resizable=True,
+            on_top=True,
+            hidden=True
+        )
 
     def execute_command(self, path=command_path):
         sweep = 0

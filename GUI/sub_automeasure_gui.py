@@ -572,8 +572,20 @@ class AutoSweepConfig(App):
             File("shared_memory", "FineA", finea).save()
 
         print(
-            "[AutoSweepConfig] Updated Sweep (merged), "
-            "Ch1 range/auto/ref, and FineA.detector (if present)"
+            "[AutoSweepConfig] Updated Sweep , "
+            "Ch1 range/auto/ref, and FineA.detector "
+        )
+        import webview
+        # Set to a hidden window
+        local_ip = '127.0.0.1'
+        webview.create_window(
+            "Setting",
+            f"http://{local_ip}:7109",
+            width=222,
+            height=266,
+            resizable=True,
+            on_top=True,
+            hidden=True
         )
 
 
