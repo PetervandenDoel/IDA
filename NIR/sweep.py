@@ -230,6 +230,10 @@ class HP816xLambdaScan:
         ]
         self.lib.hp816x_getChannelLocation.restype = c_int32
 
+        self.lib.hp816x_getNoOfRegPWMChannels_Q.argtypes = [
+            c_int32, POINTER(c_int32)
+        ]
+
     def _err_msg(self, status):
         if not self.session:
             return f"(no session) status={status}"
@@ -1237,7 +1241,7 @@ class HP816xLambdaScan:
             "num_points": int(n_target),
         }
     
-    def lambda_scan2(
+    def lambda_scan3(
         self,
         start_nm: float = 1490,
         stop_nm: float = 1600,
@@ -1307,7 +1311,8 @@ class HP816xLambdaScan:
             mf_pwm_list.append(pwm)
 
         PWMArrayType = c_int32 * len(mf_pwm_list)
-        pwm_array = PWMArrayType(*mf_pwm_list)
+
+        total_pwm = self.get_no_of_reg_pwm_channels()
 
         for _ in FileProgressTqdm(
             range(segments),
@@ -1334,8 +1339,7 @@ class HP816xLambdaScan:
                 c_double(power_dbm),
                 c_int32(0),                     # HIGHPOW
                 c_int32(num_scans),
-                c_int32(len(mf_pwm_list)),      # count of MF PWM channels
-                pwm_array,                      # list of MF PWM indices
+                c_int32(total_pwm),      # count of MF PWM channels
                 c_double(bottom_wl_m),
                 c_double(top_wl_m),
                 c_double(step_m),
@@ -1356,7 +1360,7 @@ class HP816xLambdaScan:
                 result = self.lib.hp816x_setInitialRangeParams(
                     self.session,
                     c_int32(master_pwm),
-                    c_int32(0),
+                    c_uint16(0),
                     c_double(float(manual_range)),
                     c_double(0.0),
                 )
@@ -1376,7 +1380,7 @@ class HP816xLambdaScan:
                 c_int32(self.session),
                 c_int32(slot),
                 c_int32(master_ch - 1),      # 0-based: 1.1→0
-                c_int32(range_mode),
+                c_uint16(range_mode),
                 c_double(fullscale),
             )
             if result != 0:
@@ -1604,6 +1608,20 @@ class HP816xLambdaScan:
 
         raise RuntimeError(f"No MF PWM index found for slot {slot}, channel {channel}")
 
+    def get_no_of_reg_pwm_channels(self):
+        num_pwm = c_int32()
+        status = self.lib.hp816x_getNoOfRegPWMChannels_Q(
+            self.session,
+            byref(num_pwm)
+        )
+
+        if status != 0:
+            raise RuntimeError(
+                f"hp816x_getNoOfRegPWMChannels_Q failed: {status} :: "
+                f"{self._err_msg(status)}"
+            )
+
+        return num_pwm.value
 
     def cancel(self):
         self._cancel = True
@@ -1612,4 +1630,3 @@ class HP816xLambdaScan:
         if self.session:
             self.lib.hp816x_close(self.session)
             self.connected = None
- 
