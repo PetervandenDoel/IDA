@@ -129,6 +129,11 @@ class Starts(App):
             left=270, top=180, normal_color="#007BFF", press_color="#0056B3",
         )
 
+        self.settings_btn = StyledButton(
+            container=starts_container, text="Settings", variable_name="settings",
+            left=370, top=180, width=80, normal_color="#007BFF", press_color="#0056B3",
+        )
+
         self.user_btn = StyledButton(
             container=starts_container, text="Remove", variable_name="user_remove",
             left=440, top=100, width=60, height=30, normal_color="#dc3545", press_color="#c82333",
@@ -151,6 +156,7 @@ class Starts(App):
 
         # ── event bindings
         self.add_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_add))
+        self.settings_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_settings))
         self.user_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_user_remove))
         self.project_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_project_remove))
 
@@ -167,6 +173,19 @@ class Starts(App):
             f"http://{local_ip}:7000",
             width=212+web_w,
             height=185+web_h,
+            resizable=True,
+            on_top=True
+        )
+
+    def onclick_settings(self):
+        # file = File("shared_memory", "Settings_User", self.user_dd.get_value())
+        # file.save()
+        local_ip = '127.0.0.1'
+        webview.create_window(
+            "User Settings",
+            f"http://{local_ip}:7005",
+            width=500+web_w,
+            height=600+web_h,
             resizable=True,
             on_top=True
         )

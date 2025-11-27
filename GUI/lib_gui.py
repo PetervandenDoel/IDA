@@ -539,6 +539,164 @@ class File():
 
         self._safe_write(data, filepath)
 
+
+class UserConfigManager:
+    """
+    Class to manager user and project configuration settings on startup.
+
+    mainframe_stage_control_gui.py uses this to load settings on startup.
+    
+    Extensible only for stage control and sensor control as of right now.
+    """
+    
+    def __init__(self, user, project):
+        self.user = user
+        self.project = project
+        self.user_dir = os.path.join("UserData", user)
+        self.project_dir = os.path.join("UserData", user, project)
+        self.user_defaults_path = os.path.join(self.user_dir, "user_defaults.json")
+        self.project_config_path = os.path.join(self.project_dir, "project_config.json")
+        
+        # Default configuration template
+        self.default_config = {
+            "Sweep": {
+                "start": 1540.0,
+                "end": 1580.0,
+                "step": 0.001,
+                "power": 0.0,
+                "on": False,
+                "done": "Laser On"
+            },
+            "DetectorRange_Ch1": {},
+            "DetectorRange_Ch2": {},
+            "DetectorReference_Ch1": {},
+            "DetectorReference_Ch2": {},
+            "DetectorAutoRange_Ch1": {},
+            "DetectorAutoRange_Ch2": {},
+            "AreaS": {
+                "x_size": 20.0,
+                "x_step": 1.0,
+                "y_size": 20.0,
+                "y_step": 1.0,
+                "pattern": "spiral",
+                "primary_detector": "MAX",
+                "plot": "New"
+            },
+            "FineA": {
+                "window_size": 10.0,
+                "step_size": 1.0,
+                "min_gradient_ss": 0.1,
+                "max_iters": 10,
+                "detector": "ch1",
+                "ref_wl": 1550.0,
+                "timeout_s": 30
+            },
+            "InitialPositions": {},  # Applies no defaults
+            "Configuration": {
+                "stage": "",  # No config stored by default
+                "sensor": ""  # No config stored by default
+            }
+        }
+    
+    def load_config(self):
+        """
+        Load merged configuration with hierarchy:
+        1. Start with defaults
+        2. Override with user defaults (if exists)
+        3. Override with project config (if exists)
+        """
+        # Start with system defaults
+        config = self._deep_copy_dict(self.default_config)
+        
+        # Load user defaults
+        user_defaults = self._load_json_safe(self.user_defaults_path)
+        if user_defaults:
+            config = self._merge_configs(config, user_defaults)
+        
+        # Load project overrides
+        project_config = self._load_json_safe(self.project_config_path)
+        if project_config:
+            config = self._merge_configs(config, project_config)
+            
+        return config
+    
+    def save_user_defaults(self, config_dict):
+        """Save user-level default settings"""
+        os.makedirs(self.user_dir, exist_ok=True)
+        file_helper = File("user_defaults", "", "")
+        file_helper._safe_write(config_dict, self.user_defaults_path)
+    
+    def save_project_config(self, config_dict):
+        """Save project-specific configuration overrides"""
+        os.makedirs(self.project_dir, exist_ok=True)
+        file_helper = File("project_config", "", "")
+        file_helper._safe_write(config_dict, self.project_config_path)
+    
+    def get_user_defaults(self):
+        """Get only user-level defaults (without project overrides)"""
+        config = self._deep_copy_dict(self.default_config)
+        user_defaults = self._load_json_safe(self.user_defaults_path)
+        if user_defaults:
+            config = self._merge_configs(config, user_defaults)
+        return config
+    
+    def get_project_overrides(self):
+        """Get only project-specific overrides"""
+        return self._load_json_safe(self.project_config_path) or {}
+    
+    def initialize_new_project(self, new_project_name):
+        """
+        Initialize a new project with user defaults.
+        Called when a new project is created.
+        """
+        new_project_dir = os.path.join("UserData", self.user, new_project_name)
+        os.makedirs(new_project_dir, exist_ok=True)
+        os.makedirs(os.path.join(new_project_dir, "Spectrum"), exist_ok=True)
+        os.makedirs(os.path.join(new_project_dir, "HeatMap"), exist_ok=True)
+        
+        # Copy user defaults to new project (so they can be customized)
+        user_defaults = self.get_user_defaults()
+        if user_defaults != self.default_config:  # Only if user has customized defaults
+            new_project_config_path = os.path.join(new_project_dir, "project_config.json")
+            file_helper = File("project_config", "", "")
+            file_helper._safe_write(user_defaults, new_project_config_path)
+    
+    def _load_json_safe(self, filepath):
+        """Safely load JSON file, return None if not found or invalid"""
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError, PermissionError):
+            return None
+    
+    def _deep_copy_dict(self, d):
+        """Deep copy a dictionary"""
+        import copy
+        return copy.deepcopy(d)
+    
+    def _merge_configs(self, base, override):
+        """
+        Recursively merge configuration dictionaries.
+        Override values take precedence over base values.
+        """
+        import copy
+        result = copy.deepcopy(base)
+        
+        for key, value in override.items():
+            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+                result[key] = self._merge_configs(result[key], value)
+            else:
+                result[key] = copy.deepcopy(value)
+        
+        return result
+    
+    @staticmethod
+    def get_config_for_user_project(user, project):
+        """Convenience method to get config for any user/project combination"""
+        manager = UserConfigManager(user, project)
+        return manager.load_config()
+
+
 class plot():
     def __init__(self, x=None, y=None, filename=None, fileTime=None, user=None, name=None, project=None, data=None,
                  file_format=None, file_path="", xticks = None, yticks=None, pos_i=None, pattern="crosshair"):

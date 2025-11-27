@@ -89,7 +89,12 @@ class stage_control(App):
         self.fine_align = None
         self.task_laser = 0
         self._progress_lock = threading.Lock()  # For progress.json 'w'
-
+        
+        # User config settings 
+        self.load_user_settings = True
+        self.apply_initial_positions = True
+        self.initial_positions = {}
+        
         if "editing_mode" not in kwargs:
             super(stage_control, self).__init__(*args, **{"static_file_path": {"my_res": "./res/"}})
 
@@ -149,7 +154,41 @@ class stage_control(App):
                     # write back to disk
                     with open(shared_path, "w", encoding="utf-8") as f:
                         json.dump(data, f, indent=2)
-            
+                
+                if self.load_user_settings:
+                    # Load user settings on initial boot up 
+                    self.load_user_settings = False  # Do this only once
+                    # Import the class
+                    from GUI.lib_gui import UserConfigManager
+
+                    # Load hierarchical config
+                    config_manager = UserConfigManager(self.user, self.project)
+                    user_settings = config_manager.load_config()
+
+                    # Load sweep settings
+                    self.sweep = user_settings.get("Sweep", {})
+                    self.detector_range_ch1 = user_settings.get("DetectorRange_Ch1", {})
+                    self.detector_range_ch2 = user_settings.get("DetectorRange_Ch2", {})
+                    self.detector_ref_ch1 = user_settings.get("DetectorReference_Ch1", {})
+                    self.detector_ref_ch2 = user_settings.get("DetectorReference_Ch2", {})
+                    self.detector_auto_ch1 = user_settings.get("DetectorAutoRange_Ch1", {})
+                    self.detector_auto_ch2 = user_settings.get("DetectorAutoRange_Ch2", {})
+                    self.detector_window_change = user_settings.get("Detector_Change", "0") or "0"
+
+                    # Load FA / Area Scan settings
+                    self.area_s = user_settings.get("AreaS", {})
+                    self.fine_a = user_settings.get("FineA", {})
+
+                    # Load instrument connections and factory 
+                    self.configuration = user_settings.get("Configuration", {})  # Stage and Sensor config
+                    # Other configs can be added later
+
+                    self.initial_positions = user_settings.get("InitialPositions", {})
+                    if self.initial_positions == {}:
+                        # If there is no preference to initial positions
+                        # Do not apply anything
+                        self.apply_initial_positions = False
+
             except Exception as e:
                 print(f"[Warn] read json failed: {e}")
 
@@ -422,6 +461,21 @@ class stage_control(App):
             if success_stage:
                 if self.stage_manager.config.driver_types[AxisType.X] == "Corvus_controller":
                     self.onclick_home()  # Run "fake" home to get lims
+                
+                # Apply initial position settings
+                if self.apply_initial_positions:
+                    init_x = self.initial_positions.get("X", None)
+                    init_y = self.initial_positions.get("Y", None)
+                    init_fa = self.initial_positions.get("FA", None) 
+                    if init_x is not None:
+                        _ = asyncio.run(self.stage_manager.move_axis(AxisType.X, self.initial_x_config, False))
+                    if init_y is not None:
+                        _ = asyncio.run(self.stage_manager.move_axis(AxisType.Y, self.initial_y_config, False))
+                    if init_fa is not None:
+                        _ = asyncio.run(self.stage_manager.move_axis(AxisType.ROTATION_FIBER, self.initial_fa_config, False))
+                    self.apply_initial_positions = False  # Apply only once
+
+                # Setup state machine
                 self.configuration_stage = 1
                 self.configuration_check["stage"] = 2
                 file = File(
