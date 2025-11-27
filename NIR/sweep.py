@@ -934,7 +934,7 @@ class HP816xLambdaScan:
         step_pm: float = 0.5,
         power_dbm: float = 3.0,
         num_scans: int = 0,
-        channels: list = None,
+        channels: list = [0,1],
         args: list = None,
         auto_range: Optional[float] = None,
     ):
@@ -1021,10 +1021,10 @@ class HP816xLambdaScan:
         manual_range = args[2]
 
         # ------------- BUILD THE CORRECT MF PWM CHANNEL LIST ------------------
-        mf_pwm_list = []
-        for ch in channels:
-            pwm = self.find_pwm_channel(slot, ch)
-            mf_pwm_list.append(pwm)
+        mf_pwm_list = [0, 1]
+        # for ch in channels:
+        #     pwm = self.find_pwm_channel(slot, ch)
+        #     mf_pwm_list.append(pwm)
 
         # ctypes array for Keysight DLL
         PWMArrayType = c_int32 * len(mf_pwm_list)
@@ -1054,12 +1054,11 @@ class HP816xLambdaScan:
 
             result = self.lib.hp816x_prepareMfLambdaScan(
                 self.session,
-                c_int32(0),                     # dBm
+                c_int32(0),                     
                 c_double(power_dbm),
-                c_int32(0),                     # HIGHPOW
+                c_int32(0),                     
                 c_int32(num_scans),
-                c_int32(len(mf_pwm_list)),      # CORRECT COUNT
-                pwm_array,                      # CORRECT MF PWM CHANNELS
+                c_int32(len(mf_pwm_list)),      
                 c_double(bottom_wl_m),
                 c_double(top_wl_m),
                 c_double(step_m),
@@ -1083,7 +1082,7 @@ class HP816xLambdaScan:
                 result = self.lib.hp816x_setInitialRangeParams(
                     self.session,
                     c_int32(master_pwm),
-                    c_int32(0),                     # resetToDefault = NO
+                    c_uint16(0),                    # resetToDefault = NO
                     c_double(float(manual_range)),
                     c_double(0.0),                  # decrement
                 )
@@ -1104,7 +1103,7 @@ class HP816xLambdaScan:
                 c_int32(self.session),
                 c_int32(slot),
                 c_int32(master_ch - 1),      # 0-based channel index
-                c_int32(range_mode),
+                c_uint16(range_mode),
                 c_double(fullscale),
             )
             if result != 0:
@@ -1557,7 +1556,7 @@ class HP816xLambdaScan:
         slot_number = c_int32()
         channel_number = c_int32()
 
-        for pwm in range(1000):
+        for pwm in range(5):
             result = self.lib.hp816x_getChannelLocation(
                 self.session,
                 c_int32(pwm),
@@ -1565,14 +1564,14 @@ class HP816xLambdaScan:
                 byref(slot_number),
                 byref(channel_number)
             )
-
             if result != 0:
                 continue  # invalid index → skip
+            print(f"{pwm} mfn: {mf_number.value} | sn: {slot_number.value} | chn: {channel_number.value}")
 
             if slot_number.value == slot and channel_number.value == channel:
                 return pwm
 
-        raise RuntimeError(f"No MF PWM index found for slot {slot}, channel {channel}")
+        # raise RuntimeError(f"No MF PWM index found for slot {slot}, channel {channel}")
     
     def find_pwm_channel3(self, slot: int, channel: int) -> int:
         """
