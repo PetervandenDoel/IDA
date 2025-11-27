@@ -328,8 +328,9 @@ class StageManager:
         try:
             # X y safety handling
             if axis != AxisType.Z:
-                # position 5000 isnt al;ways reachable !!! and this will hang this await funtion forever, as there is a
-                # hard phyical limit on z. So if the Z position at start is less than 5000, then this handling hangs
+                # This should be verified for per stage handling
+                # This is compatible with limits at Iris stage
+                # But may not work at other stages. Adjust as needed.
                 await self.move_axis(AxisType.Z, position=9000, relative=False, wait_for_completion=True)
 
             # Special handling for Z axis safety
