@@ -7,22 +7,37 @@ import numpy as np
 # --------------------------------------------------------------------------------------
 dll = ctypes.WinDLL("C:\\Program Files\\IVI Foundation\\VISA\\Win64\\Bin\\hp816x_64.dll")  
 
-def err(st, msg=""):
+def check(st, msg=""):
     if st != 0:
         buf = create_string_buffer(256)
         dll.hp816x_error_message(st, buf)
-        raise RuntimeError(f"{msg} (status {st}): {buf.value.decode()}")
+        raise RuntimeError(f"{msg}: {buf.value.decode()}")
 
 
-# --------------------------------------------------------------------------------------
-# Function prototypes
-# --------------------------------------------------------------------------------------
+# ==============================================================================
+# Prototypes
+# ==============================================================================
 
-dll.hp816x_init.argtypes  = [c_char_p, c_int32, c_int32, POINTER(c_int32)]
+dll.hp816x_init.argtypes = [c_char_p, c_int32, c_int32, POINTER(c_int32)]
 dll.hp816x_close.argtypes = [c_int32]
 
-dll.hp816x_registerMainframe.argtypes   = [c_int32]
+dll.hp816x_registerMainframe.argtypes = [c_int32]
 dll.hp816x_unregisterMainframe.argtypes = [c_int32]
+
+dll.hp816x_getNoOfRegPWMChannels_Q.argtypes = [c_int32, POINTER(c_uint32)]
+
+dll.hp816x_getChannelLocation.argtypes = [
+    c_int32,
+    c_int32,
+    POINTER(c_int32),
+    POINTER(c_int32),
+    POINTER(c_int32)
+]
+
+dll.hp816x_set_PWM_powerRange.argtypes = [
+    c_int32, c_int32, c_int32,
+    c_int16, c_double
+]
 
 dll.hp816x_prepareMfLambdaScan.argtypes = [
     c_int32, c_int32, c_double, c_int32, c_int32,
@@ -30,27 +45,21 @@ dll.hp816x_prepareMfLambdaScan.argtypes = [
     POINTER(c_uint32), POINTER(c_uint32)
 ]
 
-dll.hp816x_executeMfLambdaScan.argtypes = [
-    c_int32,
-    POINTER(c_double)
-]
+dll.hp816x_executeMfLambdaScan.argtypes = [c_int32, POINTER(c_double)]
 
 dll.hp816x_getLambdaScanResult.argtypes = [
     c_int32, c_int32, c_int32, c_double,
     POINTER(c_double), POINTER(c_double)
 ]
 
-dll.hp816x_getNoOfRegPWMChannels_Q.argtypes = [
-    c_int32, POINTER(c_uint32)
-]
 
-
-# --------------------------------------------------------------------------------------
-# CHANNEL LOCATION HELPER (optional debug)
-# --------------------------------------------------------------------------------------
-def debug_get_channel_locations(session, max_channels=16):
-    print("=== MF CHANNEL MAP ===")
-    for pwm in range(max_channels):
+# ==============================================================================
+# Helpers
+# ==============================================================================
+def get_pwm_map(session, n_pwm):
+    """Return list of tuples (pwmIndex, slot, head)."""
+    mapping = []
+    for pwm in range(n_pwm):
         mf = c_int32()
         slot = c_int32()
         head = c_int32()
@@ -62,135 +71,129 @@ def debug_get_channel_locations(session, max_channels=16):
             byref(slot),
             byref(head)
         )
-        if st != 0:
-            break
+        check(st, f"getChannelLocation failed for PWM {pwm}")
 
-        print(f"PWM {pwm}: MF={mf.value}, slot={slot.value}, head={head.value}")
-    print("=======================")
+        mapping.append((pwm, slot.value, head.value))
+    return mapping
 
 
-# --------------------------------------------------------------------------------------
-# DYNAMIC MF SCAN
-# --------------------------------------------------------------------------------------
+def apply_manual_ranging(session, mapping, range_dbm):
+    """Apply manual power ranging to all PWM channels."""
+    for pwm, slot, head in mapping:
+        st = dll.hp816x_set_PWM_powerRange(
+            session,
+            slot,       # slot number
+            head,       # channelNumber
+            0,          # Manual mode
+            c_double(range_dbm)
+        )
+        check(st, f"set_PWM_powerRange failed (slot {slot}, head {head})")
 
-def mf_scan_dynamic():
-    # --------------------------------------------------------
-    # Step 1: Initialize
-    # --------------------------------------------------------
-    session = c_int32()
-    st = dll.hp816x_init(b"GPIB0::20::INSTR", 1, 0, byref(session))
-    err(st, "init failed")
 
-    print("Initialized session =", session.value)
-
-    # --------------------------------------------------------
-    # Step 2: Register
-    # --------------------------------------------------------
-    st = dll.hp816x_registerMainframe(session)
-    err(st, "register MF failed")
-
-    print("Mainframe registered.")
-
-    # --------------------------------------------------------
-    # Step 3: Find number of PWM channels
-    # --------------------------------------------------------
-    pwm_count = c_uint32()
-    st = dll.hp816x_getNoOfRegPWMChannels_Q(session, byref(pwm_count))
-    err(st, "getNoOfRegPWMChannels failed")
-
-    N_PWM = pwm_count.value
-    print(f"Registered PWM channels = {N_PWM}")
-
-    if N_PWM == 0:
-        raise RuntimeError("ERROR: No PWM channels registered — MF scan impossible.")
-
-    # (Optional) Show mapping
-    debug_get_channel_locations(session, max_channels=N_PWM)
-
-    # --------------------------------------------------------
-    # Step 4: Prepare MF scan dynamically
-    # --------------------------------------------------------
+def run_mf_scan(session, n_pwm):
+    """Prepare + execute + fetch MF scan."""
     start = 1550e-9
-    stop  = 1551e-9
-    step  = 1e-12
+    stop = 1551e-9
+    step = 1e-12
 
     num_points = c_uint32()
     num_arrays = c_uint32()
 
     st = dll.hp816x_prepareMfLambdaScan(
         session,
-        c_int32(0),        # dBm
-        c_double(0.0),     # TLS power
-        c_int32(0),        # optical output = high power
-        c_int32(0),        # one scan
-        c_int32(N_PWM),    # USE DETECTED NUMBER HERE
+        c_int32(0),
+        c_double(0.0),
+        c_int32(0),
+        c_int32(0),
+        c_int32(n_pwm),      # dynamic
         c_double(start),
         c_double(stop),
         c_double(step),
         byref(num_points),
         byref(num_arrays)
     )
-    err(st, "prepare MF failed")
+    check(st, "prepare MF failed")
 
-    print("Prepare OK:")
-    print("  datapoints =", num_points.value)
-    print("  arrays     =", num_arrays.value)
-
-    # --------------------------------------------------------
-    # Step 5: Allocate arrays
-    # --------------------------------------------------------
     N = num_points.value
     A = num_arrays.value
 
     wavelength = (c_double * N)()
     power_arrays = [(c_double * N)() for _ in range(A)]
 
-    # --------------------------------------------------------
-    # Step 6: Execute
-    # --------------------------------------------------------
-    print("Executing MF scan...")
     st = dll.hp816x_executeMfLambdaScan(session, wavelength)
-    err(st, "execute MF failed")
+    check(st, "execute failed")
 
-    print("Execution OK.")
+    wl_out = np.array(wavelength[:])
+    pow_out = np.zeros((A, N))
 
-    # --------------------------------------------------------
-    # Step 7: Read out all N_PWM channels
-    # --------------------------------------------------------
-    ALL_LAMBDA = np.zeros(N)
-    ALL_POWER = np.zeros((A, N))
-
-    for ch in range(A):
-        pw_buf = power_arrays[ch]
-        wl_buf = (c_double * N)()
+    for i in range(A):
+        pw = power_arrays[i]
+        wl = (c_double * N)()
 
         st = dll.hp816x_getLambdaScanResult(
             session,
-            c_int32(ch),
+            c_int32(i),
             c_int32(0),
             c_double(-80),
-            pw_buf,
-            wl_buf
+            pw,
+            wl
         )
-        err(st, f"getLambdaScanResult ch {ch} failed")
+        check(st, f"getLambdaScanResult ch {i} failed")
 
-        ALL_LAMBDA[:] = wl_buf[:]
-        ALL_POWER[ch, :] = pw_buf[:]
-        print(f"Read channel {ch}")
+        pow_out[i, :] = pw[:]
 
-    # --------------------------------------------------------
-    # Cleanup
-    # --------------------------------------------------------
+    return wl_out, pow_out
+
+
+# ==============================================================================
+# MAIN
+# ==============================================================================
+def main():
+    session = c_int32()
+    st = dll.hp816x_init(b"GPIB0::20::INSTR", 1, 0, byref(session))
+    check(st, "init failed")
+
+    dll.hp816x_registerMainframe(session)
+
+    # detect PWM channels
+    n_pwm = c_uint32()
+    dll.hp816x_getNoOfRegPWMChannels_Q(session, byref(n_pwm))
+    n_pwm = n_pwm.value
+
+    mapping = get_pwm_map(session, n_pwm)
+
+    # 1) Baseline scan (auto range)
+    wl_auto, pw_auto = run_mf_scan(session, n_pwm)
+
+    # 2) Manual range
+    apply_manual_ranging(session, mapping, range_dbm=-30.0)
+
+    wl_man, pw_man = run_mf_scan(session, n_pwm)
+
     dll.hp816x_unregisterMainframe(session)
     dll.hp816x_close(session)
 
-    return ALL_LAMBDA, ALL_POWER
+    # plot comparison
+    plt.figure(figsize=(10, 6))
+    plt.subplot(2, 1, 1)
+    plt.title("Auto Range")
+    plt.plot(wl_auto*1e9, pw_auto[0], label="Ch0")
+    if pw_auto.shape[0] > 1:
+        plt.plot(wl_auto*1e9, pw_auto[1], label="Ch1")
+    plt.ylabel("dBm")
+    plt.legend()
+
+    plt.subplot(2, 1, 2)
+    plt.title("Manual Range (-30 dBm)")
+    plt.plot(wl_man*1e9, pw_man[0])
+    if pw_man.shape[0] > 1:
+        plt.plot(wl_man*1e9, pw_man[1])
+    plt.xlabel("Wavelength (nm)")
+    plt.ylabel("dBm")
+
+    plt.tight_layout()
+    plt.show()
 
 
-# --------------------------------------------------------------------------------------
-# MAIN
-# --------------------------------------------------------------------------------------
 if __name__ == "__main__":
-    wl, pw = mf_scan_dynamic()
-    print("Wavelength:", wl[:10], "...")
-    print("Power[0]:", pw[0][:10], "...")
+    main()
