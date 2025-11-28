@@ -1304,6 +1304,10 @@ class HP816xLambdaScan:
         reference_val = float(args[1])
         manual_range = args[2]
 
+        self.debug_mf_state()
+
+        time.sleep(5)
+
         # --- build MF PWM list using find_pwm_channel3 ---
         mf_pwm_list: list[int] = []
         for ch in channels:
@@ -1621,6 +1625,58 @@ class HP816xLambdaScan:
             )
 
         return num_pwm.value
+    
+    def debug_mf_state(self):
+        """
+        Print the MF PWM map and basic MF scan parameters.
+        This does NOT change any state; it only queries the DLL.
+        """
+        print("\n===== DEBUG MF STATE =====")
+
+        # 1) Total registered PWM channels (global MF index space)
+        try:
+            num_pwm_u32 = c_uint32()
+            # If you haven't set argtypes, ctypes will coerce the ints.
+            st = self.lib.hp816x_getNoOfRegPWMChannels_Q(
+                self.session,
+                byref(num_pwm_u32)
+            )
+            if st != 0:
+                print(f"getNoOfRegPWMChannels_Q failed: {st} :: {self._err_msg(st)}")
+                total_pwm = 0
+            else:
+                total_pwm = int(num_pwm_u32.value)
+        except AttributeError:
+            # if prototype not bound yet
+            print("hp816x_getNoOfRegPWMChannels_Q not bound; assuming 8")
+            total_pwm = 8
+
+        print(f"Total registered PWM channels reported by DLL: {total_pwm}")
+
+        # 2) MF PWM → (mainframe, slot, channel) map
+        mf_number = c_int32()
+        slot_number = c_int32()
+        channel_number = c_int32()
+
+        for pwm in range(total_pwm):
+            st = self.lib.hp816x_getChannelLocation(
+                self.session,
+                c_int32(pwm),
+                byref(mf_number),
+                byref(slot_number),
+                byref(channel_number),
+            )
+            if st != 0:
+                print(f"  PWM {pwm}: getChannelLocation failed: {st} :: {self._err_msg(st)}")
+                continue
+
+            print(
+                f"  PWM {pwm}: MF={mf_number.value}, "
+                f"slot={slot_number.value}, ch={channel_number.value}"
+            )
+
+        print("===== END DEBUG MF STATE =====\n")
+
 
     def cancel(self):
         self._cancel = True
