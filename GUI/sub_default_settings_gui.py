@@ -143,7 +143,7 @@ class DefaultSettingsConfig(App):
             self._update_ui_from_config(merged_config)
             
         except Exception as e:
-            print(f"[DefaultSettings] Error loading config: {e}")
+            print(f"[Default_Settings] Error loading config: {e}")
 
     def _update_ui_from_config(self, config):
         """Update UI widgets from configuration."""
@@ -499,7 +499,7 @@ class DefaultSettingsConfig(App):
         )
         StyledLabel(
             container=root,
-            text="�m",
+            text="um",
             variable_name="x_step_unit",
             left=220,
             top=y,
@@ -540,7 +540,7 @@ class DefaultSettingsConfig(App):
         )
         StyledLabel(
             container=root,
-            text="�m",
+            text="um",
             variable_name="y_size_unit",
             left=220,
             top=y,
@@ -581,7 +581,7 @@ class DefaultSettingsConfig(App):
         )
         StyledLabel(
             container=root,
-            text="�m",
+            text="um",
             variable_name="y_step_unit",
             left=220,
             top=y,
@@ -666,7 +666,7 @@ class DefaultSettingsConfig(App):
         )
         StyledLabel(
             container=root,
-            text="�m",
+            text="um",
             variable_name="window_size_unit",
             left=220,
             top=y,
@@ -707,7 +707,7 @@ class DefaultSettingsConfig(App):
         )
         StyledLabel(
             container=root,
-            text="�m",
+            text="um",
             variable_name="fa_step_unit",
             left=220,
             top=y,
@@ -795,7 +795,7 @@ class DefaultSettingsConfig(App):
         )
         StyledLabel(
             container=root,
-            text="μm",
+            text="um",
             variable_name="init_x_unit",
             left=220,
             top=y,
@@ -836,7 +836,7 @@ class DefaultSettingsConfig(App):
         )
         StyledLabel(
             container=root,
-            text="μm",
+            text="um",
             variable_name="init_y_unit",
             left=220,
             top=y,
@@ -1079,12 +1079,12 @@ class DefaultSettingsConfig(App):
             # Save as user defaults
             if self.config_manager:
                 self.config_manager.save_user_defaults(config)
-                print(f"[DefaultSettings] Saved user defaults for {self.current_user}")
+                print(f"[Default_Settings] Saved user defaults for {self.current_user}")
             else:
-                print("[DefaultSettings] Config manager not initialized")
+                print("[Default_Settings] Config manager not initialized")
                 
         except Exception as e:
-            print(f"[DefaultSettings] Error saving user defaults: {e}")
+            print(f"[Default_Settings] Error saving user defaults: {e}")
 
     def onclick_save_project(self):
         """Save current settings as project overrides."""
@@ -1095,12 +1095,12 @@ class DefaultSettingsConfig(App):
             # Save as project config
             if self.config_manager:
                 self.config_manager.save_project_config(config)
-                print(f"[DefaultSettings] Saved project config for {self.current_user}/{self.current_project}")
+                print(f"[Default_Settings] Saved project config for {self.current_user}/{self.current_project}")
             else:
-                print("[DefaultSettings] Config manager not initialized")
+                print("[Default_Settings] Config manager not initialized")
                 
         except Exception as e:
-            print(f"[DefaultSettings] Error saving project config: {e}")
+            print(f"[Default_Settings] Error saving project config: {e}")
 
     def _build_config_from_ui(self):
         """Build configuration dictionary from UI widget values."""
@@ -1137,7 +1137,7 @@ class DefaultSettingsConfig(App):
             }
             return config
         except Exception as e:
-            print(f"[DefaultSettings] Error building config from UI: {e}")
+            print(f"[Default_Settings] Error building config from UI: {e}")
             return {}
 
 
