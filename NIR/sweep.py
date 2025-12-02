@@ -11,7 +11,7 @@ from ctypes import (c_double,
                     POINTER,
                     byref,
                     create_string_buffer)
-from math import ceil
+from math import ceil, floor
 from typing import Optional
 from tqdm import tqdm
 import time
@@ -1501,11 +1501,10 @@ class HP816xLambdaScan:
         For values throughout the wavelength sweep
         """
         # --- Get wl span ---
-        wl_span = wl_len[1] - wl_len[0]
-        increment = 5  
-        steps = wl_span // increment + 1
+        wl_span = float(wl_len[1]) - float(wl_len[0])
+        steps = int(max(2, floor(wl_span / 5e-9)))
         wl_samples = np.linspace(wl_len[0], wl_len[1], steps)
-        if len(wl_samples) <= 1:
+        if wl_samples.size <= 1:
             # If no values are found, small reading
             # Take the bottom and top of wavelength
             wl_samples = [wl_len[0], wl_len[1]]
@@ -1530,6 +1529,12 @@ class HP816xLambdaScan:
             pwm_list.append(sample.value)
         
         # Filter nan readings
+        pwm_arr = np.array(pwm_list, dtype=float)
+        pwm_arr = np.nan_to_num(pwm_arr, nan=-np.inf)
+
+        # Filter -> sane readings
+        get_sane = pwm_arr[pwm_arr > -70.0]
+        final_arr = get_sane[get_sane <= 0.0]
 
         # --- Determine range ---
         # Some cases the reading may span a larger range than 43 dBm
@@ -1537,8 +1542,7 @@ class HP816xLambdaScan:
         # Coupling; this is not a valid reading for autoranging. If a
         # but more realistically will be around 50 dBm or 60 dBm 
         # Which ends up being noise in most cases. 
-        p_min = min(pwm_list)
-        p_max = max(pwm_list)
+        p_max = max(final_arr)
         range_val = ceil(p_max / 10) * 10
         self.apply_manual_ranging(pwm, slot, head, range_val)
 
