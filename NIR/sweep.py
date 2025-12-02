@@ -1228,7 +1228,7 @@ class HP816xLambdaScan:
             "num_points": int(n_target),
         }
     
-    def lambda_scan3(
+    def lambda_scan_clean(
         self,
         start_nm: float = 1490.0,
         stop_nm: float = 1600.0,
@@ -1250,7 +1250,7 @@ class HP816xLambdaScan:
 
         # --- Detect PWM channels, and enumerate ---
         # --- This will dynamically allocate PWM chns, heads, slots ---
-        n_pwm = c_uint32()
+        n_pwm = c_int32()
         self.lib.hp816x_getNoOfRegPWMChannels_Q(self.session, byref(n_pwm))
         n_pwm = n_pwm.value
 
@@ -1307,8 +1307,11 @@ class HP816xLambdaScan:
 
         segments = max(1, int(np.ceil(n_target / float(eff_points_budget))))
 
-        out_by_ch: dict[int, np.ndarray] = {
-            ch: np.full(n_target, np.nan, dtype=np.float64) for ch in channels
+        # --- allocate stitched output arrays ---
+        # keyed by physical detector identity (slot, head)
+        out_by_ch = {
+            (slot, head): np.full(n_target, np.nan, dtype=np.float64)
+            for (pwm, slot, head) in mapping
         }
 
         # --- Write tqdm progress to file for pb ---
@@ -1417,36 +1420,38 @@ class HP816xLambdaScan:
                 pwr_full = np.ctypeslib.as_array(buf, shape=(points_seg,)).copy()
                 pwr_seg = pwr_full[mask][valid]
 
-                # position-based mapping: array1->channels[0], array2->channels[1], ...
-                pos = array_idx - 1
-                if pos < len(channels):
-                    ch_label = channels[pos]
-                    if pwr_seg.size != idx.size:
-                        m = min(pwr_seg.size, idx.size)
-                        if m > 0:
-                            out_by_ch[ch_label][idx[:m]] = pwr_seg[:m]
-                    else:
-                        out_by_ch[ch_label][idx] = pwr_seg
+                # map MF array index -> mapping index
+                map_idx = array_idx - 1
+
+                # retrieve physical detector identity
+                pwm, slot, head = mapping[map_idx]
+                key = (slot, head)
+
+                # stitch partial segment into global storage
+                if pwr_seg.size != idx.size:
+                    m = min(pwr_seg.size, idx.size)
+                    if m > 0:
+                        out_by_ch[key][idx[:m]] = pwr_seg[:m]
+                else:
+                    out_by_ch[key][idx] = pwr_seg
 
             if top_nm >= stop_nm - 1e-12:
                 break
 
             bottom_nm = top_nm + step_nm
 
-        # --- post-processing / clipping ------------------------------------
+        # --- post-processing / clipping ---
         dbm_floor = -80.0
-        for ch in channels:
-            np.clip(out_by_ch[ch], a_min=dbm_floor, a_max=0.0, out=out_by_ch[ch])
-            if n_target > 1 and np.isnan(out_by_ch[ch][-1]):
-                nz = np.where(~np.isnan(out_by_ch[ch]))[0]
+        for key in out_by_ch:
+            np.clip(out_by_ch[key], a_min=dbm_floor, a_max=0.0, out=out_by_ch[key])
+            if n_target > 1 and np.isnan(out_by_ch[key][-1]):
+                nz = np.where(~np.isnan(out_by_ch[key]))[0]
                 if nz.size:
-                    out_by_ch[ch][-1] = out_by_ch[ch][nz[-1]]
+                    out_by_ch[key][-1] = out_by_ch[key][nz[-1]]
 
-        channels_dbm = [out_by_ch[ch] for ch in channels]
         return {
             "wavelengths_nm": wl_target,
-            "channels": list(channels),
-            "channels_dbm": channels_dbm,
+            "power_dbm_by_detector": out_by_ch,
             "num_points": int(n_target),
         }
 
