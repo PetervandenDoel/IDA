@@ -320,13 +320,14 @@ class NIR8164(LaserHAL):
         
         wl = np.asarray(res.get('wavelengths_nm', []), dtype=np.float64)
         power_dict = res.get('power_dbm_by_detector')
+        print(power_dict)
         chs = []
         # should be like
-        slots = 2  # but this should be dynamically set
+        slots = 1  # but this should be dynamically set
         heads = 2  # And this should be from a mapping
         for i in range(1,slots+1):
-            for j in range(1,heads+1):
-                chs.append([power_dict(i,j)])
+            for j in range(0,heads):
+                chs.append(power_dict[(i,j)])
         return wl, chs[0], chs[1]
 
     def sweep_cancel(self):

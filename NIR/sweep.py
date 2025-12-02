@@ -11,6 +11,7 @@ from ctypes import (c_double,
                     POINTER,
                     byref,
                     create_string_buffer)
+from math import ceil
 from typing import Optional
 from tqdm import tqdm
 import time
@@ -234,6 +235,16 @@ class HP816xLambdaScan:
             c_int32, POINTER(c_int32)
         ]
 
+        # --- For Autoranging implementation ---
+        self.lib.hp816x_PWM_fetchValue.argtypes = [
+            c_int32, c_uint32, c_uint32, POINTER(c_double)
+        ]
+        self.lib.hp816x_PWM_fetchValue.restype = c_int32
+        
+        self.lib.hp816x_set_TLS_wavelength.argtypes = [
+            c_int32, c_int32, c_int32, c_double
+        ]
+
     def _err_msg(self, status):
         if not self.session:
             return f"(no session) status={status}"
@@ -283,9 +294,9 @@ class HP816xLambdaScan:
                 self.session = session.value
                 self.lib.hp816x_errorQueryDetect(self.session, 1)  # VI_TRUE
                 self.lib.hp816x_registerMainframe(self.session)
-                self.lib.hp816x_PWM_slaveChannelCheck(
-                    self.session, c_int32(1), c_uint16(1)
-                )
+                # self.lib.hp816x_PWM_slaveChannelCheck(
+                #     self.session, c_int32(1), c_uint16(1)
+                # )
                 self.connected = True
                 return True
         except Exception as e:
@@ -1251,7 +1262,7 @@ class HP816xLambdaScan:
         mapping = self.get_pwm_map(n_pwm)
 
         # --- Determine Detector settings using map ---
-        mapping_dict = {m[-1]: m[:-1] for m in mapping}  # {slot: (PWMIndex, Head)}
+        mapping_dict = {m[1]: (m[0], m[2]) for m in mapping}  # {slot: (PWMIndex, Head)}
         if args is not None:
             detector_dict = {d[0]: d[1:] for d in args}
         else:
@@ -1268,7 +1279,9 @@ class HP816xLambdaScan:
             # Fallback to default if missing settings for a slot
             det_info = detector_dict.get(slot, (-30.0, None))
             full_mapping[slot] = (pwm_info, det_info)
-        
+        print(
+            f'FULL: {full_mapping}'
+        )
         # --- normalize sweep parameters ---
         start_nm = max(1490.0, float(start_nm))
         stop_nm = min(1640.0, float(stop_nm))
@@ -1365,7 +1378,7 @@ class HP816xLambdaScan:
             self.apply_ranging(full_mapping, bottom_wl_m, top_wl_m)
 
             # --- execute MF scan, get wavelengths ---
-            wl_buf = (c_double * points_seg)
+            wl_buf = (c_double * points_seg)()
             power_arrays = [(c_double * points_seg)()
                              for _ in range(num_arrays)]
 
@@ -1397,12 +1410,12 @@ class HP816xLambdaScan:
                     break
                 continue
 
-            # --- fetch power arrays for each MF array index 1..num_arrays ---
-            for array_idx in range(1, num_arrays + 1):
+            # --- fetch power arrays for each MF array index 0..num_arrays ---
+            for array_idx in range(0, num_arrays):
                 buf = (c_double * points_seg)()
                 st = self.lib.hp816x_getLambdaScanResult(
                     self.session,
-                    c_int32(array_idx),   # MF array index (1..num_arrays)
+                    c_int32(array_idx),   # MF array index 
                     c_int32(1),           # Apply clipping
                     c_double(-80.0),      # min floor dBm
                     buf,
@@ -1487,48 +1500,47 @@ class HP816xLambdaScan:
         Apply Autoranging by querying range value detected by autorange
         For values throughout the wavelength sweep
         """
-        st = self.lib.hp816x_setInitialRangeParams(
-            self.session,
-            pwm,       # PWMChannel
-            0,       # reset to defualt
-            c_double(-20.0),
-            c_double(0)  # Decremint
-        )
-        self.check(st, f"set_PWM_powerRange failed (slot {slot}, head {head})")
-        time.sleep(1)
-        # For each pwm, set to auto ranging, get the range value, then reapply manual ranging
-        st = self.lib.hp816x_set_PWM_powerRange(
-            self.session,
-            slot,       # slot number
-            head,       # channelNumber
-            1,          # Manual mode
-            c_double(0.0)  # For auto test
-        )
-        self.check(st, f"set_PWM_powerRange failed (slot {slot}, head {head})")
-        time.sleep(1)
-        rangeMode = c_uint16()
-        powerRange = c_double()
-        st = self.lib.hp816x_get_PWM_powerRange_Q(
-            self.session,
-            slot,
-            head,
-            byref(rangeMode),
-            byref(powerRange)
-        )
-        time.sleep(0.15)
-        # Retrieve powerRange value
-        range_dbm = powerRange.value
-        print("Autorange value: ", range_dbm)
+        # --- Get wl span ---
+        wl_span = wl_len[1] - wl_len[0]
+        increment = 5  
+        steps = wl_span // increment + 1
+        wl_samples = np.linspace(wl_len[0], wl_len[1], steps)
+        if len(wl_samples) <= 1:
+            # If no values are found, small reading
+            # Take the bottom and top of wavelength
+            wl_samples = [wl_len[0], wl_len[1]]
 
-        st = self.lib.hp816x_set_PWM_powerRange(
-            self.session,
-            slot,       # slot number
-            head,       # channelNumber
-            0,          # Manual mode
-            c_double(range_dbm)  # For auto test
-        )
-        self.check(st, f"set_PWM_powerRange failed (slot {slot}, head {head})")
-        time.sleep(0.15)
+        # -- Step the span, fetch PWM readings ---
+        pwm_list = []
+        for wl in wl_samples:
+            self.lib.hp816x_set_TLS_wavelength(
+                self.session,
+                c_int32(0),
+                c_int32(3),  # Manual
+                c_double(wl)  # in m
+            )
+            time.sleep(0.05)
+            sample = c_double()
+            self.lib.hp816x_PWM_fetchValue(
+                self.session,
+                slot,
+                head,
+                byref(sample)
+            )
+            pwm_list.append(sample.value)
+        
+        # Filter nan readings
+
+        # --- Determine range ---
+        # Some cases the reading may span a larger range than 43 dBm
+        # But those values will at LEAST be = 40 dBm if we have incredible 
+        # Coupling; this is not a valid reading for autoranging. If a
+        # but more realistically will be around 50 dBm or 60 dBm 
+        # Which ends up being noise in most cases. 
+        p_min = min(pwm_list)
+        p_max = max(pwm_list)
+        range_val = ceil(p_max / 10) * 10
+        self.apply_manual_ranging(pwm, slot, head, range_val)
 
     def get_pwm_map(self, n_pwm):
         """Return list of tuples (pwmIndex, slot, head)."""
