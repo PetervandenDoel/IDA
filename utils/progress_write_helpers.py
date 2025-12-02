@@ -81,6 +81,8 @@ def write_progress_file(activity: str,
         "progress_percent": float(percent),
         "timestamp": time.time(),
     }
+    print('AHHHHHHHHHHHHHHHHHHHHHHHHH')
+    print(data)
 
     if eta_seconds is not None:
         data["eta_seconds"] = float(eta_seconds)

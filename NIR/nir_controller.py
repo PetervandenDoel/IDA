@@ -302,7 +302,7 @@ class NIR8164(LaserHAL):
             ok = hp.connect()
             if not ok:
                 raise RuntimeError("HP816xLambdaScan.connect() failed")
-            res = hp.lambda_scan_clean(
+            res = hp.lambda_scan(
                 start_nm=float(start_nm),
                 stop_nm=float(stop_nm),
                 step_pm=step_pm,

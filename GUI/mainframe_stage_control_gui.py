@@ -318,10 +318,7 @@ class stage_control(App):
                 stop_nm=self.sweep["end"],
                 step_nm=self.sweep["step"],
                 laser_power_dbm=self.sweep["power"],
-                args=(0, ch1_ref, ch1_range,
-                      1, ch1_ref, ch1_range,
-                      2, ch1_ref, ch1_range),
-                autorange = ar_ch1
+                args=[(1, ch1_ref, ch1_range)]
             )
             print("[Stage Control] Laser Sweep completed Successfully")
 
@@ -1355,39 +1352,8 @@ class stage_control(App):
                     print(f"[Progress] Unexpected error writing progress file: {e}")
                     break
 
-    # def _write_progress_file(self, current_device, activity, progress_percent):
-    #     """Atomically write progress for the PyQt dialog to read."""
-    #     #####################
-    #     # RACE CONDITIONSSSSS
-    #     #####################
-    #     from pathlib import Path
-    #     import os, json, time
-
-    #     try:
-    #         # Import the same path the dialog reads
-    #         from lib_gui import PROGRESS_PATH  # uses absolute path defined in lib_gui.py
-    #     except Exception:
-    #         # Fallback to a sane default if import fails
-    #         PROGRESS_PATH = Path(__file__).resolve().parent / "database" / "progress.json"
-
-    #     PROGRESS_PATH.parent.mkdir(parents=True, exist_ok=True)
-
-    #     progress_data = {
-    #         "current_device": int(current_device),
-    #         "activity": str(activity),
-    #         "progress_percent": float(progress_percent),
-    #         "timestamp": time.time(),
-    #     }
-
-    #     tmp_path = PROGRESS_PATH.with_suffix(PROGRESS_PATH.suffix + ".tmp")
-    #     with open(tmp_path, "w", encoding="utf-8") as f:
-    #         json.dump(progress_data, f)
-    #         f.flush()
-    #         os.fsync(f.fileno())  # ensure contents hit disk on some platforms
-    #     os.replace(tmp_path, PROGRESS_PATH)  # atomic swap
-
     def _fa_progress(self, percent: float, msg: str):
-        """Bridge FineAlign -> progress dialog (file the dialog is polling)."""
+        """Write fine alignment progress helper"""
         try:
             self._write_progress_file(0, msg, float(percent))
         except Exception as e:
@@ -1395,7 +1361,7 @@ class stage_control(App):
             pass
             
     def _as_progress(self, percent: float, msg: str):
-        """Bridge AreaSweep -> progress dialog (file the dialog is polling)."""
+        """Write Area scan progress helper"""
         try:
             self._write_progress_file(0, msg, float(percent))
         except Exception:

@@ -11,7 +11,7 @@ from ctypes import (c_double,
                     POINTER,
                     byref,
                     create_string_buffer)
-from math import ceil, floor
+from math import ceil, floor, log10
 from typing import Optional
 from tqdm import tqdm
 import time
@@ -28,22 +28,21 @@ from utils.progress_write_helpers import FileProgressTqdm, write_progress_file
 This class currently has a few working implemenations and variations
 Its purpose it to take Multi and Single frame sweeps for a set of channels.
 I included some default settings for the 8164B w/ 81635 A PWM and 8160 TLS
+as well as some guards and such for the Iris (AMPEL 347) Stage.
 
 For Single Frame:
-    - I recommend using lambda_scan2 for now
+    - I recommend using lambda_scan for now
       it is roughly 10 s faster than the 
-      original / seg
+      original / seg 
     - Bobby has shown that the other one also
-      works if you are a traditionalist
+      works 
 
 For Multiframe:
-    - You must pass your sessions that can be
-      created from the class XXXXX tbd
+    - tbd
 
 There are a few recommendations that I can make 
 that I did not have time to try out for efficiency
 purposes:
-
     - The scans revert the settings back and do not 
       persist the settings, so the ref, range must
       be reset at each stitching segment. This is 
@@ -51,13 +50,14 @@ purposes:
       default settings in a Watt format, since
       each lambda sweep defaults back to those
       during the sweep.
-    - Rewrite this code in C/C++ 
     - I do not recommend using the VISA calls directly
       and implementing your own lambda sweep. Esp if
-      you are using internal triggering.
+      you are using internal triggering. If you do,
+      Rewrite this code in C/C++
 
 Cameron Basara, 2025
 """
+
 
 class HP816xLambdaScan:
     def __init__(self):
@@ -120,6 +120,29 @@ class HP816xLambdaScan:
         #      ViInt32 numberOfScans, ViInt32 PWMChannels,
         #      ViReal64 startWavelength, ViReal64 stopWavelength, ViReal64 stepSize,
         #      ViUInt32* numberOfDatapoints, ViUInt32* numberOfArrays);
+        ##############################################################
+        # Addendum
+        # To obtain a higher precision, the Tunable Laser Source
+        # is set 1 nm before the Start Wavelength, this means,
+        # you have to choose a Start Wavelength 1 nm greater than
+        # the minimum possible wavelength. Also, the wavelength
+        # sweep is actually started 90 pm befo re the Start Wavelength
+        #  and ends 90 pm after the Stop Wavelength, this means, you
+        # have to choose a Stop Wavelength 90 pm less than
+        # the maximum possible wavelength.
+        ###############################################################
+        # hp816x_prepareLambdaScan(
+        #     ViSession ihandle, ViInt32 powerUnit,
+        #     ViReal64 power, ViInt32 opticalOutput,
+        #     ViInt32 numberofScans, ViInt32 PWMChannels,
+        #     ViReal64 startWavelength, ViReal64 stopWavelength,
+        #     ViReal64 stepSize, ViUInt32 numberofDatapoints,
+        #     ViUInt32 numberofChannels);
+        ###############################################################
+        # 81635A:
+        #   Power range: +10 to -80dBm
+        #   Wavelength range 800 nm – 1650 nm
+        ###############################################################
         self.lib.hp816x_prepareLambdaScan.argtypes = [
             c_int32,        # ViSession
             c_int32,        # powerUnit (0=dBm, 1=W)
@@ -244,6 +267,10 @@ class HP816xLambdaScan:
         self.lib.hp816x_set_TLS_wavelength.argtypes = [
             c_int32, c_int32, c_int32, c_double
         ]
+        self.lib.hp816x_get_PWM_powerUnit_Q.argtypes = [
+            c_int32, c_int32, c_int32, POINTER(c_int32)
+        ]
+        self.lib.hp816x_get_PWM_powerUnit_Q.restype = c_int32
 
     def _err_msg(self, status):
         if not self.session:
@@ -258,24 +285,6 @@ class HP816xLambdaScan:
         if self.lib.hp816x_error_query(self.session, byref(inst_code), buf2) == 0 and inst_code.value != 0:
             msg += f" | Instrument Error {inst_code.value}: {buf2.value.decode(errors='replace')}"
         return msg
-
-    def clear_fifo(self):
-        inst_code = c_int32()
-        buf = create_string_buffer(512)
-        # Drain errors
-        while True:
-            self.lib.hp816x_error_query(
-                self.session,
-                byref(inst_code),
-                buf)
-            if inst_code.value == 0:
-                # Success code
-                break
-
-    @staticmethod
-    def _round_to_pm_grid(value_nm: float, step_pm: float) -> float:
-        pm = step_pm
-        return round((value_nm * 1000.0) / pm) * (pm / 1000.0)
 
     def connect(self):
         try:
@@ -303,361 +312,7 @@ class HP816xLambdaScan:
             logging.error(f"[LSC] Connection error: {e}")
             return False
 
-    def lambda_scan_mf(self, start_nm: float = 1490, stop_nm: float = 1600, step_pm: float = 0.5,
-                       power_dbm: float = 3.0, num_scans: int = 0, channels: list = [0, 1]):
-        if not self.session:
-            raise RuntimeError("Not connected to instrument")
-        ##############################################################
-        # Addendum
-        # To obtain a higher precision, the Tunable Laser Source
-        # is set 1 nm before the Start Wavelength, this means,
-        # you have to choose a Start Wavelength 1 nm greater than
-        # the minimum possible wavelength. Also, the wavelength
-        # sweep is actually started 90 pm befo re the Start Wavelength
-        #  and ends 90 pm after the Stop Wavelength, this means, you
-        # have to choose a Stop Wavelength 90 pm less than
-        # the maximum possible wavelength.
-        ###############################################################
-        # hp816x_prepareLambdaScan(
-        #     ViSession ihandle, ViInt32 powerUnit,
-        #     ViReal64 power, ViInt32 opticalOutput,
-        #     ViInt32 numberofScans, ViInt32 PWMChannels,
-        #     ViReal64 startWavelength, ViReal64 stopWavelength,
-        #     ViReal64 stepSize, ViUInt32 numberofDatapoints,
-        #     ViUInt32 numberofChannels);
-        ###############################################################
-        # 81635A:
-        #   Power range: +10 to -80dBm
-        #   Wavelength range 800 nm – 1650 nm
-        ###############################################################
-        self._cancel = False  # unflag
-        # Constain values to limits if out of range
-        start_nm = 1490 if start_nm < 1490 else start_nm
-        stop_nm = 1640 if stop_nm > 1640 else stop_nm
-        step_pm = 0.1 if step_pm < 0.1 else step_pm
-
-        # Convert to meters
-        start_wl = start_nm * 1e-9
-        stop_wl = stop_nm * 1e-9
-        step_size = step_pm * 1e-12
-
-        # Build uniform grid
-        step_nm = step_pm / 1000.0
-        n_target = int(round((float(stop_nm) - float(start_nm)) / step_nm)) + 1
-        wl_target = start_nm + np.arange(n_target, dtype=np.float64) * step_nm
-
-        # Stitching params
-        max_points_per_scan = 20001
-        guard_pre_pm = 90.0
-        guard_post_pm = 90.0
-        guard_total_pm = guard_pre_pm + guard_post_pm
-        guard_points = int(np.ceil(guard_total_pm / step_pm)) + 2
-        eff_points_budget = max_points_per_scan - guard_points
-        if eff_points_budget < 2:
-            raise RuntimeError("Step too large for guard-banded segmentation (eff_points_budget < 2).")
-
-        pts_est = n_target
-        segments = int(np.ceil(pts_est / float(eff_points_budget)))
-        if segments < 1:
-            segments = 1
-
-        # Preallocate outputs
-        out_by_ch = {ch: np.full(n_target, np.nan, dtype=np.float64) for ch in channels}
-
-        # Segment loop
-        bottom = float(start_nm)
-        for seg in tqdm(range(segments), desc="Lambda Scan Stitching", unit="seg"):
-            if self._cancel: break
-            planned_top = bottom + (eff_points_budget - 1) * step_nm
-            top = min(planned_top, float(stop_nm))
-
-            bottom_r = bottom
-            top_r = top
-
-            num_points_seg = c_uint32()
-            num_arrays_seg = c_uint32()
-            result = self.lib.hp816x_prepareMfLambdaScan(
-                self.session,
-                0,  # dBm
-                power_dbm,
-                0,  # High power
-                num_scans,
-                len(channels),  # expose all requested arrays
-                bottom_r * 1e-9,
-                top_r * 1e-9,
-                step_pm * 1e-12,
-                byref(num_points_seg),
-                byref(num_arrays_seg)
-            )
-            if result != 0:
-                raise RuntimeError(f"Prepare scan failed: {result} :: {self._err_msg(result)}")
-
-            points_seg = int(num_points_seg.value)
-            wavelengths_seg = (c_double * points_seg)()
-
-            result = self.lib.hp816x_executeMfLambdaScan(self.session, wavelengths_seg)
-            if result != 0:
-                raise RuntimeError(f"Execute scan failed: {result} :: {self._err_msg(result)}")
-
-            # Wavelengths (nm), guard trim, grid index map
-            wl_seg_nm_full = np.ctypeslib.as_array(wavelengths_seg, shape=(points_seg,)).astype(np.float64) * 1e9
-            mask = (wl_seg_nm_full >= bottom_r - 1e-6) & (wl_seg_nm_full <= top_r + 1e-6)
-            if not np.any(mask):
-                bottom = top + step_nm
-                continue
-            wl_seg_nm = wl_seg_nm_full[mask]
-            idx = np.rint((wl_seg_nm - float(start_nm)) / step_nm).astype(np.int64)
-            valid = (idx >= 0) & (idx < n_target)
-            idx = idx[valid]
-
-            # Per-array fetch into preallocated grid
-            for ch in channels:
-                buf = (c_double * points_seg)()
-                res = self.lib.hp816x_getLambdaScanResult(self.session, int(ch), 1, -90.0, buf, wavelengths_seg)
-                if res != 0:
-                    continue
-                pwr_full = np.ctypeslib.as_array(buf, shape=(points_seg,)).astype(np.float64)
-                pwr_seg = pwr_full[mask][valid]
-                if pwr_seg.size != idx.size:
-                    m = min(pwr_seg.size, idx.size)
-                    if m <= 0:
-                        continue
-                    out_by_ch[ch][idx[:m]] = pwr_seg[:m]
-                else:
-                    out_by_ch[ch][idx] = pwr_seg
-
-            if top >= float(stop_nm) - 1e-12:
-                break
-            bottom = top + step_nm
-
-        # Guarantee last sample is filled
-        for ch in channels:
-            if n_target >= 2 and np.isnan(out_by_ch[ch][-1]):
-                nz = np.where(~np.isnan(out_by_ch[ch]))[0]
-                if nz.size:
-                    out_by_ch[ch][-1] = out_by_ch[ch][nz[-1]]
-
-        channels_dbm = [out_by_ch[ch] for ch in channels]
-        return {
-            'wavelengths_nm': wl_target,
-            'channels': channels,
-            'channels_dbm': channels_dbm,
-            'num_points': int(n_target)
-        }
-    
-    def lambda_scan_mf(self, start_nm: float = 1490, stop_nm: float = 1600, step_pm: float = 0.5,
-                    power_dbm: float = 3.0, num_scans: int = 0, channels: list = (1, 2),
-                    args: list = (1, -30.0, None)):
-        """
-        Completed multi-frame Lambda scan using prepare/execute + per-channel result fetch.
-        Same signature/return shape as your lambda_scan(...).
-    
-        args packs 3-tuples repeating: [slot, ref_dbm, range_dbm_or_None, ...]
-          - ref_dbm is used in RELATIVE mode (internal)
-          - range_dbm_or_None -> None means AUTO, otherwise MANUAL full-scale (dBm)
-    
-        Returns:
-            {
-              'wavelengths_nm': wl_target (np.ndarray float64),
-              'channels': channels (list as passed in),
-              'channels_dbm': [np.ndarray for each channel in channels order],
-              'num_points': int,
-            }
-        """
-        if not self.session:
-            raise RuntimeError("Not connected to instrument")
-
-        self._cancel = False  # unflag
-
-        # 81635A specs
-        start_nm = max(1490.0, float(start_nm))
-        stop_nm  = min(1640.0, float(stop_nm))
-        if stop_nm <= start_nm:
-            raise ValueError("stop_nm must be > start_nm")
-        step_pm  = max(0.1, float(step_pm))
-    
-        # ---- TLS power in dBm (powerUnit=0 here) ----
-        # Keep it sane for 81608A (example): [-20, +13] dBm
-        power_dbm = float(power_dbm)
-        if power_dbm < -20.0: power_dbm = -20.0
-        if power_dbm >  13.0: power_dbm =  13.0
-    
-        # ---- Build the uniform target grid we will fill/stitch into ----
-        step_nm = step_pm / 1000.0
-        n_target = int(round((stop_nm - start_nm) / step_nm)) + 1
-        wl_target = start_nm + np.arange(n_target, dtype=np.float64) * step_nm
-    
-        # ---- Segmentation with guard-bands ----
-        max_points_per_scan = 20001
-        guard_pre_pm  = 90.0
-        guard_post_pm = 90.0
-        guard_total_pm = guard_pre_pm + guard_post_pm
-        guard_points  = int(np.ceil(guard_total_pm / step_pm)) + 2
-        eff_points_budget = max_points_per_scan - guard_points
-        if eff_points_budget < 2:
-            raise RuntimeError("Step too small for guard-banded segmentation (eff_points_budget < 2)")
-    
-        segments = int(np.ceil(n_target / float(eff_points_budget)))
-        if segments < 1:
-            segments = 1
-    
-        # ---- Preallocate outputs (by channel label) ----
-        out_by_ch = {ch: np.full(n_target, np.nan, dtype=np.float64) for ch in channels}
-    
-        # ---- Helpers for re-applying PM settings AFTER prepare ----
-        def _ok(status, ctx):
-            if status != 0:
-                raise RuntimeError(f"{ctx} failed: {self._err_msg(status)}")
-    
-        def _pm_set_unit_dbm(slot, ch):
-            _ok(self.lib.hp816x_set_PWM_powerUnit(self.session, c_int32(slot), c_int32(ch), c_int32(0)),
-                f"set unit dBm s{slot} ch{ch}")
-    
-        def _pm_set_range(slot, ch, manual_dbm):
-            # mode: 0=MANUAL, 1=AUTO
-            if manual_dbm is None:
-                _ok(self.lib.hp816x_set_PWM_powerRange(self.session, c_int32(slot), c_int32(ch),
-                                                       c_uint16(1), c_double(0.0)),
-                    f"set AUTO range s{slot} ch{ch}")
-            else:
-                _ok(self.lib.hp816x_set_PWM_powerRange(self.session, c_int32(slot), c_int32(ch),
-                                                       c_uint16(0), c_double(float(manual_dbm))),
-                    f"set MAN range s{slot} ch{ch}={manual_dbm} dBm")
-    
-        def _pm_set_ref_rel_internal(slot, ch, ref_dbm):
-            # measureMode=1 RELATIVE, referenceSource=0 INTERNAL
-            _ok(self.lib.hp816x_set_PWM_referenceSource(self.session, c_int32(slot), c_int32(ch),
-                                                        c_int32(1), c_int32(0), c_int32(0), c_int32(0)),
-                f"set REF REL/INT s{slot} ch{ch}")
-            if ref_dbm is not None:
-                _ok(self.lib.hp816x_set_PWM_referenceValue(self.session, c_int32(slot), c_int32(ch),
-                                                           c_double(float(ref_dbm)), c_double(0.0)),
-                    f"set REF value s{slot} ch{ch}={ref_dbm} dBm")
-    
-        # ---- Segment loop ----
-        bottom = float(start_nm)
-        for _seg in tqdm(range(segments), desc="MF Lambda Scan", unit="seg"):
-            planned_top = bottom + (eff_points_budget - 1) * step_nm
-            top = min(planned_top, float(stop_nm))
-    
-            # Requested sub-span (no guard in the request; mainframe handles edges)
-            bottom_r = bottom
-            top_r    = top
-    
-            # ---- PREPARE (MF) ----
-            num_points_seg = c_uint32()
-            num_arrays_seg = c_uint32()
-            st = self.lib.hp816x_prepareMfLambdaScan(
-                self.session,
-                c_int32(0),                 # powerUnit: 0 = dBm for TLS setpoint
-                c_double(power_dbm),        # TLS power setpoint (dBm)
-                c_int32(0),                 # opticalOutput: 0 = HIGHPOW
-                c_int32(int(num_scans)),    # numberOfScans (0->1 scan, as per your code)
-                c_int32(len(channels)),     # PWMChannels: count of enabled arrays you want back
-                c_double(bottom_r * 1e-9),  # start (m)
-                c_double(top_r    * 1e-9),  # stop  (m)
-                c_double(step_pm  * 1e-12), # step  (m)
-                byref(num_points_seg),      # out: number of datapoints
-                byref(num_arrays_seg)       # out: number of arrays returned by MF
-            )
-            _ok(st, "prepareMfLambdaScan")
-    
-            points_seg = int(num_points_seg.value)
-            C          = int(num_arrays_seg.value)
-            if C < 1 or points_seg < 2:
-                # nothing to fetch; advance and continue
-                bottom = top + step_nm
-                continue
-    
-            # ---- REASSERT PM CONFIG AFTER PREPARE (critical) ----
-            if args and len(args) >= 3:
-                for i in range(0, len(args), 3):
-                    slot = int(args[i])
-                    ref_dbm = float(args[i + 1])
-                    range_dbm = args[i + 2]  # None => AUTO
-                    for chn in (0, 1):  # master/slave on this slot
-                        _pm_set_unit_dbm(slot, chn)
-                        _pm_set_range(slot, chn, range_dbm)
-                        _pm_set_ref_rel_internal(slot, chn, ref_dbm)
-                        time.sleep(0.3)
-    
-            # ---- EXECUTE (MF; wavelengths only) ----
-            wl_buf = (c_double * points_seg)()
-            st = self.lib.hp816x_executeMfLambdaScan(self.session, wl_buf)
-            _ok(st, "executeMfLambdaScan")
-    
-            # ---- Guard-trim and index mapping into global grid ----
-            wl_seg_nm_full = np.ctypeslib.as_array(wl_buf, shape=(points_seg,)).copy() * 1e9
-    
-            # Keep only [bottom_r, top_r] (drop ~90 pm internal guards)
-            mask = (wl_seg_nm_full >= bottom_r - 1e-6) & (wl_seg_nm_full <= top_r + 1e-6)
-            if not np.any(mask):
-                bottom = top + step_nm
-                continue
-            wl_seg_nm = wl_seg_nm_full[mask]
-    
-            # Global target indices for these wavelengths
-            idx = np.rint((wl_seg_nm - float(start_nm)) / step_nm).astype(np.int64)
-            valid = (idx >= 0) & (idx < n_target)
-            idx = idx[valid]
-            if idx.size == 0:
-                bottom = top + step_nm
-                continue
-    
-            # ---- Fetch per-channel power arrays and stitch ----
-            # NOTE: MF returns arrays in "slot order": powerArray1..C.
-            # Your 'channels' list represents labels you expect in output.
-            # The driver call needs the powerArray index (1..C). We'll
-            # fetch all returned arrays, then map them to your labels 1:1.
-            # If your 'channels' aligns with MF array order, this is direct.
-            # Otherwise, adjust here if you maintain a different mapping.
-            for slot_i in range(1, C + 1):  # 1..C
-                buf = (c_double * points_seg)()
-                # interpolate flag (int): 1, minPower floor (dBm): -90.0
-                st = self.lib.hp816x_getLambdaScanResult(
-                    self.session,
-                    c_int32(slot_i),    # MF array index (1..C)
-                    c_int32(1),         # interpolate=1 (equidistant)
-                    c_double(-90.0),    # floor
-                    buf,                # out power
-                    wl_buf              # wavelengths (pointer)
-                )
-                _ok(st, f"getLambdaScanResult array{slot_i}")
-    
-                pwr_full = np.ctypeslib.as_array(buf, shape=(points_seg,)).copy()
-                pwr_seg  = pwr_full[mask][valid]
-    
-                # Map MF array index back to your channels list (1:1 position mapping)
-                if slot_i <= len(channels):
-                    ch_label = channels[slot_i - 1]
-                    if pwr_seg.size != idx.size:
-                        m = min(pwr_seg.size, idx.size)
-                        if m > 0:
-                            out_by_ch[ch_label][idx[:m]] = pwr_seg[:m]
-                    else:
-                        out_by_ch[ch_label][idx] = pwr_seg
-    
-            # ---- Next segment ----
-            if top >= float(stop_nm) - 1e-12:
-                break
-            bottom = top + step_nm
-    
-        # ---- Guarantee the last sample is filled if the very last point was missed ----
-        for ch in channels:
-            arr = out_by_ch[ch]
-            if np.isnan(arr[-1]) and n_target >= 2:
-                arr[-1] = arr[-2]
-    
-        # ---- Pack outputs in the same shape as your lambda_scan(...) ----
-        channels_dbm = [out_by_ch[ch] for ch in channels]
-        return {
-            "wavelengths_nm": wl_target,
-            "channels": list(channels),
-            "channels_dbm": channels_dbm,
-            "num_points": int(n_target),
-        }
-
-    def lambda_scan(self, start_nm: float = 1490, stop_nm: float = 1600, step_pm: float = 0.5,
+    def lambda_scan_singleframe(self, start_nm: float = 1490, stop_nm: float = 1600, step_pm: float = 0.5,
                     power_dbm: float = 3.0, num_scans: int = 0, channels: list = [1],
                     args: list = (1, -30, None)):
         """
@@ -941,305 +596,8 @@ class HP816xLambdaScan:
             'channels_dbm': channels_dbm,
             'num_points': int(n_target)
         }
-
-    def lambda_scan3(
-        self,
-        start_nm: float = 1490.0,
-        stop_nm: float = 1600.0,
-        step_pm: float = 0.5,
-        power_dbm: float = 3.0,
-        num_scans: int = 0,
-        channels: list | None = None,
-        args: list | None = None,
-        auto_range: Optional[float] = None,
-    ):
-        """
-        Multi-frame lambda scan using hp816x_prepareMfLambdaScan /
-        hp816x_executeMfLambdaScan / hp816x_getLambdaScanResult.
-
-        channels: logical channel labels for output (position-based).
-        args: flat list of 3-tuples [slot, ref_dbm, range_dbm_or_None, ...]
-              per slot. range_dbm_or_None=None ⇒ AUTO range.
-        auto_range: if not None and a triple's range is None, use this value.
-        """
-        if channels is None:
-            channels = [1]
-
-        if args is None:
-            # default: slot 1, ref = −30 dBm, AUTO range
-            args = [1, -30.0, None]
-
-        if not self.session:
-            raise RuntimeError("Not connected to instrument")
-
-        # --- small helpers -------------------------------------------------
-        def _ok(status: int, ctx: str) -> None:
-            if status != 0:
-                raise RuntimeError(f"{ctx} failed: {status} :: {self._err_msg(status)}")
-
-        def _parse_args(arg_list: list) -> list[tuple[int, float, float | None]]:
-            if len(arg_list) % 3 != 0:
-                raise ValueError("args must be flat [slot, ref_dbm, range_dbm_or_None, ...]")
-            triples: list[tuple[int, float, float | None]] = []
-            for i in range(0, len(arg_list), 3):
-                slot_i = int(arg_list[i])
-                ref_i = float(arg_list[i + 1])
-                rng_i = arg_list[i + 2]
-                if rng_i is not None:
-                    rng_i = float(rng_i)
-                elif auto_range is not None:
-                    rng_i = float(auto_range)
-                triples.append((slot_i, ref_i, rng_i))
-            return triples
-
-        def _set_pm_config_for_slot(slot: int,
-                                    ref_dbm: float,
-                                    range_dbm: float | None) -> None:
-            """
-            Apply PM config for a given slot, respecting master/slave:
-            - units are independent per head ⇒ set on both heads
-            - range & reference are master-only ⇒ set on head 0 (master)
-            """
-            # set units to dBm on both heads
-            for head in (0, 1):
-                _ok(
-                    self.lib.hp816x_set_PWM_powerUnit(
-                        self.session,
-                        c_int32(slot),
-                        c_int32(head),
-                        c_int32(0),  # 0 = dBm
-                    ),
-                    f"set_PWM_powerUnit s{slot} h{head}",
-                )
-
-            # range: master-only semantics (head 0)
-            if range_dbm is None:
-                # AUTO range
-                _ok(
-                    self.lib.hp816x_set_PWM_powerRange(
-                        self.session,
-                        c_int32(slot),
-                        c_int32(0),      # master head
-                        c_uint16(1),     # AUTO
-                        c_double(0.0),
-                    ),
-                    f"set_PWM_powerRange AUTO s{slot}",
-                )
-            else:
-                # MANUAL full-scale in dBm
-                _ok(
-                    self.lib.hp816x_set_PWM_powerRange(
-                        self.session,
-                        c_int32(slot),
-                        c_int32(0),      # master head
-                        c_uint16(0),     # MANUAL
-                        c_double(range_dbm),
-                    ),
-                    f"set_PWM_powerRange MAN s{slot} {range_dbm} dBm",
-                )
-
-            # reference: master-only (slave follows)
-            # measureMode=1 → RELATIVE, refSource=0 → INTERNAL
-            _ok(
-                self.lib.hp816x_set_PWM_referenceSource(
-                    self.session,
-                    c_int32(slot),
-                    c_int32(0),      # master head
-                    c_int32(1),      # measureMode = RELATIVE
-                    c_int32(0),      # referenceSource = INTERNAL
-                    c_int32(0),
-                    c_int32(0),
-                ),
-                f"set_PWM_referenceSource REL/INT s{slot}",
-            )
-            _ok(
-                self.lib.hp816x_set_PWM_referenceValue(
-                    self.session,
-                    c_int32(slot),
-                    c_int32(0),      # master head
-                    c_double(ref_dbm),
-                    c_double(0.0),
-                ),
-                f"set_PWM_referenceValue s{slot} {ref_dbm} dBm",
-            )
-
-        # --- normalize sweep parameters ------------------------------------
-        start_nm = max(1490.0, float(start_nm))
-        stop_nm = min(1640.0, float(stop_nm))
-        if stop_nm <= start_nm:
-            raise ValueError("stop_nm must be greater than start_nm")
-
-        step_pm = max(0.1, float(step_pm))
-        step_nm = step_pm / 1000.0
-        step_m = step_pm * 1e-12
-
-        power_dbm = float(power_dbm)
-        if power_dbm < -20.0:
-            power_dbm = -20.0
-        if power_dbm > 13.5:
-            power_dbm = 13.5
-
-        # target wavelength grid (what we return)
-        n_target = int(round((stop_nm - start_nm) / step_nm)) + 1
-        wl_target = start_nm + np.arange(n_target, dtype=np.float64) * step_nm
-
-        # segmentation + guard (TLS keeps some margin; we keep extra guard)
-        max_points_per_scan = 20001
-        guard_pre_pm, guard_post_pm = 90.0, 90.0
-        guard_total_pm = guard_pre_pm + guard_post_pm
-        guard_points = int(np.ceil(guard_total_pm / step_pm)) + 2
-        eff_points_budget = max_points_per_scan - guard_points
-        if eff_points_budget < 2:
-            raise RuntimeError("Step too small for guard-banded segmentation")
-
-        segments = max(1, int(np.ceil(n_target / float(eff_points_budget))))
-
-        out_by_ch: dict[int, np.ndarray] = {
-            ch: np.full(n_target, np.nan, dtype=np.float64) for ch in channels
-        }
-
-        arg_triples = _parse_args(args)
-
-        # --- progress hook into your existing file/tqdm infra --------------
-        def progress_cb(percent, n, total, eta_seconds):
-            write_progress_file(
-                activity="Lambda Scan Stitching",
-                percent=percent,
-                eta_seconds=eta_seconds,
-                n=n,
-                total=total,
-            )
-
-        pwm_channels_for_prepare = len(channels)
-        bottom_nm = float(start_nm)
-
-        for _ in FileProgressTqdm(
-            range(segments),
-            desc="Lambda Scan Stitching",
-            unit="seg",
-            progress_cb=progress_cb,
-        ):
-            if self._cancel:
-                raise RuntimeError("Cancelling Lambda Scan Stitching")
-
-            planned_top = bottom_nm + (eff_points_budget - 1) * step_nm
-            top_nm = min(planned_top, float(stop_nm))
-
-            bottom_wl_m = bottom_nm * 1e-9
-            top_wl_m = top_nm * 1e-9
-
-            num_pts_seg = c_uint32()
-            num_arrays_seg = c_uint32()
-
-            # --- prepare MF scan (DLL) ------------------------------------
-            st = self.lib.hp816x_prepareMfLambdaScan(
-                self.session,
-                c_int32(0),                     # powerUnit: 0 = dBm
-                c_double(power_dbm),            # TLS setpoint
-                c_int32(0),                     # opticalOutput: 0 = HIGHPOW
-                c_int32(int(num_scans)),        # numberOfScans (0 → 1 scan)
-                c_int32(pwm_channels_for_prepare),  # number of arrays wanted
-                c_double(bottom_wl_m),
-                c_double(top_wl_m),
-                c_double(step_m),
-                byref(num_pts_seg),
-                byref(num_arrays_seg),
-            )
-            _ok(st, "hp816x_prepareMfLambdaScan")
-
-            points_seg = int(num_pts_seg.value)
-            num_arrays = int(num_arrays_seg.value)
-            if num_arrays < 1 or points_seg < 2:
-                bottom_nm = top_nm + step_nm
-                if bottom_nm >= stop_nm:
-                    break
-                continue
-
-            # --- re-apply PM config for each slot (master/slave-aware) -----
-            for slot_i, ref_i, rng_i in arg_triples:
-                _set_pm_config_for_slot(slot_i, ref_i, rng_i)
-                time.sleep(0.2)  # give FW a moment
-
-            # --- execute MF scan, get wavelengths --------------------------
-            wl_buf = (c_double * points_seg)()
-            st = self.lib.hp816x_executeMfLambdaScan(self.session, wl_buf)
-            _ok(st, "hp816x_executeMfLambdaScan")
-
-            wl_seg_full_nm = (
-                np.ctypeslib.as_array(wl_buf, shape=(points_seg,)).copy() * 1e9
-            )
-
-            # guard-trim to actual segment window
-            mask = (
-                (wl_seg_full_nm >= bottom_nm - 1e-6)
-                & (wl_seg_full_nm <= top_nm + 1e-6)
-            )
-            if not mask.any():
-                bottom_nm = top_nm + step_nm
-                if bottom_nm >= stop_nm:
-                    break
-                continue
-
-            wl_seg_nm = wl_seg_full_nm[mask]
-            idx = np.round((wl_seg_nm - float(start_nm)) / step_nm).astype(np.int64)
-            valid = (idx >= 0) & (idx < n_target)
-            idx = idx[valid]
-            if idx.size == 0:
-                bottom_nm = top_nm + step_nm
-                if bottom_nm >= stop_nm:
-                    break
-                continue
-
-            # --- fetch power arrays for each MF array index 1..num_arrays ---
-            for array_idx in range(1, num_arrays + 1):
-                buf = (c_double * points_seg)()
-                st = self.lib.hp816x_getLambdaScanResult(
-                    self.session,
-                    c_int32(array_idx),   # MF array index (1..num_arrays)
-                    c_int32(1),           # interpolate
-                    c_double(-80.0),      # min floor dBm
-                    buf,
-                    wl_buf,
-                )
-                _ok(st, f"hp816x_getLambdaScanResult array{array_idx}")
-
-                pwr_full = np.ctypeslib.as_array(buf, shape=(points_seg,)).copy()
-                pwr_seg = pwr_full[mask][valid]
-
-                # position-based mapping: array1→channels[0], array2→channels[1], ...
-                pos = array_idx - 1
-                if pos < len(channels):
-                    ch_label = channels[pos]
-                    if pwr_seg.size != idx.size:
-                        m = min(pwr_seg.size, idx.size)
-                        if m > 0:
-                            out_by_ch[ch_label][idx[:m]] = pwr_seg[:m]
-                    else:
-                        out_by_ch[ch_label][idx] = pwr_seg
-
-            if top_nm >= stop_nm - 1e-12:
-                break
-
-            bottom_nm = top_nm + step_nm
-
-        # --- post-processing / clipping ------------------------------------
-        dbm_floor = -80.0
-        for ch in channels:
-            np.clip(out_by_ch[ch], a_min=dbm_floor, a_max=0.0, out=out_by_ch[ch])
-            if n_target > 1 and np.isnan(out_by_ch[ch][-1]):
-                nz = np.where(~np.isnan(out_by_ch[ch]))[0]
-                if nz.size:
-                    out_by_ch[ch][-1] = out_by_ch[ch][nz[-1]]
-
-        channels_dbm = [out_by_ch[ch] for ch in channels]
-        return {
-            "wavelengths_nm": wl_target,
-            "channels": list(channels),
-            "channels_dbm": channels_dbm,
-            "num_points": int(n_target),
-        }
     
-    def lambda_scan_clean(
+    def lambda_scan(
         self,
         start_nm: float = 1490.0,
         stop_nm: float = 1600.0,
@@ -1279,10 +637,8 @@ class HP816xLambdaScan:
             # Fallback to default if missing settings for a slot
             det_info = detector_dict.get(slot, (-30.0, None))
             full_mapping[slot] = (pwm_info, det_info)
-        print(
-            f'FULL: {full_mapping}'
-        )
-        # --- normalize sweep parameters ---
+        
+        # --- Normalize sweep parameters ---
         start_nm = max(1490.0, float(start_nm))
         stop_nm = min(1640.0, float(stop_nm))
         if stop_nm <= start_nm:
@@ -1464,7 +820,7 @@ class HP816xLambdaScan:
     def apply_ranging(self, full_mapping, btm_wl, top_wl):
         """
         Wrapper: decides whether each slot uses manual or auto ranging.
-        For full_mapping pattern found in lambda_sweep2
+        For full_mapping pattern found in lambda_sweep
         - If range_dbm is None -> autorange
         - Otherwise -> manual
         """
@@ -1526,6 +882,18 @@ class HP816xLambdaScan:
                 head,
                 byref(sample)
             )
+            # Get the power unit
+            ptype = c_int32()
+            self.lib.hp816x_get_PWM_powerUnit_Q(
+                self.session,
+                slot,
+                head,
+                byref(ptype)
+            )
+            if ptype.value == 1:
+                sample = watts_to_dbm(sample.value)
+                pwm_list.append(sample)
+                continue
             pwm_list.append(sample.value)
         
         # Filter nan readings
@@ -1567,10 +935,12 @@ class HP816xLambdaScan:
         return mapping
     
     def check_both(self, slot, chan):
+        """ Call check ref and check range """
         self.check_ref(slot, chan)
         self.check_range(slot, chan)
     
     def check_ref(self, slot, chan):
+        """ Check reference values, source for slot, chan """
         # Referemce Source
         measureMode = c_int32()
         referenceSource = c_int32()
@@ -1600,6 +970,7 @@ class HP816xLambdaScan:
         )
 
     def check_range(self, slot, chan):
+        """ Check Ranging for a slot, chan """
         auto = c_uint16()
         rval = c_double()
         s = self.lib.hp816x_get_PWM_powerRange_Q(
@@ -1645,110 +1016,29 @@ class HP816xLambdaScan:
             if slot_number.value == slot and channel_number.value == channel:
                 return pwm
 
-        # raise RuntimeError(f"No MF PWM index found for slot {slot}, channel {channel}")
-    
-    def find_pwm_channel3(self, slot: int, channel: int) -> int:
-        """
-        Return the MF PWM channel index (0..999) for a given (slot, *physical* channel).
-        Physical channels are 1.1 -> channel=1, 1.2 -> channel=2, etc.
-        Driver reports them as 0-based (0, 1), so we subtract 1 when comparing.
-        """
-        mf_number = c_int32()
-        slot_number = c_int32()
-        channel_number = c_int32()
-
-        # Physical channel 1 -> driver 0, 2 -> 1, ...
-        want_driver_channel = channel - 1
-
-        for pwm in range(1000):
-            result = self.lib.hp816x_getChannelLocation(
-                self.session,
-                c_int32(pwm),
-                byref(mf_number),
-                byref(slot_number),
-                byref(channel_number),
-            )
-
-            # Skip invalid PWM indices
-            if result != 0:
-                continue
-
-            if slot_number.value == slot and channel_number.value == want_driver_channel:
-                return pwm
-
-        raise RuntimeError(f"No MF PWM index found for slot {slot}, channel {channel}")
-
-    def get_no_of_reg_pwm_channels(self):
-        num_pwm = c_int32()
-        status = self.lib.hp816x_getNoOfRegPWMChannels_Q(
-            self.session,
-            byref(num_pwm)
-        )
-
-        if status != 0:
-            raise RuntimeError(
-                f"hp816x_getNoOfRegPWMChannels_Q failed: {status} :: "
-                f"{self._err_msg(status)}"
-            )
-
-        return num_pwm.value
-    
-    def debug_mf_state(self):
-        """
-        Print the MF PWM map and basic MF scan parameters.
-        This does NOT change any state; it only queries the DLL.
-        """
-        print("\n===== DEBUG MF STATE =====")
-
-        # 1) Total registered PWM channels (global MF index space)
-        try:
-            num_pwm_u32 = c_uint32()
-            # If you haven't set argtypes, ctypes will coerce the ints.
-            st = self.lib.hp816x_getNoOfRegPWMChannels_Q(
-                self.session,
-                byref(num_pwm_u32)
-            )
-            if st != 0:
-                print(f"getNoOfRegPWMChannels_Q failed: {st} :: {self._err_msg(st)}")
-                total_pwm = 0
-            else:
-                total_pwm = int(num_pwm_u32.value)
-        except AttributeError:
-            # if prototype not bound yet
-            print("hp816x_getNoOfRegPWMChannels_Q not bound; assuming 8")
-            total_pwm = 8
-
-        print(f"Total registered PWM channels reported by DLL: {total_pwm}")
-
-        # 2) MF PWM → (mainframe, slot, channel) map
-        mf_number = c_int32()
-        slot_number = c_int32()
-        channel_number = c_int32()
-
-        for pwm in range(total_pwm):
-            st = self.lib.hp816x_getChannelLocation(
-                self.session,
-                c_int32(pwm),
-                byref(mf_number),
-                byref(slot_number),
-                byref(channel_number),
-            )
-            if st != 0:
-                print(f"  PWM {pwm}: getChannelLocation failed: {st} :: {self._err_msg(st)}")
-                continue
-
-            print(
-                f"  PWM {pwm}: MF={mf_number.value}, "
-                f"slot={slot_number.value}, ch={channel_number.value}"
-            )
-
-        print("===== END DEBUG MF STATE =====\n")
-
-
     def cancel(self):
         self._cancel = True
         self.disconnect()
     def disconnect(self):
         if self.session:
+            self.lib.hp816x_unregisterMainframe(self.session)
             self.lib.hp816x_close(self.session)
             self.connected = None
+
+# --- Helpers ---
+def watts_to_dbm(power_watts):
+  """
+  Converts power in Watts to dBm.
+
+  Args:
+    power_watts: The power in Watts (float).
+
+  Returns:
+    The power in dBm (float).
+  """
+  if power_watts <= 0:
+    return np.nan
+  
+  power_mw = power_watts * 1000  # Convert Watts to milliwatts
+  dbm = 10 * log10(power_mw)
+  return dbm

@@ -394,13 +394,14 @@ class NIRManager:
             num_scans[int]: num scans zero indexes up to 3,
             :param args: input arguments for changing the reference and ranging before
                       a sweep has been taken. Use these parameter naming convention,
-                      should be taken from shared memory config. If more than 1 channel,
-                      group *args into 3 pairs, eg.
-                      lambda_scan(..., chan1=1, ref1=-10, range1=-80,
-                                  chan2=2, ref2=-20, range2=None)
-                      :param channel[int]: master/slave channel slot
+                      should be taken from shared memory config. Group args into a 
+                      list of 3 tuples like the following:
+                      lambda_scan(..., [(slot1=1, ref1=-10, range1=-80),
+                                  (slot2=2, ref2=-20, range2=None)])
+                                  but w/o var names: [(1,-30.0, -20.0)] 
+                      :param slot[int]: master/slave channel slot
                       :param ref[float]: reference value in dBm (PWM relative internal)
-                      :param range[float]: range value in dBm, if unspecified autorange
+                      :param range[float]: range value in dBm, if None, then autorange
         """
         try:
             if not self.controller or not self._connected:
@@ -410,7 +411,7 @@ class NIRManager:
             # (wavelengths[nm], channel1[dBm], channel2[dBm])
             results = self.controller.optical_sweep(
                 start_nm, stop_nm, step_nm, laser_power_dbm,
-                num_scans, args, autorange)
+                num_scans, args)
             self.controller.cleanup_scan()
             self.controller.set_wavelength(self.config.initial_wavelength_nm)
             self.controller.configure_units()
