@@ -1,47 +1,40 @@
 from tqdm import tqdm
 import time
 
+
 class FileProgressTqdm(tqdm):
-    """
-    Silent tqdm that exports:
-      - percentage
-      - ETA (seconds)
-      - iteration counters
-    """
     def __init__(self, *args, progress_cb=None, **kwargs):
-        super().__init__(*args, **kwargs, disable=True)
+        super().__init__(*args, **kwargs, disable=False)
         self._cb = progress_cb
         self._t_last = time.time()
-        self._ema_step = None  # exponential moving avg step time
+        self._ema_step = None
+
+    def __iter__(self):
+        for obj in self.iterable:
+            yield obj
+            self.update(1)
 
     def update(self, n=1):
         t_now = time.time()
         dt = t_now - self._t_last
         self._t_last = t_now
 
-        # Update EMA step duration
         if n > 0:
             step_time = dt / n
-            if self._ema_step is None:
-                self._ema_step = step_time
-            else:
-                # similar smoothing to tqdm's internal algorithm
-                self._ema_step = (self._ema_step * 0.9) + (step_time * 0.1)
+            self._ema_step = (
+                step_time if self._ema_step is None
+                else self._ema_step * 0.9 + step_time * 0.1
+            )
 
         super().update(n)
 
-        if self._cb is not None and self.total:
-            pct = (self.n / self.total) * 100.0
-
-            # Remaining iterations
+        if self._cb and self.total:
             remaining = max(self.total - self.n, 0)
-
-            # ETA in seconds
-            eta_sec = remaining * (self._ema_step or 0.0)
+            eta_sec = remaining * (self._ema_step or 0)
 
             try:
                 self._cb(
-                    percent=pct,
+                    percent=(self.n / self.total) * 100.0,
                     n=self.n,
                     total=self.total,
                     eta_seconds=eta_sec,
