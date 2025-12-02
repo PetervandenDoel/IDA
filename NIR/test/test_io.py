@@ -68,7 +68,7 @@ def main():
 
     @timed_function
     def optical_function(range):
-        return dev.optical_sweep(1500.0, 1570.0, 0.01, 1.0, args=(1, -30, range))
+        return dev.optical_sweep(1500.0, 1570.0, 0.01, 1.0, args=[(1, -30, range)])
     
     trials = []
 

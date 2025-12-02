@@ -1235,18 +1235,11 @@ class HP816xLambdaScan:
         step_pm: float = 0.5,
         power_dbm: float = 3.0,
         num_scans: int = 0,
-        channels: list | None = None,
-        args: list | None = None,
-        auto_range: Optional[float] = None,
+        args: list | None = None
     ):
         # --- Safety Checks ---
         if not self.session:
             raise RuntimeError("Not connected to instrument")
-
-        # --- Helpers ---
-        def check(status: int, ctx: str) -> None:
-            if status != 0:
-                raise RuntimeError(f"{ctx} failed: {status} :: {self._err_msg(status)}")
 
         # --- Detect PWM channels, and enumerate ---
         # --- This will dynamically allocate PWM chns, heads, slots ---

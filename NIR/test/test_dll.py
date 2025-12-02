@@ -9,11 +9,13 @@ import time
 # --------------------------------------------------------------------------------------
 dll = ctypes.WinDLL("C:\\Program Files\\IVI Foundation\\VISA\\Win64\\Bin\\hp816x_64.dll")  
 
-def check(st, msg=""):
+def check(session, st, msg=""):
     if st != 0:
         buf = create_string_buffer(256)
-        dll.hp816x_error_message(st, buf)
+        dll.hp816x_error_message(session, st, buf)
         raise RuntimeError(f"{msg}: {buf.value.decode()}")
+    else:
+        print(f'{msg}: Passed')
 
 
 # ==============================================================================
@@ -64,6 +66,11 @@ dll.hp816x_getLambdaScanResult.argtypes = [
     POINTER(c_double), POINTER(c_double)
 ]
 
+dll.hp816x_error_message.argtypes = [
+    c_int32, c_int32, c_char_p 
+]
+dll.hp816x_error_message.restype = c_int32
+
 
 # ==============================================================================
 # Helpers
@@ -83,7 +90,7 @@ def get_pwm_map(session, n_pwm):
             byref(slot),
             byref(head)
         )
-        check(st, f"getChannelLocation failed for PWM {pwm}")
+        check(session, st, f"getChannelLocation failed for PWM {pwm}")
 
         mapping.append((pwm, slot.value, head.value))
     return mapping
@@ -99,7 +106,7 @@ def apply_manual_ranging(session, mapping, range_dbm):
             c_double(range_dbm),
             c_double(0)  # Decremint
         )
-        check(st, f"set_PWM_powerRange failed (slot {slot}, head {head})")
+        check(session, st, f"set_PWM_powerRange failed (slot {slot}, head {head})")
         time.sleep(1)
         st = dll.hp816x_set_PWM_powerRange(
             session,
@@ -108,7 +115,7 @@ def apply_manual_ranging(session, mapping, range_dbm):
             0,          # Manual mode
             c_double(range_dbm)  # For auto test
         )
-        check(st, f"set_PWM_powerRange failed (slot {slot}, head {head})")
+        check(session, st, f"set_PWM_powerRange failed (slot {slot}, head {head})")
         time.sleep(0.15)
 
 def apply_auto_ranging(session, mapping):
@@ -122,7 +129,7 @@ def apply_auto_ranging(session, mapping):
             c_double(-20.0),
             c_double(0)  # Decremint
         )
-        check(st, f"set_PWM_powerRange failed (slot {slot}, head {head})")
+        check(session, st, f"set_PWM_powerRange failed (slot {slot}, head {head})")
         time.sleep(1)
         # For each pwm, set to auto ranging, get the range value, then reapply manual ranging
         st = dll.hp816x_set_PWM_powerRange(
@@ -132,7 +139,7 @@ def apply_auto_ranging(session, mapping):
             1,          # Manual mode
             c_double(0.0)  # For auto test
         )
-        check(st, f"set_PWM_powerRange failed (slot {slot}, head {head})")
+        check(session, st, f"set_PWM_powerRange failed (slot {slot}, head {head})")
         time.sleep(1)
         rangeMode = c_uint16()
         powerRange = c_double()
@@ -155,7 +162,7 @@ def apply_auto_ranging(session, mapping):
             0,          # Manual mode
             c_double(range_dbm)  # For auto test
         )
-        check(st, f"set_PWM_powerRange failed (slot {slot}, head {head})")
+        check(session, st, f"set_PWM_powerRange failed (slot {slot}, head {head})")
         time.sleep(0.15)
 
 
@@ -171,7 +178,7 @@ def run_mf_scan(session, n_pwm, mapping):
     st = dll.hp816x_prepareMfLambdaScan(
         session,
         c_int32(0),
-        c_double(0.0),
+        c_double(0.5),
         c_int32(0),
         c_int32(0),
         c_int32(n_pwm),      # dynamic
@@ -181,11 +188,12 @@ def run_mf_scan(session, n_pwm, mapping):
         byref(num_points),
         byref(num_arrays)
     )
-    check(st, "prepare MF failed")
+    print('Doe we pre check')
+    check(session, st, "prepare MF failed")
 
     print('Apply ranging')
-    # apply_manual_ranging(session, mapping, range_dbm=-20.0)
-    apply_auto_ranging(session, mapping)
+    apply_manual_ranging(session, mapping, range_dbm=-20.0)
+    # apply_auto_ranging(session, mapping)
 
     N = num_points.value
     A = num_arrays.value
@@ -195,7 +203,7 @@ def run_mf_scan(session, n_pwm, mapping):
 
     print('Execute')
     st = dll.hp816x_executeMfLambdaScan(session, wavelength)
-    check(st, "execute failed")
+    check(session, st, "execute failed")
 
     wl_out = np.array(wavelength[:])
     pow_out = np.zeros((A, N))
@@ -212,7 +220,7 @@ def run_mf_scan(session, n_pwm, mapping):
             pw,
             wl
         )
-        check(st, f"getLambdaScanResult ch {i} failed")
+        check(session, st, f"getLambdaScanResult ch {i} failed")
 
         pow_out[i, :] = pw[:]
 
@@ -223,9 +231,10 @@ def run_mf_scan(session, n_pwm, mapping):
 # MAIN
 # ==============================================================================
 def main():
+    RANGE = -20  # dBm
     session = c_int32()
     st = dll.hp816x_init(b"GPIB0::20::INSTR", 1, 0, byref(session))
-    check(st, "init failed")
+    check(session, st, "init failed")
 
     dll.hp816x_registerMainframe(session)
 
@@ -235,15 +244,9 @@ def main():
     n_pwm = n_pwm.value
 
     mapping = get_pwm_map(session, n_pwm)
-
-    # # 1) Baseline scan (auto range)
-    # wl_auto, pw_auto = run_mf_scan(session, n_pwm)
-
-    # 2) Manual range
-    # apply_manual_ranging(session, mapping, range_dbm=-20.0)
-
+    print(mapping)
     wl_man, pw_man = run_mf_scan(session, n_pwm, mapping)
-
+    print('Does this print')
     dll.hp816x_unregisterMainframe(session)
     dll.hp816x_close(session)
 
@@ -252,9 +255,9 @@ def main():
     plt.plot(wl_man*1e9, pw_man[0])
     if pw_man.shape[0] > 1:
         plt.plot(wl_man*1e9, pw_man[1])
-        plt.plot(wl_man*1e9, pw_man[2])
-        plt.plot(wl_man*1e9, pw_man[3])
-    plt.title("Manual Range (-30 dBm)")
+        # plt.plot(wl_man*1e9, pw_man[2])
+        # plt.plot(wl_man*1e9, pw_man[3])
+    plt.title(f"Manual Range ({RANGE} dBm)")
     plt.xlabel("Wavelength (nm)")
     plt.ylabel("dBm")
 
