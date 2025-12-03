@@ -39,7 +39,7 @@ class data_window(App):
         )
 
         # =============== Channel 1 ===============
-        StyledLabel(container=data_window_container, text="Channel 1",
+        StyledLabel(container=data_window_container, text="Slot 1",
             variable_name="ch1_label", left=10, top=15,
             width=100, height=25, font_size=110, flex=True,
             justify_content="left", color="#222", bold=True
@@ -106,7 +106,7 @@ class data_window(App):
 
         # =============== Channel 2 ===============
         # Start CH2 lower to avoid clutter (was 115 → now 140)
-        StyledLabel(container=data_window_container, text="Channel 2",
+        StyledLabel(container=data_window_container, text="Slot 2",
             variable_name="ch2_label", left=10, top=140,
             width=100, height=25, font_size=110, flex=True,
             justify_content="left", color="#222", bold=True

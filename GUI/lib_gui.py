@@ -699,7 +699,7 @@ class UserConfigManager:
 
 class plot():
     def __init__(self, x=None, y=None, filename=None, fileTime=None, user=None, name=None, project=None, data=None,
-                 file_format=None, file_path="", xticks = None, yticks=None, pos_i=None, pattern="crosshair"):
+                 file_format=None, file_path="", xticks = None, yticks=None, pos_i=None, pattern="spiral"):
         if file_format is None:
             self.file_format = {"csv": 1, "mat": 1, "png": 1, "pdf": 1}
         else:

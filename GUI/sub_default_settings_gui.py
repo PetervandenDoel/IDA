@@ -1143,7 +1143,7 @@ class DefaultSettingsConfig(App):
 
 # ---- REMI SERVER ----
 def main():
-    start(DefaultSettingsConfig, address='0.0.0.0', port=7005,
+    start(DefaultSettingsConfig, address='0.0.0.0', port=7009,
           start_browser=False, multiple_instance=False)
 
 

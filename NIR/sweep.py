@@ -162,6 +162,7 @@ class HP816xLambdaScan:
         #      ViSession, ViReal64* wl,
         #      ViReal64* p1, ViReal64* p2, ViReal64* p3, ViReal64* p4,
         #      ViReal64* p5, ViReal64* p6, ViReal64* p7, ViReal64* p8);
+
         self.lib.hp816x_executeLambdaScan.argtypes = [
             c_int32,                # ViSession
             POINTER(c_double),      # wl buffer
@@ -311,6 +312,21 @@ class HP816xLambdaScan:
         except Exception as e:
             logging.error(f"[LSC] Connection error: {e}")
             return False
+    
+    def enumarate_slots(self):
+        """ 
+        For External nir controller usage
+        Returns slot mapping
+        """
+        # --- Detect PWM channels, and enumerate ---
+        # --- This will dynamically allocate PWM chns, heads, slots ---
+        n_pwm = c_int32()
+        self.lib.hp816x_getNoOfRegPWMChannels_Q(self.session, byref(n_pwm))
+        n_pwm = n_pwm.value
+
+        # list of 3 tuples -> PWMIndex, Slot, Head
+        mapping = self.get_pwm_map(n_pwm)
+        return mapping
 
     def lambda_scan_singleframe(self, start_nm: float = 1490, stop_nm: float = 1600, step_pm: float = 0.5,
                     power_dbm: float = 3.0, num_scans: int = 0, channels: list = [1],
@@ -903,7 +919,12 @@ class HP816xLambdaScan:
         # Filter -> sane readings
         get_sane = pwm_arr[pwm_arr > -70.0]
         final_arr = get_sane[get_sane <= 0.0]
-
+        
+        if len(final_arr) == 0:
+            # We are in noise
+            self.apply_manual_ranging(pwm, slot, head, -20.0)
+            return
+        
         # --- Determine range ---
         # Some cases the reading may span a larger range than 43 dBm
         # But those values will at LEAST be = 40 dBm if we have incredible 

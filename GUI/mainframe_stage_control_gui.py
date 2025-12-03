@@ -149,6 +149,7 @@ class stage_control(App):
 
                 if self.detector_window_change == "1":
                     self.apply_detector_window(1)
+                    self.apply_detector_window(2)
                     data["Detector_Change"] = "0"   # reset flag
 
                     # write back to disk
@@ -292,46 +293,90 @@ class stage_control(App):
             auto = 1
 
         try:
-            # For now, make work for 1 slot
-            # Ranging
-            if self.detector_auto_ch1 == {} and self.detector_range_ch1.get("range_dbm") is not None:
-                ch1_range = self.detector_range_ch1["range_dbm"]
-            elif self.detector_range_ch1 == {} and self.detector_auto_ch1:
-                # 
-                # Machine expects None for auto
-                ch1_range = None
-            else:
-                ch1_range = None  # Default to auto
-            
-            ar_ch1 = -10.0  # dBm
-            if ch1_range is None:
-                ar_ch1, _ = self.nir_manager.get_power_range()
-            
-            # Reference
-            if self.detector_ref_ch1.get("ref_dbm") is not None:
-                ch1_ref = self.detector_ref_ch1["ref_dbm"]
-            else:
-                ch1_ref = -30 # dBm default
+            def resolve_range_and_ref(detector_range, detector_auto, detector_ref):
+                # --- RANGE ---
+                # Case 1: Auto mode = {}, Manual mode has valid value
+                if detector_auto == {} and detector_range.get("range_dbm") is not None:
+                    ch_range = detector_range["range_dbm"]
 
-            wl, d1, d2 = self.nir_manager.sweep(
+                # Case 2: Manual = {}, Auto selected (any non-empty dict)
+                elif detector_range == {} and detector_auto:
+                    ch_range = None  # machine expects None for auto
+
+                # Case 3: default
+                else:
+                    ch_range = None  # default to auto
+
+                # ----- REF -----
+                if detector_ref.get("ref_dbm") is not None:
+                    ch_ref = detector_ref["ref_dbm"]
+                else:
+                    ch_ref = -30  # default
+
+                return ch_range, ch_ref
+            
+            # Get slot info
+            slot_info = self.nir_manager.get_mainframe_slot_info()
+            if slot_info is None:
+                raise RuntimeError("No slots found in the instrument")
+            
+            # Check if slots are connected to mainframe
+            # If they are, then apply the settings and retrieve the sweep
+            ch1_state = False
+            ch2_state = False
+            args_list = []
+
+            for slot, head in slot_info:
+                if slot == 1:
+                    ch1_state = True
+                elif slot == 2:
+                    ch2_state = True
+                else:
+                    pass
+            
+            if ch1_state:    
+                ch1_range, ch1_ref = resolve_range_and_ref(
+                    self.detector_range_ch1,
+                    self.detector_auto_ch1,
+                    self.detector_ref_ch1
+                )
+                args_list.append((1, ch1_ref, ch1_range))
+
+            if ch2_state:
+                ch2_range, ch2_ref = resolve_range_and_ref(
+                    self.detector_range_ch2,
+                    self.detector_auto_ch2,
+                    self.detector_ref_ch2
+                )
+                args_list.append((2, ch2_ref, ch2_range))
+            
+            if len(args_list) == 0:
+                raise Exception("No args found")
+            print(args_list)
+            wl, detectors = self.nir_manager.sweep(
                 start_nm=self.sweep["start"],
                 stop_nm=self.sweep["end"],
                 step_nm=self.sweep["step"],
                 laser_power_dbm=self.sweep["power"],
-                args=[(1, ch1_ref, ch1_range)]
+                args=args_list
             )
             print("[Stage Control] Laser Sweep completed Successfully")
 
             # Apply detector window settings once again 
             self.apply_detector_window(channel=1)
+            self.apply_detector_window(channel=2)
         
         except Exception as e:
             print(f"[Error] Sweep failed: {e}")
-            wl, d1, d2 = [], [], []
+            wl, detectors = [], [], []
         
         # Plotting the data
         x = wl
-        y = np.vstack([d1, d2])
+        active_detectors = []
+        for d in detectors:
+            active_detectors.append(d)
+        print(active_detectors)
+        y = np.vstack(active_detectors)
         fileTime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         diagram = plot(
             x, y, "spectral_sweep", fileTime, self.user, name,
@@ -641,7 +686,7 @@ class stage_control(App):
     def update_ch(self):
         while True:
             if self.task_start == 0:
-                ch1, ch2 = self.nir_manager.read_power()
+                ch1, ch2 = self.nir_manager.read_power(slot=1)
                 self.ch1_val.set_text(str(ch1))
                 self.ch2_val.set_text(str(ch2))
                 time.sleep(0.5)

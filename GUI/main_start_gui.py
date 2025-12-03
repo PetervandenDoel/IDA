@@ -183,7 +183,7 @@ class Starts(App):
         local_ip = '127.0.0.1'
         webview.create_window(
             "User Settings",
-            f"http://{local_ip}:7005",
+            f"http://{local_ip}:7009",
             width=500+web_w,
             height=600+web_h,
             resizable=True,

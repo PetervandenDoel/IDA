@@ -36,6 +36,7 @@ class NIR8164(LaserHAL):
         self.num_points = None
         self.laser_power = None
         self.sweep_module = False
+        self.slot_info = []
 
     def connect(self) -> bool:
         try:
@@ -54,6 +55,7 @@ class NIR8164(LaserHAL):
                 return False
 
             self._is_connected = True
+            self.get_mainframe_slot_info()
             self.configure_units()
             return True
         except Exception as e:
@@ -85,6 +87,27 @@ class NIR8164(LaserHAL):
             if resp or attempt == retries:
                 return resp
             time.sleep(0.03)
+    
+    def get_mainframe_slot_info(self):
+        from NIR.sweep import HP816xLambdaScan
+        hp = HP816xLambdaScan()
+        try:
+            ok = hp.connect()
+            if not ok:
+                raise RuntimeError("HP816xLambdaScan.connect() failed")
+            # [(PWMCh, Slot, Head), ...,])
+            self.slot_info = []
+            mapping = hp.enumarate_slots()
+            for _, slot, head in mapping:
+                self.slot_info.append([slot,head]) 
+        finally:
+            try:
+                hp.disconnect()
+                self.sweep_module = False
+                self.configure_units()
+            except Exception:
+                pass
+            return self.slot_info
 
     ######################################################################
     # Laser functions
@@ -93,12 +116,13 @@ class NIR8164(LaserHAL):
     def configure_units(self) -> bool:
         """Configured nir to dBm"""
         try:
-            self.write("SOUR0:POW:UNIT 0")
-            self.write("SENS1:CHAN1:POW:UNIT 0")
-            self.write("SENS1:CHAN2:POW:UNIT 0")
-            # _ = self.query("SOUR0:POW:UNIT?")
-            # _ = self.query("SENS1:CHAN1:POW:UNIT?")
-            # _ = self.query("SENS1:CHAN2:POW:UNIT?")
+            # Write laser source unit
+            self.write(f"SOUR0:POW:UNIT 0")
+
+            # PWM config
+            for slot, head in self.slot_info:
+                self.write(f"SENS{slot}:CHAN{head}:POW:UNIT 0")
+            
             return True
         except Exception as e:
             return False
@@ -155,100 +179,95 @@ class NIR8164(LaserHAL):
     # Detector functions
     ######################################################################
 
-    def set_detector_units(self, units: int = 0) -> None:
+    def set_detector_units(self, slot, units: int = 0) -> None:
         """
         Set Detector units
             unit[int]: 0 dBm, 1 W
         """
         try:
-            self.write(f"SENS1:CHAN1:POW:UNIT {units}")
-            self.write(f"SENS1:CHAN2:POW:UNIT {units}")
+            self.write(f"SENS{slot}:CHAN1:POW:UNIT {units}")
+            self.write(f"SENS{slot}:CHAN2:POW:UNIT {units}")
             return True
         except:
             return False
 
-    def get_detector_units(self) -> Optional[Tuple]:
+    def get_detector_units(self, slot) -> Optional[Tuple]:
         """Set Detector units"""
         try:
-            ch1 = self.query("SENS1:CHAN1:POW:UNIT?")
-            ch2 = self.query("SENS1:CHAN2:POW:UNIT?")
+            ch1 = self.query(f"SENS{slot}:CHAN1:POW:UNIT?")
+            ch2 = self.query(f"SENS{slot}:CHAN2:POW:UNIT?")
             return ch1, ch2
         except:
             return False
 
-    def read_power(self) -> Optional[Tuple[float, float]]:
+    def read_power(self, slot) -> Optional[Tuple[float, float]]:
         """
         Read power from each chan with unit configured
         """
         try:
-            p1 = self.query("FETC1:CHAN1:POW?")
-            p2 = self.query("FETC1:CHAN2:POW?")
+            p1 = self.query(f"FETC{slot}:CHAN1:POW?")
+            p2 = self.query(f"FETC{slot}:CHAN2:POW?")
             return float(p1), float(p2)
         except:
             return False
 
-    def enable_autorange(self, enable: bool = True, channel: int = 1) -> bool:
+    def enable_autorange(self, enable: bool = True, slot: int = 1) -> bool:
         """Enable/disable autorange """
         try:
-            self.write(f"SENSe{channel}:CHAN1:POWer:RANGe:AUTO {1 if enable else 0}")
-            ok = self.query(f"SENSe{channel}:CHAN1:POW:AUTO?")
-            print(ok)
+            self.write(f"SENSe{slot}:CHAN1:POWer:RANGe:AUTO {1 if enable else 0}")
             return True
         except Exception as e:
             return False
 
-    def set_power_range(self, range_dbm: float, channel: int = 1) -> bool:
+    def set_power_range(self, range_dbm: float, slot: int = 1) -> bool:
         """Set power range for both slots"""
         try:
             # Disable autorange first
-            self.write(f"SENSe{channel}:CHAN1:POWer:RANGe:AUTO 0")
+            self.write(f"SENSe{slot}:CHAN1:POWer:RANGe:AUTO 0")
             # Set range
-            self.write(f"SENS{channel}:CHAN1:POW:RANG " + str(range_dbm))
+            self.write(f"SENS{slot}:CHAN1:POW:RANG " + str(range_dbm))
             time.sleep(0.05)
-            self.write(f"SENS{channel}:CHAN2:POW:RANG " + str(range_dbm))
+            self.write(f"SENS{slot}:CHAN2:POW:RANG " + str(range_dbm))
             return True
         except Exception as e:
             return False
 
-    def set_power_range_auto(self, channel: int = 1) -> bool:
+    def set_power_range_auto(self, slot: int = 1) -> bool:
         """Set power range for master / slave of channel"""
         try:
             # Enable auto ranging
-            self.write(f"SENSe{channel}:CHAN1:POWer:RANGe:AUTO 1")
-            # mode = self.query(f"SENSe{channel}:CHAN1:POW:RANGE:AUTO?")
-            # print(mode)
+            self.write(f"SENSe{slot}:CHAN1:POWer:RANGe:AUTO 1")
             return True
         except Exception as e:
             return False
 
-    def get_power_range(self, channel: int = 1) -> Optional[Tuple]:
+    def get_power_range(self, slot: int = 1) -> Optional[Tuple]:
         """Get power range for both slots"""
         try:
             # Set range
-            a = self.query(f"SENS{channel}:CHAN1:POW:RANG?")
-            b = self.query(f"SENS{channel}:CHAN2:POW:RANG?")
+            a = self.query(f"SENS{slot}:CHAN1:POW:RANG?")
+            b = self.query(f"SENS{slot}:CHAN2:POW:RANG?")
             return a, b
         except Exception as e:
             return False
 
-    def set_power_reference(self, ref_dbm: float, channel: int = 1) -> bool:
-        """Set power reference (noise floor) for detector channel"""
+    def set_power_reference(self, ref_dbm: float, slot: int = 1) -> bool:
+        """Set power reference (noise floor) for detector slot"""
         try:
-            # Set reference level for the specified channel
-            # sens1:pow:ref tomod,-40DB
-            self.write(f"SENS{channel}:CHAN1:POW:REF TOREF,{ref_dbm}DBM")
-            self.write(f"SENS{channel}:CHAN2:POW:REF TOREF,{ref_dbm}DBM")
+            # Set reference level for the specified slot
+            self.write(f"SENS{slot}:CHAN1:POW:REF TOREF,{ref_dbm}DBM")
+            self.write(f"SENS{slot}:CHAN2:POW:REF TOREF,{ref_dbm}DBM")
             time.sleep(0.05)
             return True
         except Exception as e:
             return False
 
-    def get_power_reference(self, channel: int = 1) -> Optional[Tuple[float, float]]:
-        """Get current power reference (noise floor) for detector channel"""
+    def get_power_reference(self, slot: int = 1) -> Optional[Tuple[float, float]]:
+        """Get current power reference (noise floor) for detector slot"""
         try:
-            # Query reference level for the specified channel
-            response = self.query(f"SENS{channel}:CHAN1:POW:REF? TOREF")
-            response2 = self.query(f"SENS{channel}:CHAN2:POW:REF? TOREF")
+            # Query reference level for the specified slot
+            response = self.query(f"SENS{slot}:CHAN1:POW:REF? TOREF")
+            response2 = self.query(f"SENS{slot}:CHAN2:POW:REF? TOREF")
             return float(response), float(response2)
         except Exception as e:
             return False
@@ -288,7 +307,7 @@ class NIR8164(LaserHAL):
     def optical_sweep(
             self, start_nm: float, stop_nm: float, step_nm: float,
             laser_power_dbm: float, num_scans: int = 0,
-            args: list = [], autorange = None
+            args: list = []
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         from NIR.sweep import HP816xLambdaScan
         step_pm = float(step_nm) * 1000.0
@@ -320,15 +339,10 @@ class NIR8164(LaserHAL):
         
         wl = np.asarray(res.get('wavelengths_nm', []), dtype=np.float64)
         power_dict = res.get('power_dbm_by_detector')
-        print(power_dict)
         chs = []
-        # should be like
-        slots = 1  # but this should be dynamically set
-        heads = 2  # And this should be from a mapping
-        for i in range(1,slots+1):
-            for j in range(0,heads):
-                chs.append(power_dict[(i,j)])
-        return wl, chs[0], chs[1]
+        for slot, head in self.slot_info:
+                chs.append(power_dict[(slot,head)])
+        return wl, chs
 
     def sweep_cancel(self):
         try:
@@ -342,7 +356,8 @@ class NIR8164(LaserHAL):
 
     def _preflight_cleanup(self) -> None:
         try:
-            self.write("SENS1:CHAN1:FUNC:STAT LOGG,STOP")
+            for slot, _ in self.slot_info:
+                self.write(f"SENS{slot}:CHAN1:FUNC:STAT LOGG,STOP")
         except:
             pass
         try:
@@ -359,7 +374,8 @@ class NIR8164(LaserHAL):
 
     def cleanup_scan(self) -> None:
         try:
-            self.write("SENS1:CHAN1:FUNC:STAT LOGG,STOP")
+            for slot, _ in self.slot_info:
+                self.write("SENS{slot}:CHAN1:FUNC:STAT LOGG,STOP")
         except Exception:
             pass
         try:
