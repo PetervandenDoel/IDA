@@ -741,10 +741,12 @@ class stage_control(App):
     def update_ch(self):
         while True:
             if self.task_start == 0:
-                ch1, ch2 = self.nir_manager.read_power(slot=1)
-                self.ch1_val.set_text(str(ch1))
-                self.ch2_val.set_text(str(ch2))
-                time.sleep(0.5)
+                for slot, head in self.slot_info:
+                    i = (slot-1)*2 + head - 1  # 0-index
+                    ch1, ch2 = self.nir_manager.read_power(slot=1)
+                    self.ch_vals[i].set_text(str(ch1))
+                    self.ch_vals[i].set_text(str(ch2))
+                time.sleep(0.3)
             else:
                 print("### Waiting ###")
                 time.sleep(3.0)
@@ -1097,32 +1099,52 @@ class stage_control(App):
             container=move_container, text="Move", variable_name="move_button", font_size=100,
             left=105, top=50, width=85, height=28, normal_color="#007BFF", press_color="#0056B3"
         )
-
         table_container = StyledContainer(
             container=stage_control_container, variable_name="coordinate_container",
-            left=RIGHT_START, top=212, height=70, width=290, border=True  # was 240
+            left=RIGHT_START, top=212, height=130, width=290, border=True  # was 240
         )
-        headers = ["CH1", "CH2"]
-        widths = [80, 80]
+
+        # ----- dynamic headers / channel count -----
+        if self.slot_info is None:
+            # default: 8 channels, CH1 ... CH8
+            n_chs = 8
+            headers = [f"CH{i}" for i in range(1, n_chs + 1)]
+        else:
+            headers = []
+            # assume self.slot_info is iterable of (slot, head) as in your code
+            for slot, head in self.slot_info:
+                i = (slot-1)*2 + head  # 1.1, 1.2, 2.1, 2.2, ..., 4.1, 4.2
+                headers.append(f"CH{i}")
+            n_chs = len(headers)
+
+        # one width per header
+        col_width = int(290 / max(n_chs, 1))
+        widths = [col_width] * n_chs
+
         self.table = StyledTable(
             container=table_container, variable_name="ch_table",
-            left=0, top=0, height=30, table_width=290, headers=headers, widths=widths, row=2
+            left=0, top=0, height=30, table_width=290,
+            headers=headers, widths=widths, row=2
         )
+
         table = self.table
-        row = list(table.children.values())[1]
-        self.ch1_cell, self.ch2_cell = [list(row.children.values())[i] for i in range(2)]
-        self.ch1_val = StyledLabel(
-            container=None, text="N/A", variable_name="ch1_val", left=0, top=0,
-            width=100, height=100, font_size=100, color="#222", align="right", position="inherit",
-            percent=True, flex=True
-        )
-        self.ch2_val = StyledLabel(
-            container=None, text="N/A", variable_name="ch2_val", left=0, top=0,
-            width=100, height=100, font_size=100, color="#222", align="right", position="inherit",
-            percent=True, flex=True
-        )
-        self.ch1_cell.append(self.ch1_val)
-        self.ch2_cell.append(self.ch2_val)
+        # row index 0 = header, 1 = first data row
+        data_row = list(table.children.values())[1]
+
+        # all cells in that row, one per channel
+        self.ch_cells = list(data_row.children.values())
+
+        # create one label per channel and append to its cell
+        self.ch_vals = []
+        for idx, cell in enumerate(self.ch_cells, start=1):
+            val_label = StyledLabel(
+                container=None, text="N/A", variable_name=f"ch{idx}_val", left=0, top=0,
+                width=100, height=100, font_size=100, color="#222",
+                align="right", position="inherit", percent=True, flex=True
+            )
+            cell.append(val_label)
+            self.ch_vals.append(val_label)
+
 
         # Wire-ups (unchanged)
         self.stop_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_stop))
