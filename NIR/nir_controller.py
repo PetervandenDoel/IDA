@@ -115,6 +115,7 @@ class NIR8164(LaserHAL):
                 self.configure_units()
             except Exception:
                 pass
+            self.slot_info = sorted(self.slot_info)
             return self.slot_info
 
     ######################################################################

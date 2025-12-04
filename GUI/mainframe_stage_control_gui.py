@@ -69,7 +69,7 @@ class stage_control(App):
         self.file_format = {}
         self.file_path = None
         self.slot_info = None
-        self.detector_window_settings
+        self.detector_window_settings = {}
 
         # Misc vars, managers, progress bar and locks
         self.nir_configure = None
@@ -134,7 +134,7 @@ class stage_control(App):
                     self.scanpos = data.get("ScanPos", {})
                     self.sweep = data.get("Sweep", {})
                     self.name = data.get("DeviceName", "")
-                    self.data_window = data.get("DataWindow", {})
+                    self.data_window = data.get("DataWindow", {})  # ?
                     self.port = data.get("Port", {})
                     self.web = data.get("Web", "")
                     self.file_format = data.get("FileFormat", {})
@@ -154,10 +154,10 @@ class stage_control(App):
                     # self.detector_auto_ch2 = data.get("DetectorAutoRange_Ch2", {})
                     # self.detector_window_change = data.get("Detector_Change", "0") or "0"
 
-                if self.detector_window_settings["Detector_Change"] == "1":
+                if self.detector_window_settings.get("Detector_Change") == "1":
                     if self.slot_info is not None:
                         # If we've enumerated slot info, proceed as is
-                        for _, slot, _ in self.slot_info:
+                        for slot, _ in self.slot_info:
                             self.apply_detector_window(slot)
                     
                         data["DetectorWindowSettings"]["Detector_Change"] = "0"   # reset flag
@@ -334,6 +334,7 @@ class stage_control(App):
             # Get slot info
             if self.slot_info is None:
                 slot_info = self.nir_manager.get_mainframe_slot_info()
+                self.slot_info = slot_info
             else:
                 slot_info = self.slot_info
             
@@ -575,6 +576,7 @@ class stage_control(App):
             self.nir_manager = NIRManager(self.nir_configure)
             success_sensor = self.nir_manager.initialize()
             if success_sensor:
+
                 self.slot_info = self.nir_manager.get_mainframe_slot_info()
                 self.configuration_sensor = 1
                 self.configuration_check["sensor"] = 2
@@ -740,17 +742,18 @@ class stage_control(App):
 
     def update_ch(self):
         while True:
-            if self.task_start == 0:
+            if self.task_start == 0 and self.slot_info is not None:
                 prev_slot = None
                 for slot, head in self.slot_info:
                     if slot == prev_slot:
                         continue
                     else:
                         prev_slot = slot
-                        i = (slot-1)*2 + head - 1  # 0-index
+                        i = (slot-1)*2 + head  # 0-index
+                        j = i + 1
                         ch1, ch2 = self.nir_manager.read_power(slot=slot)
                         self.ch_vals[i].set_text(str(ch1))
-                        self.ch_vals[i].set_text(str(ch2))
+                        self.ch_vals[j].set_text(str(ch2))
                 time.sleep(0.3)
             else:
                 print("### Waiting ###")
@@ -1116,9 +1119,8 @@ class stage_control(App):
             headers = [f"CH{i}" for i in range(1, n_chs + 1)]
         else:
             headers = []
-            # assume self.slot_info is iterable of (slot, head) as in your code
             for slot, head in self.slot_info:
-                i = (slot-1)*2 + head  # 1.1, 1.2, 2.1, 2.2, ..., 4.1, 4.2
+                i = (slot-1)*2 + head + 1  # 1.0, 1.1, 2.0, 2.1, ..., 4.0, 4.1
                 headers.append(f"CH{i}")
             n_chs = len(headers)
 
