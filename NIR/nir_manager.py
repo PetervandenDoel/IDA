@@ -148,7 +148,13 @@ class NIRManager:
             self._log(f"Device configuration error: {e}", "error")
 
     def get_mainframe_slot_info(self):
-        """ Get slot information for a 816x mainframe """
+        """ 
+        Get slot information for a 816x mainframe
+
+        Specify return data as follows:
+
+        [(slot,head), ...] 
+        """
         try:
             if not self.controller or not self._connected:
                 return

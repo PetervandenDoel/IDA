@@ -68,6 +68,8 @@ class stage_control(App):
         self.web = None
         self.file_format = {}
         self.file_path = None
+        self.slot_info = None
+        self.detector_window_settings
 
         # Misc vars, managers, progress bar and locks
         self.nir_configure = None
@@ -138,23 +140,35 @@ class stage_control(App):
                     self.file_format = data.get("FileFormat", {})
                     self.file_path = data.get("FilePath", "")
                     
+                    # Mainframe slot info? 
+                    self.slot_info = data.get("SlotInfo", None)
+
                     # Read detector range and reference settings
-                    self.detector_range_ch1 = data.get("DetectorRange_Ch1", {})
-                    self.detector_range_ch2 = data.get("DetectorRange_Ch2", {})
-                    self.detector_ref_ch1 = data.get("DetectorReference_Ch1", {})
-                    self.detector_ref_ch2 = data.get("DetectorReference_Ch2", {})
-                    self.detector_auto_ch1 = data.get("DetectorAutoRange_Ch1", {})
-                    self.detector_auto_ch2 = data.get("DetectorAutoRange_Ch2", {})
-                    self.detector_window_change = data.get("Detector_Change", "0") or "0"
+                    self.detector_window_settings = data.get("DetectorWindowSettings", {})
+                    
+                    # self.detector_range_ch1 = data.get("DetectorRange_Ch1", {})
+                    # self.detector_range_ch2 = data.get("DetectorRange_Ch2", {})
+                    # self.detector_ref_ch1 = data.get("DetectorReference_Ch1", {})
+                    # self.detector_ref_ch2 = data.get("DetectorReference_Ch2", {})
+                    # self.detector_auto_ch1 = data.get("DetectorAutoRange_Ch1", {})
+                    # self.detector_auto_ch2 = data.get("DetectorAutoRange_Ch2", {})
+                    # self.detector_window_change = data.get("Detector_Change", "0") or "0"
 
-                if self.detector_window_change == "1":
-                    self.apply_detector_window(1)
-                    self.apply_detector_window(2)
-                    data["Detector_Change"] = "0"   # reset flag
+                if self.detector_window_settings["Detector_Change"] == "1":
+                    if self.slot_info is not None:
+                        # If we've enumerated slot info, proceed as is
+                        for _, slot, _ in self.slot_info:
+                            self.apply_detector_window(slot)
+                    
+                        data["DetectorWindowSettings"]["Detector_Change"] = "0"   # reset flag
 
-                    # write back to disk
-                    with open(shared_path, "w", encoding="utf-8") as f:
-                        json.dump(data, f, indent=2)
+                        # write back to disk
+                        with open(shared_path, "w", encoding="utf-8") as f:
+                            json.dump(data, f, indent=2)
+                    
+                    else:
+                        # Otw, wait until enumeration
+                        pass
                 
                 if self.load_user_settings:
                     # Load user settings on initial boot up 
@@ -168,13 +182,14 @@ class stage_control(App):
 
                     # Load sweep settings
                     self.sweep = user_settings.get("Sweep", {})
-                    self.detector_range_ch1 = user_settings.get("DetectorRange_Ch1", {})
-                    self.detector_range_ch2 = user_settings.get("DetectorRange_Ch2", {})
-                    self.detector_ref_ch1 = user_settings.get("DetectorReference_Ch1", {})
-                    self.detector_ref_ch2 = user_settings.get("DetectorReference_Ch2", {})
-                    self.detector_auto_ch1 = user_settings.get("DetectorAutoRange_Ch1", {})
-                    self.detector_auto_ch2 = user_settings.get("DetectorAutoRange_Ch2", {})
-                    self.detector_window_change = user_settings.get("Detector_Change", "0") or "0"
+                    self.detector_window_settings = user_settings.get("DetectorWindowSettings")
+                    # self.detector_range_ch1 = user_settings.get("DetectorRange_Ch1", {})
+                    # self.detector_range_ch2 = user_settings.get("DetectorRange_Ch2", {})
+                    # self.detector_ref_ch1 = user_settings.get("DetectorReference_Ch1", {})
+                    # self.detector_ref_ch2 = user_settings.get("DetectorReference_Ch2", {})
+                    # self.detector_auto_ch1 = user_settings.get("DetectorAutoRange_Ch1", {})
+                    # self.detector_auto_ch2 = user_settings.get("DetectorAutoRange_Ch2", {})
+                    # self.detector_window_change = user_settings.get("Detector_Change", "0") or "0"
 
                     # Load FA / Area Scan settings
                     self.area_s = user_settings.get("AreaS", {})
@@ -243,9 +258,10 @@ class stage_control(App):
     def apply_detector_window(self, channel):
         try:
             # If auto is empty, and manual is set apply manual ranging
-            auto_range_attr = getattr(self, f'detector_auto_ch{channel}', {})
-            manual_range_attr = getattr(self, f'detector_range_ch{channel}', {})
-            ref_attr = getattr(self, f'detector_ref_ch{channel}', {})
+            detector_window_data = getattr(self, 'detector_window_settings', {})
+            auto_range_attr = detector_window_data.get(f'detector_auto_ch{channel}', {})
+            manual_range_attr = detector_window_data.get(f'detector_range_ch{channel}', {})
+            ref_attr = detector_window_data.get(f'detector_ref_ch{channel}', {})
             if auto_range_attr == {} and manual_range_attr.get("range_dbm") is not None:
                 self.apply_detector_range(
                     manual_range_attr.get("range_dbm"),
@@ -316,43 +332,41 @@ class stage_control(App):
                 return ch_range, ch_ref
             
             # Get slot info
-            slot_info = self.nir_manager.get_mainframe_slot_info()
+            if self.slot_info is None:
+                slot_info = self.nir_manager.get_mainframe_slot_info()
+            else:
+                slot_info = self.slot_info
+            
             if slot_info is None:
                 raise RuntimeError("No slots found in the instrument")
             
-            # Check if slots are connected to mainframe
-            # If they are, then apply the settings and retrieve the sweep
-            ch1_state = False
-            ch2_state = False
+            # Apply detector window to connected slots
             args_list = []
+            previous_slot = None
 
-            for slot, head in slot_info:
-                if slot == 1:
-                    ch1_state = True
-                elif slot == 2:
-                    ch2_state = True
-                else:
-                    pass
-            
-            if ch1_state:    
-                ch1_range, ch1_ref = resolve_range_and_ref(
-                    self.detector_range_ch1,
-                    self.detector_auto_ch1,
-                    self.detector_ref_ch1
-                )
-                args_list.append((1, ch1_ref, ch1_range))
+            for slot, _ in slot_info:
+                # Avoid repetition for Master / Slave
+                if slot == previous_slot:
+                    continue
+                previous_slot = slot
 
-            if ch2_state:
-                ch2_range, ch2_ref = resolve_range_and_ref(
-                    self.detector_range_ch2,
-                    self.detector_auto_ch2,
-                    self.detector_ref_ch2
+                # Get data
+                detector_window_data = getattr(self, 'detector_window_settings', {})
+                auto_range_attr = detector_window_data.get(f'detector_auto_ch{slot}', {})
+                manual_range_attr = detector_window_data.get(f'detector_range_ch{slot}', {})
+                ref_attr = detector_window_data.get(f'detector_ref_ch{slot}', {})
+                ch_range, ch_ref = resolve_range_and_ref(
+                    manual_range_attr,
+                    auto_range_attr,
+                    ref_attr
                 )
-                args_list.append((2, ch2_ref, ch2_range))
+                args_list.append((slot, ch_range, ch_ref))
+                
             
             if len(args_list) == 0:
                 raise Exception("No args found")
             print(args_list)
+            
             wl, detectors = self.nir_manager.sweep(
                 start_nm=self.sweep["start"],
                 stop_nm=self.sweep["end"],
@@ -363,8 +377,12 @@ class stage_control(App):
             print("[Stage Control] Laser Sweep completed Successfully")
 
             # Apply detector window settings once again 
-            self.apply_detector_window(channel=1)
-            self.apply_detector_window(channel=2)
+            prev_slot = None
+            for slot, _ in self.slot_info:
+                if slot == prev_slot:
+                    continue
+                prev_slot = slot
+                self.apply_detector_window(slot)
         
         except Exception as e:
             print(f"[Error] Sweep failed: {e}")
@@ -557,10 +575,12 @@ class stage_control(App):
             self.nir_manager = NIRManager(self.nir_configure)
             success_sensor = self.nir_manager.initialize()
             if success_sensor:
+                self.slot_info = self.nir_manager.get_mainframe_slot_info()
                 self.configuration_sensor = 1
                 self.configuration_check["sensor"] = 2
                 file = File(
-                    "shared_memory", "Configuration_check", self.configuration_check
+                    "shared_memory", "Configuration_check", self.configuration_check,
+                    "shared_memory", "SlotInfo", self.slot_info
                 )
                 file.save()
                 self.sensor_window = webview.create_window(
@@ -1483,58 +1503,6 @@ class stage_control(App):
             self.data = asyncio.run(self.area_sweep.begin_sweep())
             fileTime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             
-            def preview_heatmap_raw(self):
-                """
-                Quick pop-out preview of the current data array (no interactivity).
-                Just shows the data as-is to visualize whether it's centered correctly.
-                """
-                import numpy as np
-                import matplotlib.pyplot as plt
-
-                data = np.array(self.data, dtype=float)
-                if data is None:
-                    raise ValueError("self.data is None")
-
-                num_y, num_x = data.shape
-                vmin = float(np.nanmin(data))
-                vmax = float(np.nanmax(data))
-
-                # Get step sizes if available
-                dx = float(getattr(self, "xticks", getattr(self, "x_step", 1.0)))
-                dy = float(getattr(self, "yticks", getattr(self, "y_step", dx)))
-                dx = abs(dx)
-                dy = abs(dy)
-
-                # Compute coordinate centers assuming the spiral pattern’s midpoints
-                mid_x = (num_x - 1) / 2.0
-                mid_y = (num_y - 1) / 2.0
-                x_centers = (np.arange(num_x) - mid_x) * dx
-                y_centers = (np.arange(num_y) - mid_y) * dy
-
-                # Plot
-                fig, ax = plt.subplots(figsize=(6, 6))
-                im = ax.imshow(
-                    data,
-                    origin="lower",
-                    cmap="inferno",
-                    interpolation="nearest",
-                    extent=[
-                        x_centers[0] - 0.5 * dx,
-                        x_centers[-1] + 0.5 * dx,
-                        y_centers[0] - 0.5 * dy,
-                        y_centers[-1] + 0.5 * dy,
-                    ],
-                    aspect="equal",
-                )
-
-                ax.set_title("Raw Data (Center-Oriented Spiral Grid)")
-                ax.set_xlabel("X (µm)")
-                ax.set_ylabel("Y (µm)")
-                plt.colorbar(im, ax=ax, label="Power (dBm)")
-
-                plt.show()
-            
-            # preview_heatmap_raw(self.data)
             # Create window for plotting
             if str(self.area_s["pattern"]) == "spiral":
                 diagram = plot(

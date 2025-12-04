@@ -89,6 +89,14 @@ class NIR8164(LaserHAL):
             time.sleep(0.03)
     
     def get_mainframe_slot_info(self):
+        """
+        Call mainframe to get a list of tuples containing
+
+        [(slot,head), ...]        
+        
+        Where SCPI calls will use Slot, Head
+        """
+
         from NIR.sweep import HP816xLambdaScan
         hp = HP816xLambdaScan()
         try:
@@ -99,7 +107,7 @@ class NIR8164(LaserHAL):
             self.slot_info = []
             mapping = hp.enumarate_slots()
             for _, slot, head in mapping:
-                self.slot_info.append([slot,head]) 
+                self.slot_info.append((slot,head)) 
         finally:
             try:
                 hp.disconnect()
