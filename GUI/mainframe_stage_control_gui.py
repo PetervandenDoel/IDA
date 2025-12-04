@@ -741,11 +741,16 @@ class stage_control(App):
     def update_ch(self):
         while True:
             if self.task_start == 0:
+                prev_slot = None
                 for slot, head in self.slot_info:
-                    i = (slot-1)*2 + head - 1  # 0-index
-                    ch1, ch2 = self.nir_manager.read_power(slot=1)
-                    self.ch_vals[i].set_text(str(ch1))
-                    self.ch_vals[i].set_text(str(ch2))
+                    if slot == prev_slot:
+                        continue
+                    else:
+                        prev_slot = slot
+                        i = (slot-1)*2 + head - 1  # 0-index
+                        ch1, ch2 = self.nir_manager.read_power(slot=slot)
+                        self.ch_vals[i].set_text(str(ch1))
+                        self.ch_vals[i].set_text(str(ch2))
                 time.sleep(0.3)
             else:
                 print("### Waiting ###")
