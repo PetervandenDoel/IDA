@@ -1083,6 +1083,21 @@ import json
 import os
 from pathlib import Path
 
+def reset_progress_file():
+    """Initialize/clear the progress JSON so old runs don't show up."""
+    try:
+        PROGRESS_PATH.parent.mkdir(parents=True, exist_ok=True)
+        data = {
+            "progress_percent": 0.0,
+            "activity": "Starting task...",
+            "eta_seconds": None,
+        }
+        with open(PROGRESS_PATH, "w") as f:
+            json.dump(data, f)
+    except Exception as e:
+        print(f"[Progress] Could not reset progress file: {e}")
+
+
 def run_busy_dialog(done_val: Value, cancel_evt: Event, progress_config: dict = None):
     # print(f"[Dialog Process] Starting with PID {os.getpid()}")
     
@@ -1104,9 +1119,12 @@ def _run_tkinter_progress(done_val: Value, cancel_evt: Event, progress_config: d
     
     print("[Progress Dialog] Creating progress dialog...")
     
+    # 🔹 Reset progress so previous run's 100% doesn't flash
+    reset_progress_file()
+    
     root = tk.Tk()
     root.title("Process Progress")
-    root.geometry("400x150")
+    root.geometry("400x170")
     root.resizable(False, False)
     
     # Center window
@@ -1116,43 +1134,55 @@ def _run_tkinter_progress(done_val: Value, cancel_evt: Event, progress_config: d
     root.geometry(f"+{x}+{y}")
     
     # Activity label
-    activity_var = tk.StringVar(value="Starting process...")
+    activity_var = tk.StringVar(value="Starting task...")
     activity_label = tk.Label(root, textvariable=activity_var, font=("Arial", 10, "bold"))
     activity_label.pack(pady=10)
     
     # Progress bar
-    progress_var = tk.DoubleVar()
+    progress_var = tk.DoubleVar(value=0.0)
     progress_bar = ttk.Progressbar(root, variable=progress_var, maximum=100, length=350)
     progress_bar.pack(pady=5)
     
     # Percentage label
-    percent_var = tk.StringVar(value="0%")
+    percent_var = tk.StringVar(value="0.0%")
     percent_label = tk.Label(root, textvariable=percent_var)
-    percent_label.pack(pady=5)
+    percent_label.pack(pady=2)
+    
+    # ETA label
+    eta_var = tk.StringVar(value="ETA: --")
+    eta_label = tk.Label(root, textvariable=eta_var)
+    eta_label.pack(pady=2)
     
     def update_progress():
         if done_val.value == 1:
             progress_var.set(100)
             activity_var.set("Process completed!")
             percent_var.set("100%")
-            root.after(1500, root.destroy)  # Close after 1.5 seconds
+            eta_var.set("ETA: 0.0 s")
+            root.after(1500, root.destroy)
             return
-            
+
         try:
             if PROGRESS_PATH.exists():
                 with open(PROGRESS_PATH, 'r') as f:
                     progress_data = json.load(f)
                 
-                progress = progress_data.get('progress_percent', 0)
+                progress = progress_data.get('progress_percent', 0.0)
                 activity = progress_data.get('activity', 'In progress...')
+                eta_seconds = progress_data.get('eta_seconds', None)
                 
                 progress_var.set(progress)
                 activity_var.set(activity)
                 percent_var.set(f"{progress:.1f}%")
+                
+                if eta_seconds is not None:
+                    eta_var.set(f"ETA: {eta_seconds:.1f} s")
+                else:
+                    eta_var.set("ETA: --")
         except Exception as e:
             print(f"[Progress Dialog] Error reading progress: {e}")
         
-        root.after(200, update_progress)  # Check every 200ms
+        root.after(200, update_progress)
     
     def on_cancel():
         print("[Progress Dialog] Cancel requested")
@@ -1161,11 +1191,9 @@ def _run_tkinter_progress(done_val: Value, cancel_evt: Event, progress_config: d
         cancel_evt.set()
         root.destroy()
     
-    # Cancel button
     cancel_btn = tk.Button(root, text="Cancel", command=on_cancel)
     cancel_btn.pack(pady=5)
     
-    # Start updating
     root.after(100, update_progress)
     
     print("[Progress Dialog] Starting dialog event loop...")
@@ -1187,11 +1215,13 @@ def _run_console_progress(done_val: Value, cancel_evt: Event, progress_config: d
                 
                 progress = progress_data.get('progress_percent', 0)
                 activity = progress_data.get('activity', 'In progress...')
+                eta_seconds = progress_data.get('eta_seconds', None)
                 
                 # Only print updates when progress changes significantly
                 if abs(progress - last_progress) > 5 or time.time() - start_time > 10:
                     elapsed = time.time() - start_time
-                    print(f"[Progress] {progress:.1f}% - {activity} (elapsed: {elapsed:.1f}s)")
+                    eta_str = f", ETA: {eta_seconds:.1f}s" if eta_seconds is not None else ""
+                    print(f"[Progress] {progress:.1f}% - {activity} (elapsed: {elapsed:.1f}s{eta_str})")
                     last_progress = progress
                     start_time = time.time()  # Reset timer after printing
             

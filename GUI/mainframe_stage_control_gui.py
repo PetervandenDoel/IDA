@@ -663,25 +663,60 @@ class stage_control(App):
             self.stop_task()
 
     def stop_task(self):
+        # Called from idle() every loop
         if self._scan_done.value == -1:
+            # Reset our internal flags
             self._scan_done.value = 0
             self.task_start = 0
-            if self.area_sweep != None:
+
+            # Stop any area scan / fine align
+            if self.area_sweep is not None:
                 self.area_sweep.stop_sweep()
-            if self.fine_align != None:
+                self.area_sweep = None
+
+            if self.fine_align is not None:
                 self.fine_align.stop_alignment()
+                self.fine_align = None
+
+            # -------- MANUAL LASER SWEEP CANCEL --------
             if self.task_laser == 1:
                 self.task_laser = 0
-                self.nir_manager.cancel_sweep()
+                try:
+                    if self.nir_manager:
+                        self.nir_manager.cancel_sweep()
+                except Exception as e:
+                    print(f"[StopTask] Error cancelling laser sweep: {e}")
+
+                # IMPORTANT: reset manual Sweep flag so the sweep button can un-gray
+                try:
+                    self.sweep["sweep"] = 0
+                    file = File("shared_memory", "Sweep", self.sweep)
+                    file.save()
+                    print("[StopTask] Reset Sweep flag -> 0")
+                except Exception as e:
+                    print(f"[StopTask] Error resetting Sweep flag: {e}")
+
+            # -------- AUTO SWEEP CANCEL --------
             if self.auto_sweep == 1 and self.count == 1:
                 self.auto_sweep = 0
-                file = File("shared_memory", "AutoSweep", 0)
-                file.save()
-                self.nir_manager.cancel_sweep()
-                if self.fine_align != None:
-                    self.fine_align.stop_alignment()
+                self.count = 0
+                try:
+                    file = File("shared_memory", "AutoSweep", 0)
+                    file.save()
+                    print("[StopTask] Reset AutoSweep flag -> 0")
+                except Exception as e:
+                    print(f"[StopTask] Error resetting AutoSweep flag: {e}")
 
+                try:
+                    if self.nir_manager:
+                        self.nir_manager.cancel_sweep()
+                except Exception as e:
+                    print(f"[StopTask] Error cancelling auto sweep: {e}")
+
+            # -------- UNLOCK STAGE UI --------
             self.lock_all(0)
+            print("[StopTask] Cancel completed, UI unlocked")
+
 
     def update_ch(self):
         while True:
