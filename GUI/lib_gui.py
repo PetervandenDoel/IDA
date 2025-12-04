@@ -567,12 +567,7 @@ class UserConfigManager:
                 "on": False,
                 "done": "Laser On"
             },
-            "DetectorRange_Ch1": {},
-            "DetectorRange_Ch2": {},
-            "DetectorReference_Ch1": {},
-            "DetectorReference_Ch2": {},
-            "DetectorAutoRange_Ch1": {},
-            "DetectorAutoRange_Ch2": {},
+            "DetectorWindowSettings": {},
             "AreaS": {
                 "x_size": 20.0,
                 "x_step": 1.0,
@@ -699,7 +694,8 @@ class UserConfigManager:
 
 class plot():
     def __init__(self, x=None, y=None, filename=None, fileTime=None, user=None, name=None, project=None, data=None,
-                 file_format=None, file_path="", xticks = None, yticks=None, pos_i=None, pattern="spiral"):
+                 file_format=None, file_path="", xticks = None, yticks=None, pos_i=None, pattern="spiral",
+                 slot_info: Optional[list] = None):
         if file_format is None:
             self.file_format = {"csv": 1, "mat": 1, "png": 1, "pdf": 1}
         else:
@@ -717,6 +713,7 @@ class plot():
         self.yticks = yticks
         self.pos_i = pos_i
         self.pattern = pattern
+        self.slot_info = slot_info
     
     def heat_map(self):
         import os
@@ -968,7 +965,10 @@ class plot():
             plots = {"Wavelength [nm]": x_axis}
             plotnames = []
             for element in range(0, len(y_values)):
-                plotname = "Detector " + str(element + 1)
+                if self.slot_info is not None:
+                    plotname = f'Detector {self.slot_info[element][0]}.{self.slot_info[element][1]+1}'
+                else:
+                    plotname = "Detector " + str(element + 1)
                 plots[plotname] = y_values[element]
                 plotnames.append(plotname)
             fig = px.line(plots, x="Wavelength [nm]", y=plotnames,

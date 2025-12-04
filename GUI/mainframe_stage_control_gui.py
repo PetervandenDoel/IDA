@@ -69,6 +69,7 @@ class stage_control(App):
         self.file_format = {}
         self.file_path = None
         self.slot_info = None
+        self.slot_info_flag = False
         self.detector_window_settings = {}
 
         # Misc vars, managers, progress bar and locks
@@ -146,14 +147,6 @@ class stage_control(App):
                     # Read detector range and reference settings
                     self.detector_window_settings = data.get("DetectorWindowSettings", {})
                     
-                    # self.detector_range_ch1 = data.get("DetectorRange_Ch1", {})
-                    # self.detector_range_ch2 = data.get("DetectorRange_Ch2", {})
-                    # self.detector_ref_ch1 = data.get("DetectorReference_Ch1", {})
-                    # self.detector_ref_ch2 = data.get("DetectorReference_Ch2", {})
-                    # self.detector_auto_ch1 = data.get("DetectorAutoRange_Ch1", {})
-                    # self.detector_auto_ch2 = data.get("DetectorAutoRange_Ch2", {})
-                    # self.detector_window_change = data.get("Detector_Change", "0") or "0"
-
                 if self.detector_window_settings.get("Detector_Change") == "1":
                     if self.slot_info is not None:
                         # If we've enumerated slot info, proceed as is
@@ -183,13 +176,6 @@ class stage_control(App):
                     # Load sweep settings
                     self.sweep = user_settings.get("Sweep", {})
                     self.detector_window_settings = user_settings.get("DetectorWindowSettings")
-                    # self.detector_range_ch1 = user_settings.get("DetectorRange_Ch1", {})
-                    # self.detector_range_ch2 = user_settings.get("DetectorRange_Ch2", {})
-                    # self.detector_ref_ch1 = user_settings.get("DetectorReference_Ch1", {})
-                    # self.detector_ref_ch2 = user_settings.get("DetectorReference_Ch2", {})
-                    # self.detector_auto_ch1 = user_settings.get("DetectorAutoRange_Ch1", {})
-                    # self.detector_auto_ch2 = user_settings.get("DetectorAutoRange_Ch2", {})
-                    # self.detector_window_change = user_settings.get("Detector_Change", "0") or "0"
 
                     # Load FA / Area Scan settings
                     self.area_s = user_settings.get("AreaS", {})
@@ -207,6 +193,21 @@ class stage_control(App):
 
             except Exception as e:
                 print(f"[Warn] read json failed: {e}")
+
+        # For slot enum
+        if self.nir_manager is not None and not self.slot_info_flag:
+            self.slot_info = self.nir_manager.get_mainframe_slot_info()
+            self.slot_info_flag = True
+
+            try:
+                with open(shared_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                data["SlotInfo"] = self.slot_info
+                
+                with open(shared_path, "w", encoding="utf-8") as f:
+                    json.dump(data, f, indent=2)
+            except:
+                pass
 
         self.after_configuration()
 
@@ -399,7 +400,8 @@ class stage_control(App):
         fileTime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         diagram = plot(
             x, y, "spectral_sweep", fileTime, self.user, name,
-            self.project, auto, self.file_format, self.file_path
+            self.project, auto, self.file_format, self.file_path,
+            self.slot_info  # optional
         )
         p = Process(target=diagram.generate_plots)
         p.start()
@@ -546,7 +548,7 @@ class stage_control(App):
                 self.stage_window = webview.create_window(
                     'Stage Control',
                     f'http://{local_ip}:8000',
-                    width=842 + web_w, height=397 + web_h,
+                    width=1002 + web_w, height=437 + web_h,
                     x=800, y=465,
                     resizable=True,
                     hidden=False
@@ -577,12 +579,11 @@ class stage_control(App):
             success_sensor = self.nir_manager.initialize()
             if success_sensor:
 
-                self.slot_info = self.nir_manager.get_mainframe_slot_info()
+                # self.slot_info = self.nir_manager.get_mainframe_slot_info()
                 self.configuration_sensor = 1
                 self.configuration_check["sensor"] = 2
                 file = File(
-                    "shared_memory", "Configuration_check", self.configuration_check,
-                    "shared_memory", "SlotInfo", self.slot_info
+                    "shared_memory", "Configuration_check", self.configuration_check
                 )
                 file.save()
                 self.sensor_window = webview.create_window(
@@ -752,8 +753,8 @@ class stage_control(App):
                         i = (slot-1)*2 + head  # 0-index
                         j = i + 1
                         ch1, ch2 = self.nir_manager.read_power(slot=slot)
-                        self.ch_vals[i].set_text(str(ch1))
-                        self.ch_vals[j].set_text(str(ch2))
+                        self.ch_vals[i].set_text(str(round(ch1,3)))
+                        self.ch_vals[j].set_text(str(round(ch2,3)))
                 time.sleep(0.3)
             else:
                 print("### Waiting ###")
@@ -878,15 +879,16 @@ class stage_control(App):
         # -------- layout constants (positions/sizes only) --------
         LEFT_PANEL_W = 490  # wider left box so rows + Zero buttons fit cleanly
         LOCK_COL_LEFT = 18  # per-axis lock column (aligns with top lock icon)
-        ICON_LEFT = 18  # big lock icon
-        LABEL_LEFT = 38  # axis text column (left of readouts)
-        POS_LEFT = 35  # position numeric readout
-        UNIT_LEFT = 150  # unit next to readout
-        BTN_L_LEFT = 185  # left jog button
-        SPIN_LEFT = 245  # step spinbox
-        BTN_R_LEFT = 345  # right jog button
-        ZERO_LEFT = 415  # Zero button (placeholder)
-        ROW_TOPS = [70, 110, 150, 190, 230]
+        ICON_LEFT = 18      # big lock icon
+        LABEL_LEFT = 38     # axis text column (left of readouts)
+        POS_LEFT = 35       # position numeric readout (limit label uses this too)
+        UNIT_LEFT = 150     # unit next to readout
+        BTN_L_LEFT = 185    # left jog button
+        SPIN_LEFT = 245     # step spinbox
+        BTN_R_LEFT = 345    # right jog button
+        ZERO_LEFT = 415     # Zero button
+        # slightly larger vertical spacing so rows + "lim" line don't overlap
+        ROW_TOPS = [70, 115, 160, 205, 250]
         ROW_H = 30
 
         RIGHT_START = LEFT_PANEL_W + 20  # right-hand panels start after wider box
@@ -894,17 +896,18 @@ class stage_control(App):
 
         stage_control_container = StyledContainer(
             container=None, variable_name="stage_control_container",
-            left=0, top=0, height=320, width=830
+            left=0, top=0, height=380, width=880  # bigger so nothing clips
         )
 
         xyz_container = StyledContainer(
             container=stage_control_container, variable_name="xyz_container",
-            left=0, top=20, height=300, width=LEFT_PANEL_W  # was narrower
+            left=0, top=20, height=300, width=LEFT_PANEL_W
         )
 
         self.stop_btn = StyledButton(
             container=xyz_container, text="Stop", variable_name="stop_button", font_size=100,
-            left=POS_LEFT, top=10, width=90, height=30, normal_color="#dc3545", press_color="#c82333"
+            left=POS_LEFT, top=10, width=90, height=30,
+            normal_color="#dc3545", press_color="#c82333"
         )
 
         self.lock_box = StyledCheckBox(
@@ -938,97 +941,76 @@ class stage_control(App):
             # per-axis lock checkbox (aligned with header icon)
             setattr(self, f"{prefix}_lock", StyledCheckBox(
                 container=xyz_container, variable_name=f"{prefix}_lock",
-                left=LOCK_COL_LEFT, top=top , width=12, height=12
+                left=LOCK_COL_LEFT, top=top, width=12, height=12
             ))
 
             # axis label (left column)
             StyledLabel(
                 container=xyz_container, text=labels[i], variable_name=f"{prefix}_label",
                 left=LABEL_LEFT, top=top, width=55, height=ROW_H,
-                font_size=100, color="#222", flex=True, bold=True, justify_content="center"
+                font_size=100, color="#222", flex=True, bold=True,
+                justify_content="center"
             )
 
             # position readout + unit (next column)
             setattr(self, f"{prefix}_position_lb", StyledLabel(
                 container=xyz_container, text=position_texts[i], variable_name=f"{prefix}_position_lb",
-                left=POS_LEFT+50, top=top, width=70, height=ROW_H, font_size=100, color="#222",
-                flex=True, bold=True, justify_content="left"
+                left=POS_LEFT + 50, top=top, width=70, height=ROW_H,
+                font_size=100, color="#222", flex=True, bold=True,
+                justify_content="left"
             ))
+            # limit line, smaller and a bit higher so it doesn't collide with next row
             setattr(self, f"{prefix}_limit_lb", StyledLabel(
                 container=xyz_container, text="lim: N/A", variable_name=f"{prefix}_limit_lb",
-                left=POS_LEFT, top=top + 22, width=100, height=20, font_size=70, color="#666",
-                flex=True, justify_content="right"
+                left=POS_LEFT, top=top + 20, width=100, height=16,
+                font_size=70, color="#666", flex=True, justify_content="right"
             ))
             setattr(self, f"{prefix}_position_unit", StyledLabel(
                 container=xyz_container, text=position_unit[i], variable_name=f"{prefix}_position_unit",
-                left=UNIT_LEFT, top=top, width=40, height=ROW_H, font_size=100, color="#222",
-                flex=True, bold=True, justify_content="left"
+                left=UNIT_LEFT, top=top, width=40, height=ROW_H,
+                font_size=100, color="#222", flex=True, bold=True,
+                justify_content="left"
             ))
 
+            # per-axis buttons / spinbox
             if prefix in ["x", "y"]:
-                setattr(self, f"{prefix}_left_btn", StyledButton(
-                    container=xyz_container, text=left_arrows[i], variable_name=f"{prefix}_left_button", font_size=100,
-                    left=BTN_L_LEFT, top=top, width=50, height=ROW_H, normal_color="#007BFF", press_color="#0056B3"
-                ))
-                setattr(self, f"{prefix}_input", StyledSpinBox(
-                    container=xyz_container, variable_name=f"{prefix}_step", min_value=0, max_value=5000,
-                    value=init_value[i], step=0.1, left=SPIN_LEFT, top=top, width=73, height=ROW_H, position="absolute"
-                ))
-                setattr(self, f"{prefix}_right_btn", StyledButton(
-                    container=xyz_container, text=right_arrows[i], variable_name=f"{prefix}_right_button", font_size=100,
-                    left=BTN_R_LEFT, top=top, width=50, height=ROW_H, normal_color="#007BFF", press_color="#0056B3"
-                ))
-            elif prefix in ["z"]:
-                setattr(self, f"{prefix}_left_btn", StyledButton(
-                    container=xyz_container, text=left_arrows[i], variable_name=f"{prefix}_left_button", font_size=100,
-                    left=BTN_L_LEFT, top=top, width=50, height=ROW_H, normal_color="#007BFF", press_color="#0056B3"
-                ))
-                setattr(self, f"{prefix}_input", StyledSpinBox(
-                    container=xyz_container, variable_name=f"{prefix}_step", min_value=0, max_value=1000,
-                    value=init_value[i], step=0.1, left=SPIN_LEFT, top=top, width=73, height=ROW_H, position="absolute"
-                ))
-                setattr(self, f"{prefix}_right_btn", StyledButton(
-                    container=xyz_container, text=right_arrows[i], variable_name=f"{prefix}_right_button", font_size=100,
-                    left=BTN_R_LEFT, top=top, width=50, height=ROW_H, normal_color="#007BFF", press_color="#0056B3"
-                ))
-            elif prefix in ["Chip"]:
-                setattr(self, f"{prefix}_left_btn", StyledButton(
-                    container=xyz_container, text=left_arrows[i], variable_name=f"{prefix}_left_button", font_size=100,
-                    left=BTN_L_LEFT, top=top, width=50, height=ROW_H, normal_color="#007BFF", press_color="#0056B3"
-                ))
-                setattr(self, f"{prefix}_input", StyledSpinBox(
-                    container=xyz_container, variable_name=f"{prefix}_step", min_value=0, max_value=360,
-                    value=init_value[i], step=0.1, left=SPIN_LEFT, top=top, width=73, height=ROW_H, position="absolute"
-                ))
-                setattr(self, f"{prefix}_right_btn", StyledButton(
-                    container=xyz_container, text=right_arrows[i], variable_name=f"{prefix}_right_button", font_size=100,
-                    left=BTN_R_LEFT, top=top, width=50, height=ROW_H, normal_color="#007BFF", press_color="#0056B3"
-                ))
-            else:
-                setattr(self, f"{prefix}_left_btn", StyledButton(
-                    container=xyz_container, text=left_arrows[i], variable_name=f"{prefix}_left_button", font_size=100,
-                    left=BTN_L_LEFT, top=top, width=50, height=ROW_H, normal_color="#007BFF", press_color="#0056B3"
-                ))
-                setattr(self, f"{prefix}_input", StyledSpinBox(
-                    container=xyz_container, variable_name=f"{prefix}_step", min_value=0, max_value=45,
-                    value=init_value[i], step=0.1, left=SPIN_LEFT, top=top, width=73, height=ROW_H, position="absolute"
-                ))
-                setattr(self, f"{prefix}_right_btn", StyledButton(
-                    container=xyz_container, text=right_arrows[i], variable_name=f"{prefix}_right_button", font_size=100,
-                    left=BTN_R_LEFT, top=top, width=50, height=ROW_H, normal_color="#007BFF", press_color="#0056B3"
-                ))
+                max_val = 5000
+            elif prefix == "z":
+                max_val = 1000
+            elif prefix == "chip":
+                max_val = 360
+            else:  # fiber tilt
+                max_val = 45
 
-            # Zero button placeholder
-            # if prefix in ["x", "y", "z"]:
-            setattr(self, f"{prefix}_zero_btn", StyledButton(
-                container=xyz_container, text="Zero", variable_name=f"{prefix}_zero_button", font_size=100,
-                left=ZERO_LEFT, top=top, width=55, height=ROW_H, normal_color="#6c757d", press_color="#5a6268"
+            setattr(self, f"{prefix}_left_btn", StyledButton(
+                container=xyz_container, text=left_arrows[i],
+                variable_name=f"{prefix}_left_button", font_size=100,
+                left=BTN_L_LEFT, top=top, width=50, height=ROW_H,
+                normal_color="#007BFF", press_color="#0056B3"
+            ))
+            setattr(self, f"{prefix}_input", StyledSpinBox(
+                container=xyz_container, variable_name=f"{prefix}_step",
+                min_value=0, max_value=max_val, value=init_value[i], step=0.1,
+                left=SPIN_LEFT, top=top, width=73, height=ROW_H, position="absolute"
+            ))
+            setattr(self, f"{prefix}_right_btn", StyledButton(
+                container=xyz_container, text=right_arrows[i],
+                variable_name=f"{prefix}_right_button", font_size=100,
+                left=BTN_R_LEFT, top=top, width=50, height=ROW_H,
+                normal_color="#007BFF", press_color="#0056B3"
             ))
 
-        # ---- Right-hand panels (tighter vertical spacing; start after wider left box) ----
+            # Zero button
+            setattr(self, f"{prefix}_zero_btn", StyledButton(
+                container=xyz_container, text="Zero", variable_name=f"{prefix}_zero_button",
+                font_size=100, left=ZERO_LEFT, top=top, width=55, height=ROW_H,
+                normal_color="#6c757d", press_color="#5a6268"
+            ))
+
+        # ---- Right-hand panels ----
         limits_container = StyledContainer(
             container=stage_control_container, variable_name="limits_container",
-            left=RIGHT_START, top=12, height=90, width=90, border=True  # top was 20
+            left=RIGHT_START, top=12, height=90, width=90, border=True
         )
         StyledLabel(
             container=limits_container, text="Home Lim", variable_name="limits_label",
@@ -1036,17 +1018,19 @@ class stage_control(App):
             position="absolute", flex=True, on_line=True, justify_content="center"
         )
         self.limit_setting_btn = StyledButton(
-            container=limits_container, text="Setting", variable_name="limit_setting_btn", font_size=100,
-            left=5, top=10, width=80, height=30, normal_color="#007BFF", press_color="#0056B3"
+            container=limits_container, text="Setting", variable_name="limit_setting_btn",
+            font_size=100, left=5, top=10, width=80, height=30,
+            normal_color="#007BFF", press_color="#0056B3"
         )
         self.home_btn = StyledButton(
-            container=limits_container, text="Home", variable_name="home_btn", font_size=100,
-            left=5, top=50, width=80, height=30, normal_color="#007BFF", press_color="#0056B3"
+            container=limits_container, text="Home", variable_name="home_btn",
+            font_size=100, left=5, top=50, width=80, height=30,
+            normal_color="#007BFF", press_color="#0056B3"
         )
 
         fine_align_container = StyledContainer(
             container=stage_control_container, variable_name="fine_align_container",
-            left=RIGHT_START + 100, top=12, height=90, width=90, border=True  # top was 20
+            left=RIGHT_START + 100, top=12, height=90, width=90, border=True
         )
         StyledLabel(
             container=fine_align_container, text="Fine Align", variable_name="fine_align_label",
@@ -1054,17 +1038,19 @@ class stage_control(App):
             position="absolute", flex=True, on_line=True, justify_content="center"
         )
         self.fine_align_setting_btn = StyledButton(
-            container=fine_align_container, text="Setting", variable_name="fine_align_setting_btn", font_size=100,
-            left=5, top=10, width=80, height=30, normal_color="#007BFF", press_color="#0056B3"
+            container=fine_align_container, text="Setting", variable_name="fine_align_setting_btn",
+            font_size=100, left=5, top=10, width=80, height=30,
+            normal_color="#007BFF", press_color="#0056B3"
         )
         self.start_btn = StyledButton(
-            container=fine_align_container, text="Start", variable_name="start_button", font_size=100,
-            left=5, top=50, width=80, height=30, normal_color="#007BFF", press_color="#0056B3"
+            container=fine_align_container, text="Start", variable_name="start_button",
+            font_size=100, left=5, top=50, width=80, height=30,
+            normal_color="#007BFF", press_color="#0056B3"
         )
 
         area_scan_container = StyledContainer(
             container=stage_control_container, variable_name="area_scan_container",
-            left=RIGHT_START + 200, top=12, height=90, width=90, border=True  # top was 20
+            left=RIGHT_START + 200, top=12, height=90, width=90, border=True
         )
         StyledLabel(
             container=area_scan_container, text="Area Scan", variable_name="area_scan_label",
@@ -1072,17 +1058,19 @@ class stage_control(App):
             position="absolute", flex=True, on_line=True, justify_content="center"
         )
         self.scan_setting_btn = StyledButton(
-            container=area_scan_container, text="Setting", variable_name="area_scan_setting_btn", font_size=100,
-            left=5, top=10, width=80, height=30, normal_color="#007BFF", press_color="#0056B3"
+            container=area_scan_container, text="Setting", variable_name="area_scan_setting_btn",
+            font_size=100, left=5, top=10, width=80, height=30,
+            normal_color="#007BFF", press_color="#0056B3"
         )
         self.scan_btn = StyledButton(
-            container=area_scan_container, text="Scan", variable_name="scan_button", font_size=100,
-            left=5, top=50, width=80, height=30, normal_color="#007BFF", press_color="#0056B3"
+            container=area_scan_container, text="Scan", variable_name="scan_button",
+            font_size=100, left=5, top=50, width=80, height=30,
+            normal_color="#007BFF", press_color="#0056B3"
         )
 
         move_container = StyledContainer(
             container=stage_control_container, variable_name="move_container",
-            left=RIGHT_START, top=112, height=88, width=200, border=True  # was 130
+            left=RIGHT_START, top=112, height=88, width=200, border=True
         )
         StyledLabel(
             container=move_container, text="Move To Device", variable_name="move_label",
@@ -1100,60 +1088,95 @@ class stage_control(App):
         )
         self.move_dd.attributes["title"] = "N/A"
         self.load_btn = StyledButton(
-            container=move_container, text="Load", variable_name="load_button", font_size=100,
-            left=10, top=50, width=85, height=28, normal_color="#007BFF", press_color="#0056B3"
+            container=move_container, text="Load", variable_name="load_button",
+            font_size=100, left=10, top=50, width=85, height=28,
+            normal_color="#007BFF", press_color="#0056B3"
         )
         self.move_btn = StyledButton(
-            container=move_container, text="Move", variable_name="move_button", font_size=100,
-            left=105, top=50, width=85, height=28, normal_color="#007BFF", press_color="#0056B3"
+            container=move_container, text="Move", variable_name="move_button",
+            font_size=100, left=105, top=50, width=85, height=28,
+            normal_color="#007BFF", press_color="#0056B3"
         )
+
+        # ---- Stacked channel tables (CH1–CH4 on first row, CH5–CH8 on second row) ----
+        # ---- 2×4 channel grid (CH1–CH8), each with header + value ----
+        TABLE_W = 360
+        COLS = 4
+        COL_W = TABLE_W // COLS
+
+        HEADER_H = 22   # height of "CHx" header row
+        DATA_H   = 22   # height of value row
+        V_PAD    = 4    # vertical gap between channels
+
+        # total height = 2 rows of (header+data+gap)
+        TABLE_H = 2 * (HEADER_H + DATA_H + V_PAD)
+
         table_container = StyledContainer(
-            container=stage_control_container, variable_name="coordinate_container",
-            left=RIGHT_START, top=212, height=130, width=290, border=True  # was 240
+            container=stage_control_container,
+            variable_name="coordinate_container",
+            left=RIGHT_START,
+            top=212,
+            height=TABLE_H + 4,  # a little padding
+            width=TABLE_W,
+            border=True
         )
 
-        # ----- dynamic headers / channel count -----
-        if self.slot_info is None:
-            # default: 8 channels, CH1 ... CH8
-            n_chs = 8
-            headers = [f"CH{i}" for i in range(1, n_chs + 1)]
-        else:
-            headers = []
-            for slot, head in self.slot_info:
-                i = (slot-1)*2 + head + 1  # 1.0, 1.1, 2.0, 2.1, ..., 4.0, 4.1
-                headers.append(f"CH{i}")
-            n_chs = len(headers)
+        self.ch_vals = []  # flat list: index 0 -> CH1, 1 -> CH2, ... 7 -> CH8
 
-        # one width per header
-        col_width = int(290 / max(n_chs, 1))
-        widths = [col_width] * n_chs
+        for ch_idx in range(1, 9):
+            # row: 0 for CH1–CH4, 1 for CH5–CH8
+            row = 0 if ch_idx <= 4 else 1
+            # col: 0..3
+            col = (ch_idx - 1) % 4
 
-        self.table = StyledTable(
-            container=table_container, variable_name="ch_table",
-            left=0, top=0, height=30, table_width=290,
-            headers=headers, widths=widths, row=2
-        )
+            left = col * COL_W
 
-        table = self.table
-        # row index 0 = header, 1 = first data row
-        data_row = list(table.children.values())[1]
+            # vertical block for this channel (header + value)
+            header_top = row * (HEADER_H + DATA_H + V_PAD)
+            data_top   = header_top + HEADER_H
 
-        # all cells in that row, one per channel
-        self.ch_cells = list(data_row.children.values())
-
-        # create one label per channel and append to its cell
-        self.ch_vals = []
-        for idx, cell in enumerate(self.ch_cells, start=1):
-            val_label = StyledLabel(
-                container=None, text="N/A", variable_name=f"ch{idx}_val", left=0, top=0,
-                width=100, height=100, font_size=100, color="#222",
-                align="right", position="inherit", percent=True, flex=True
+            # ---- header label: "CH1", "CH2", ... ----
+            hdr = StyledLabel(
+                container=table_container,
+                text=f"CH{ch_idx}",
+                variable_name=f"ch{ch_idx}_header",
+                left=left,
+                top=header_top,
+                width=COL_W,
+                height=HEADER_H,
+                font_size=100,
+                color="#222",
+                flex=True,
+                bold=True,
+                justify_content="center"
             )
-            cell.append(val_label)
-            self.ch_vals.append(val_label)
+            # light header background so it still looks like a table
+            hdr.style["background-color"] = "#eae8df"
+            hdr.style["border-right"] = "1px solid #d0cec4"
+            hdr.style["border-bottom"] = "1px solid #d0cec4"
+
+            # ---- value label: "N/A" (this is what you'll update later) ----
+            val = StyledLabel(
+                container=table_container,
+                text="N/A",
+                variable_name=f"ch{ch_idx}_val",
+                left=left,
+                top=data_top,
+                width=COL_W,
+                height=DATA_H,
+                font_size=100,
+                color="#222",
+                flex=True,
+                justify_content="center"
+            )
+            val.style["border-right"] = "1px solid #d0cec4"
+
+            self.ch_vals.append(val)
 
 
-        # Wire-ups (unchanged)
+        # --------------------------------------------- #
+
+        # ---- wire-ups (unchanged from your code) ----
         self.stop_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_stop))
         self.home_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_home))
         self.start_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_start))
@@ -1189,6 +1212,8 @@ class stage_control(App):
         self.move_btn.set_enabled(False)
         self.stage_control_container = stage_control_container
         return stage_control_container
+
+
 
     def onclick_stop(self):
         print("Stopping stage control")
@@ -2029,7 +2054,7 @@ if __name__ == '__main__':
     webview.create_window(
         'Stage Control',
         f'http://{local_ip}:8000',
-        width=872 + web_w, height=407 + web_h,
+        width=1302 + web_w, height=537 + web_h,
         x=700, y=465,
         resizable=True,
         hidden=True

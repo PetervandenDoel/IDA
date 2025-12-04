@@ -130,7 +130,7 @@ class NIR8164(LaserHAL):
 
             # PWM config
             for slot, head in self.slot_info:
-                self.write(f"SENS{slot}:CHAN{head}:POW:UNIT 0")
+                self.write(f"SENS{slot}:CHAN{head+1}:POW:UNIT 0")
             
             return True
         except Exception as e:

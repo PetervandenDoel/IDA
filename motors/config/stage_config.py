@@ -28,7 +28,7 @@ class StageConfiguration:
     move_timeout: float = 30.0  # seconds
 
     # Connection
-    visa_addr = None
+    visa_addr = 'ASRL4::INSTR'
 
     # factory config 
     driver_types: Dict[AxisType, str] = field(default_factory=lambda: {

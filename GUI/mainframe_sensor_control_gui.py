@@ -234,8 +234,8 @@ class stage_control(App):
         webview.create_window(
             "Detector Window Settings",
             f"http://{local_ip}:7006",
-            width=300+web_w,
-            height=330+web_h,
+            width=310+web_w,
+            height=560+web_h,
             resizable=True,
             on_top=True,
             hidden=False

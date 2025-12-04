@@ -8,6 +8,28 @@ from GUI.lib_gui import *
 
 SHARED_PATH = os.path.join("database", "shared_memory.json")
 
+def update_detector_window_setting(names: list, payloads: list):
+    try:
+        with open(SHARED_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        data = {}
+
+    dws = data.get("DetectorWindowSettings", {})
+    if not isinstance(dws, dict):
+        dws = {}
+
+    # Overwrite the specific setting
+    for n, p  in zip(names, payloads):
+        dws[n] = p
+    
+    data["DetectorWindowSettings"] = dws
+
+    # Keep your change flag behavior
+    data["Detector_Change"] = "1"
+
+    with open(SHARED_PATH, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
 
 class AutoSweepConfig(App):
     """Auto sweep settings panel."""
@@ -380,7 +402,7 @@ class AutoSweepConfig(App):
         self.auto_sweep_container = root
         return root
 
-    # ---------------- LOAD EXISTING STATE ----------------
+    # --- LOAD EXISTING STATE ---
 
     def _load_from_shared(self):
         try:
@@ -400,8 +422,9 @@ class AutoSweepConfig(App):
         mode = "Auto"
         manual_val = -10.0
 
-        dr1 = data.get("DetectorRange_Ch1") or {}
-        ar1 = data.get("DetectorAutoRange_Ch1") or {}
+        detector_data = data.get("DetectorWindowSettings")
+        dr1 = detector_data.get("DetectorRange_Ch1") or {}
+        ar1 = detector_data.get("DetectorAutoRange_Ch1") or {}
 
         if dr1:
             mode = "Manual"
@@ -420,7 +443,7 @@ class AutoSweepConfig(App):
 
         # Reference for Ch1
         ref_dbm = None
-        ref_info = data.get("DetectorReference_Ch1") or {}
+        ref_info = detector_data.get("DetectorReference_Ch1") or {}
         if isinstance(ref_info, dict):
             val = ref_info.get("ref_dbm")
             try:
@@ -503,51 +526,34 @@ class AutoSweepConfig(App):
         except Exception:
             manual_val = -10.0
 
-        range_key = "DetectorRange_Ch1"
-        auto_key = "DetectorAutoRange_Ch1"
-        ref_key = "DetectorReference_Ch1"
-
-        if mode == "Manual":
-            # Manual: clear auto, set range_dbm
-            File("shared_memory", auto_key, {}).save()
-            File(
-                "shared_memory",
-                range_key,
-                {
-                    "channel": ch,
-                    "range_dbm": manual_val,
-                    "timestamp": ts,
-                },
-            ).save()
-        else:
-            # Auto: clear manual, set autorange
-            File("shared_memory", range_key, {}).save()
-            File(
-                "shared_memory",
-                auto_key,
-                {
-                    "channel": ch,
-                    "timestamp": ts,
-                },
-            ).save()
-
         # ---- Ch1 Reference ----
         try:
             ref_dbm = float(self.ref_value.get_value())
         except Exception:
             ref_dbm = -30.0
 
-        File(
-            "shared_memory",
-            ref_key,
-            {
-                "channel": ch,
-                "ref_dbm": ref_dbm,
-                "timestamp": ts,
-            },
-        ).save()
+        range_key = "DetectorRange_Ch1"
+        auto_key = "DetectorAutoRange_Ch1"
+        ref_key = "DetectorReference_Ch1"
 
-        # ---- FineA.detector (only if FineA exists & is valid) ----
+        if mode == "Manual":
+            # Manual: clear auto, set range_dbm
+            update_detector_window_setting(
+                [auto_key, range_key, ref_key],
+                [{},
+                 {"range_dbm": manual_val},
+                 {"ref_dbm": ref_dbm}]
+            )
+        else:
+            # Auto: clear manual, set autorange
+            update_detector_window_setting(
+                [auto_key, range_key, ref_key],
+                [{auto_key: {"Auto": 1}},
+                 {},
+                 {"ref_dbm": ref_dbm}]
+            )
+
+        # ---- FineA.detector ----
         finea = data.get("FineA")
         if isinstance(finea, dict) and self.detector is not None:
             try:
