@@ -22,10 +22,9 @@ def update_detector_window_setting(name, payload):
 
     # Overwrite the specific setting
     dws[name] = payload
+    dws["Detector_Change"] = "1"
     data["DetectorWindowSettings"] = dws
 
-    # Keep your change flag behavior
-    data["Detector_Change"] = "1"
 
     with open(shared_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)

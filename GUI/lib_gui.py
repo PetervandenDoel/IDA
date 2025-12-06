@@ -973,8 +973,12 @@ class plot():
                 plotnames.append(plotname)
             fig = px.line(plots, x="Wavelength [nm]", y=plotnames,
                           labels={'value': "Power [dBm]", 'x': "Wavelength [nm]"})
-            for i in range(0, len(y_values)):
-                fig.data[i].name = str(i + 1)
+            if self.slot_info is not None:
+                for i, slot, head in enumerate(self.slot_info):
+                    fig.data[i].name = f'{slot}.{head}'
+            else:
+                for i in range(0, len(y_values)):
+                    fig.data[i].name = str(i + 1)
             fig.update_layout(legend_title_text="Detector")
             output_html = os.path.join(path, f"{filename}_{fileTime}.html")
             os.makedirs(os.path.dirname(output_html), exist_ok=True)

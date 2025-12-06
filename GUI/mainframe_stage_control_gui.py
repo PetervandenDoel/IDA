@@ -146,7 +146,7 @@ class stage_control(App):
 
                     # Read detector range and reference settings
                     self.detector_window_settings = data.get("DetectorWindowSettings", {})
-                    
+                
                 if self.detector_window_settings.get("Detector_Change") == "1":
                     if self.slot_info is not None:
                         # If we've enumerated slot info, proceed as is
@@ -260,10 +260,11 @@ class stage_control(App):
         try:
             # If auto is empty, and manual is set apply manual ranging
             detector_window_data = getattr(self, 'detector_window_settings', {})
-            auto_range_attr = detector_window_data.get(f'detector_auto_ch{channel}', {})
-            manual_range_attr = detector_window_data.get(f'detector_range_ch{channel}', {})
-            ref_attr = detector_window_data.get(f'detector_ref_ch{channel}', {})
-            if auto_range_attr == {} and manual_range_attr.get("range_dbm") is not None:
+            auto_range_attr = detector_window_data.get(f'DetectorAutoRange_Ch{channel}', {})
+            manual_range_attr = detector_window_data.get(f'DetectorRange_Ch{channel}', {})
+            ref_attr = detector_window_data.get(f'DetectorReference_Ch{channel}', {})
+            
+            if auto_range_attr == {} and manual_range_attr.get("range_dbm") != {}:
                 self.apply_detector_range(
                     manual_range_attr.get("range_dbm"),
                     channel=channel
@@ -353,10 +354,11 @@ class stage_control(App):
                 previous_slot = slot
 
                 # Get data
-                detector_window_data = getattr(self, 'detector_window_settings', {})
+                detector_window_data = getattr(self, 'DetectorWindowSettings', {})
                 auto_range_attr = detector_window_data.get(f'detector_auto_ch{slot}', {})
                 manual_range_attr = detector_window_data.get(f'detector_range_ch{slot}', {})
                 ref_attr = detector_window_data.get(f'detector_ref_ch{slot}', {})
+                print('here', manual_range_attr, auto_range_attr, ref_attr)
                 ch_range, ch_ref = resolve_range_and_ref(
                     manual_range_attr,
                     auto_range_attr,
@@ -401,7 +403,7 @@ class stage_control(App):
         diagram = plot(
             x, y, "spectral_sweep", fileTime, self.user, name,
             self.project, auto, self.file_format, self.file_path,
-            self.slot_info  # optional
+            self.slot_info  # For display
         )
         p = Process(target=diagram.generate_plots)
         p.start()
@@ -809,14 +811,14 @@ class stage_control(App):
             activity = f"Device {device_num}/{device_count}: Spectral sweep"
             self._write_progress_file(device_num, activity, progress_percent)
 
-            self.laser_sweep(name=self.devices[int(key[i])])
+            self.laser_sweep(name=self.devices[int(key[i])-1])
 
             # Update progress: Device completed
             progress_percent = ((i + 1) / device_count) * 100
             activity = f"Device {device_num}/{device_count}: Completed"
             self._write_progress_file(device_num, activity, progress_percent)
 
-            file = File("shared_memory", "DeviceName", self.devices[int(key[i])], "DeviceNum", int(key[i]))
+            file = File("shared_memory", "DeviceName", self.devices[int(key[i])-1], "DeviceNum", int(key[i])-1)  # potential index error
             file.save()
 
             # Calculate actual device time for learning
