@@ -9,6 +9,27 @@ from GUI.lib_gui import *
 SHARED_PATH = os.path.join("database", "shared_memory.json")
 
 
+def update_detector_window_setting(name, payload):
+    """Update detector window settings in shared_memory.json."""
+    try:
+        with open(SHARED_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        data = {}
+
+    dws = data.get("DetectorWindowSettings", {})
+    if not isinstance(dws, dict):
+        dws = {}
+
+    # Overwrite the specific setting
+    dws[name] = payload
+    dws["Detector_Change"] = "1"
+    data["DetectorWindowSettings"] = dws
+
+    with open(SHARED_PATH, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+
+
 class DefaultSettingsConfig(App):
     """User and project default settings configuration panel."""
 
@@ -39,6 +60,7 @@ class DefaultSettingsConfig(App):
         self.area_x_step = None
         self.area_y_size = None
         self.area_y_step = None
+        self.area_spiral_step = None
         self.area_pattern_dd = None
         
         # Widgets - Fine Align Settings
@@ -59,6 +81,30 @@ class DefaultSettingsConfig(App):
         # Widgets - Configuration Labels
         self.stage_config_dd = None
         self.sensor_config_dd = None
+        
+        # Widgets - Detector Window Settings (4 slots with buttons)
+        self.ch1_range = None
+        self.ch1_ref = None
+        self.ch2_range = None
+        self.ch2_ref = None
+        self.ch3_range = None
+        self.ch3_ref = None
+        self.ch4_range = None
+        self.ch4_ref = None
+        # Auto range buttons
+        self.apply_auto_btn1 = None
+        self.apply_auto_btn2 = None
+        self.apply_auto_btn3 = None
+        self.apply_auto_btn4 = None
+        # Apply range/ref buttons
+        self.apply_range_btn1 = None
+        self.apply_ref_btn1 = None
+        self.apply_range_btn2 = None
+        self.apply_ref_btn2 = None
+        self.apply_range_btn3 = None
+        self.apply_ref_btn3 = None
+        self.apply_range_btn4 = None
+        self.apply_ref_btn4 = None
         
         # Buttons
         self.save_user_btn = None
@@ -122,6 +168,20 @@ class DefaultSettingsConfig(App):
             widget.set_value(str(value))
         except Exception:
             pass
+            
+    def _set_spin_safely_by_name(self, widget_name, value):
+        """Set a spinbox by name if available."""
+        try:
+            widget = getattr(self, widget_name, None)
+            if widget is None:
+                # Try to find in UI children if it's a dynamic widget
+                container = getattr(self, 'construct_ui', lambda: None)()
+                if hasattr(container, 'children') and widget_name in container.children:
+                    widget = container.children[widget_name]
+            if widget is not None and value is not None:
+                widget.set_value(float(value))
+        except Exception:
+            pass
 
     # ---------------- DATA LOADING ----------------
 
@@ -160,22 +220,36 @@ class DefaultSettingsConfig(App):
         
         # Area scan settings
         area = config.get("AreaS", {})
-        self._set_spin_safely(self.area_x_size, area.get("x_size", 20.0))
-        self._set_spin_safely(self.area_x_step, area.get("x_step", 1.0))
-        self._set_spin_safely(self.area_y_size, area.get("y_size", 20.0))
-        self._set_spin_safely(self.area_y_step, area.get("y_step", 1.0))
-        self._set_dropdown_safely(self.area_pattern_dd, area.get("pattern", "spiral"))
+        self._set_spin_safely(self.area_x_size, area.get("x_size", 50.0))
+        self._set_spin_safely(self.area_x_step, area.get("x_step", 5.0))
+        self._set_spin_safely(self.area_y_size, area.get("y_size", 50.0))
+        self._set_spin_safely(self.area_y_step, area.get("y_step", 5.0))
+        self._set_spin_safely(self.area_spiral_step, area.get("spiral_step", 5.0))
+        self._set_dropdown_safely(self.area_pattern_dd, area.get("pattern", "Spiral"))
         
         # Fine align settings
         fine_a = config.get("FineA", {})
         self._set_spin_safely(self.fa_window_size, fine_a.get("window_size", 10.0))
         self._set_spin_safely(self.fa_step_size, fine_a.get("step_size", 1.0))
         self._set_spin_safely(self.fa_max_iters, fine_a.get("max_iters", 10))
-        self._set_spin_safely(self.fa_timeout, fine_a.get("timeout_s", 30))
+        self._set_spin_safely(self.fa_min_grad_ss, fine_a.get("min_gradient_ss", 0.1))
+        self._set_dropdown_safely(self.fa_primary_detector, fine_a.get("detector", "ch1"))
+        self._set_spin_safely(self.fa_ref_wl, fine_a.get("ref_wl", 1550.0))
         
         # Initial positions
         initial_pos = config.get("InitialPositions", {})
         self._set_spin_safely(self.init_fa, initial_pos.get("fa", 0.0))
+        
+        # Detector window settings (4 slots)
+        detector_settings = config.get("DetectorWindowSettings", {})
+        self._set_spin_safely(self.ch1_range, detector_settings.get("ch1_range", -10))
+        self._set_spin_safely(self.ch1_ref, detector_settings.get("ch1_ref", -30))
+        self._set_spin_safely(self.ch2_range, detector_settings.get("ch2_range", -10))
+        self._set_spin_safely(self.ch2_ref, detector_settings.get("ch2_ref", -30))
+        self._set_spin_safely(self.ch3_range, detector_settings.get("ch3_range", -10))
+        self._set_spin_safely(self.ch3_ref, detector_settings.get("ch3_ref", -30))
+        self._set_spin_safely(self.ch4_range, detector_settings.get("ch4_range", -10))
+        self._set_spin_safely(self.ch4_ref, detector_settings.get("ch4_ref", -30))
         
         # Port settings
         port = config.get("Port", {})
@@ -190,16 +264,17 @@ class DefaultSettingsConfig(App):
     # ---------------- UI CONSTRUCTION ----------------
 
     def construct_ui(self):
+        # Proper 3-column layout based on other sub window patterns
+        # Total width calculation: 240 + 240 + 240 = 720px (plus margins)
         root = StyledContainer(
             variable_name="default_settings_container",
             left=0,
             top=0,
-            width=680,
-            height=500,
+            width=870,  # Increased from 750 to prevent overflow
+            height=600,  # Height stays same
         )
 
         y = 10
-        row_h = 28
         
         # Title
         StyledLabel(
@@ -208,7 +283,7 @@ class DefaultSettingsConfig(App):
             variable_name="title",
             left=10,
             top=y,
-            width=660,
+            width=930,  # Updated for new container width
             height=25,
             font_size=120,
             flex=True,
@@ -217,7 +292,7 @@ class DefaultSettingsConfig(App):
             bold=True,
         )
         
-        y += 35
+        y += 30
         
         # User/Project info
         StyledLabel(
@@ -226,7 +301,7 @@ class DefaultSettingsConfig(App):
             variable_name="user_info",
             left=10,
             top=y,
-            width=660,
+            width=930,  # Updated for new container width
             height=20,
             font_size=90,
             flex=True,
@@ -234,105 +309,133 @@ class DefaultSettingsConfig(App):
             color="#666",
         )
         
-        y += 35
+        y += 30
         
-        # Set up 2-column layout
-        left_x = 10
-        right_x = 350
-        y_left = y
-        y_right = y
+        # Set up 3-column layout with proper spacing (wider for bigger container)
+        col_width = 300  # Increased width per column
+        col1_x = 10      # Left column
+        col2_x = 320     # Middle column (10 + 300 + 10)
+        col3_x = 560     # Right column moved left by 30px (was 630)
+        start_y = y
         
-        # Create the entire UI with 2-column layout
-        self._create_left_column(root, left_x, y_left, row_h)
-        self._create_right_column(root, right_x, y_right, row_h)
+        # Create all three columns
+        self._create_column1_sweep_area(root, col1_x, start_y, col_width)
+        self._create_column2_fine_align_positions(root, col2_x, start_y, col_width)
+        self._create_column3_detector_ports_config(root, col3_x, start_y, col_width)
         
         # Save buttons at bottom
         self._create_save_buttons(root)
 
+        # Store reference for dynamic widget access
+        self._ui_container = root
         return root
 
-    def _create_left_column(self, root, left_x, y_left, row_h):
-        """Create left column with Sweep and Area Scan settings."""
+    def _create_column1_sweep_area(self, root, col_x, y, col_width):
+        """Create column 1 with Sweep and Area Scan settings following area_scan pattern."""
+        # Layout constants matching sub_area_scan_setting_gui.py:36-38 (adjusted for wider column)
+        LBL_W, INP_W, UNIT_W = 90, 70, 50  # Increased widths
+        LBL_X = col_x + 10
+        INP_X = LBL_X + LBL_W + 10  # More spacing between label and input
+        UNIT_X = INP_X + INP_W + 20  # Even more spacing to prevent overlap
+        ROW = 30
+        
         # Sweep Settings Section
         StyledLabel(
             container=root,
             text="Sweep Settings",
             variable_name="sweep_title",
-            left=left_x,
-            top=y_left,
-            width=200,
-            height=25,
+            left=col_x,
+            top=y,
+            width=col_width,
+            height=24,
             font_size=110,
             flex=True,
             justify_content="left",
-            color="#222",
+            color="#111",
             bold=True,
         )
+        y += ROW
         
-        y_left += 30
-
-        # Sweep fields
-        self._create_field(root, left_x, y_left, row_h, "Power", "power", "dBm", 0.0, -50, 20, 0.1)
+        # Power
+        self._create_field_3col(root, LBL_X, INP_X, UNIT_X, y, LBL_W, INP_W, UNIT_W, 
+                               "Power", "power", "dBm", 0.0, -50, 20, 0.1)
         self.sweep_power = root.children["power_in"]
+        y += ROW
         
-        y_left += row_h
-        self._create_field(root, left_x, y_left, row_h, "Start Wvl", "start", "nm", 1540.0, 1000, 2000, 0.1)
+        # Start Wvl
+        self._create_field_3col(root, LBL_X, INP_X, UNIT_X, y, LBL_W, INP_W, UNIT_W,
+                               "Start Wvl", "start", "nm", 1540.0, 1000, 2000, 0.1)
         self.sweep_start = root.children["start_in"]
+        y += ROW
         
-        y_left += row_h  
-        self._create_field(root, left_x, y_left, row_h, "End Wvl", "end", "nm", 1580.0, 1000, 2000, 0.1)
+        # End Wvl
+        self._create_field_3col(root, LBL_X, INP_X, UNIT_X, y, LBL_W, INP_W, UNIT_W,
+                               "End Wvl", "end", "nm", 1580.0, 1000, 2000, 0.1)
         self.sweep_end = root.children["end_in"]
+        y += ROW
         
-        y_left += row_h
-        self._create_field(root, left_x, y_left, row_h, "Step Size", "step", "nm", 0.001, 0.0001, 1.0, 0.0001)
+        # Step Size
+        self._create_field_3col(root, LBL_X, INP_X, UNIT_X, y, LBL_W, INP_W, UNIT_W,
+                               "Step Size", "step", "nm", 0.001, 0.0001, 1.0, 0.0001)
         self.sweep_step = root.children["step_in"]
-        
-        y_left += 40
+        y += ROW + 10
         
         # Area Scan Settings
         StyledLabel(
             container=root,
             text="Area Scan Settings",
             variable_name="area_title",
-            left=left_x,
-            top=y_left,
-            width=200,
-            height=25,
+            left=col_x,
+            top=y,
+            width=col_width,
+            height=24,
             font_size=110,
             flex=True,
             justify_content="left",
-            color="#222",
+            color="#111",
             bold=True,
         )
+        y += ROW
         
-        y_left += 30
-        
-        # Area Scan fields
-        self._create_field(root, left_x, y_left, row_h, "X Size", "x_size", "um", 20.0, 1, 1000, 1)
+        # X Size
+        self._create_field_3col(root, LBL_X, INP_X, UNIT_X, y, LBL_W, INP_W, UNIT_W,
+                               "X Size", "x_size", "um", 50.0, 1, 1000, 1)
         self.area_x_size = root.children["x_size_in"]
+        y += ROW
         
-        y_left += row_h
-        self._create_field(root, left_x, y_left, row_h, "X Step", "x_step", "um", 1.0, 0.1, 100, 0.1)
-        self.area_x_step = root.children["x_step_in"]
-        
-        y_left += row_h
-        self._create_field(root, left_x, y_left, row_h, "Y Size", "y_size", "um", 20.0, 1, 1000, 1)
+        # Y Size  
+        self._create_field_3col(root, LBL_X, INP_X, UNIT_X, y, LBL_W, INP_W, UNIT_W,
+                               "Y Size", "y_size", "um", 50.0, 1, 1000, 1)
         self.area_y_size = root.children["y_size_in"]
+        y += ROW
         
-        y_left += row_h
-        self._create_field(root, left_x, y_left, row_h, "Y Step", "y_step", "um", 1.0, 0.1, 100, 0.1)
+        # X Step
+        self._create_field_3col(root, LBL_X, INP_X, UNIT_X, y, LBL_W, INP_W, UNIT_W,
+                               "X Step", "x_step", "um", 5.0, 0.1, 100, 0.1)
+        self.area_x_step = root.children["x_step_in"]
+        y += ROW
+        
+        # Y Step
+        self._create_field_3col(root, LBL_X, INP_X, UNIT_X, y, LBL_W, INP_W, UNIT_W,
+                               "Y Step", "y_step", "um", 5.0, 0.1, 100, 0.1)
         self.area_y_step = root.children["y_step_in"]
+        y += ROW
+        
+        # Step Size for Spiral (like in sub_area_scan_setting_gui.py)
+        self._create_field_3col(root, LBL_X, INP_X, UNIT_X, y, LBL_W, INP_W, UNIT_W,
+                               "Step Size (Spiral)", "spiral_step", "um", 5.0, 0.1, 100, 0.1)
+        self.area_spiral_step = root.children["spiral_step_in"]
+        y += ROW
         
         # Pattern dropdown
-        y_left += row_h
         StyledLabel(
             container=root,
             text="Pattern",
             variable_name="pattern_lb",
-            left=left_x+10,
-            top=y_left,
-            width=100,
-            height=row_h,
+            left=LBL_X,
+            top=y,
+            width=LBL_W,
+            height=24,
             font_size=100,
             flex=True,
             justify_content="right",
@@ -340,24 +443,98 @@ class DefaultSettingsConfig(App):
         )
         self.area_pattern_dd = StyledDropDown(
             container=root,
-            text=["spiral", "crosshair"],
+            text=["Spiral", "Crosshair"],
             variable_name="pattern_dd",
-            left=left_x+120,
-            top=y_left,
-            width=80,
+            left=INP_X,
+            top=y,
+            width=INP_W + UNIT_W,
             height=24,
+            position="absolute"
         )
+        self.area_pattern_dd.set_value("Spiral")
+        y += ROW + 15
+        
+        # Configuration Labels (moved from column 2)
+        StyledLabel(
+            container=root,
+            text="Configuration Labels",
+            variable_name="config_title",
+            left=col_x,
+            top=y,
+            width=col_width,
+            height=24,
+            font_size=110,
+            flex=True,
+            justify_content="left",
+            color="#111",
+            bold=True,
+        )
+        y += 30
+        
+        # Stage Configuration dropdown
+        StyledLabel(
+            container=root,
+            text="Stage",
+            variable_name="stage_config_lb", 
+            left=LBL_X,
+            top=y,
+            width=LBL_W,
+            height=24,
+            font_size=100,
+            flex=True,
+            justify_content="right",
+            color="#222",
+        )
+        self.stage_config_dd = StyledDropDown(
+            container=root,
+            text=["", "MMC100_controller", "Thorlabs_controller", "Corvus_controller", "Dummy_controller"],
+            variable_name="stage_config_dd",
+            left=INP_X,
+            top=y,
+            width=INP_W + UNIT_W + 40,  # Wider for dropdown
+            height=24,
+            position="absolute"
+        )
+        self.stage_config_dd.set_value("MMC100_controller")  # Set default
+        y += ROW
+        
+        # Sensor Configuration dropdown
+        StyledLabel(
+            container=root,
+            text="Sensor",
+            variable_name="sensor_config_lb",
+            left=LBL_X,
+            top=y,
+            width=LBL_W,
+            height=24,
+            font_size=100,
+            flex=True,
+            justify_content="right",
+            color="#222",
+        )
+        self.sensor_config_dd = StyledDropDown(
+            container=root,
+            text=["", "8164B_NIR", "N7744A", "Dummy_sensor"],
+            variable_name="sensor_config_dd",
+            left=INP_X,
+            top=y,
+            width=INP_W + UNIT_W + 40,  # Wider for dropdown
+            height=24,
+            position="absolute"
+        )
+        self.sensor_config_dd.set_value("8164B_NIR")  # Set default
     
-    def _create_field(self, root, left_x, y, row_h, label, prefix, unit, value, min_val, max_val, step):
-        """Helper to create label + spinbox + unit."""
+    def _create_field_3col(self, root, lbl_x, inp_x, unit_x, y, lbl_w, inp_w, unit_w, 
+                           label, prefix, unit, value, min_val, max_val, step):
+        """Helper to create label + spinbox + unit in 3-column layout."""
         StyledLabel(
             container=root,
             text=label,
             variable_name=f"{prefix}_lb",
-            left=left_x+10,
+            left=lbl_x,
             top=y,
-            width=100,
-            height=row_h,
+            width=lbl_w,
+            height=24,
             font_size=100,
             flex=True,
             justify_content="right",
@@ -366,134 +543,244 @@ class DefaultSettingsConfig(App):
         StyledSpinBox(
             container=root,
             variable_name=f"{prefix}_in",
-            left=left_x+120,
+            left=inp_x,
             top=y,
-            width=80,
+            width=inp_w,
             height=24,
             value=value,
             min_value=min_val,
             max_value=max_val,
             step=step,
+            position="absolute"
         )
         if unit:
             StyledLabel(
                 container=root,
                 text=unit,
                 variable_name=f"{prefix}_unit",
-                left=left_x+210,
+                left=unit_x,
                 top=y,
-                width=40,
-                height=row_h,
+                width=unit_w,
+                height=24,
                 font_size=100,
                 flex=True,
                 justify_content="left",
                 color="#222",
             )
     
-    def _create_right_column(self, root, right_x, y_right, row_h):
-        """Create right column with Fine Align, Initial Positions, Ports, and Configuration."""
-        # Fine Align Settings
+    def _create_column2_fine_align_positions(self, root, col_x, y, col_width):
+        """Create column 2 with Fine Align and Initial Positions following fine_align pattern."""
+        # Layout constants matching sub_fine_align_setting_gui.py:45-70 (adjusted for wider column)
+        LBL_X = col_x + 10
+        INP_X = col_x + 90   # More spacing for labels
+        UNIT_X = col_x + 160 # Even more spacing to prevent overlap
+        LBL_W = 75           # Wider labels
+        INP_W = 50  
+        UNIT_W = 40          # Wider units for better spacing
+        ROW = 32  # Fine align uses 32px spacing
+        
+        # Fine Align Settings (matching sub_fine_align_setting_gui.py pattern)
         StyledLabel(
             container=root,
             text="Fine Align Settings",
             variable_name="fa_title",
-            left=right_x,
-            top=y_right,
-            width=200,
-            height=25,
+            left=col_x,
+            top=y,
+            width=col_width,
+            height=24,
             font_size=110,
             flex=True,
             justify_content="left",
-            color="#222",
+            color="#111",
             bold=True,
         )
+        y += 30
         
-        y_right += 30
-        
-        # Fine Align fields
-        self._create_field(root, right_x, y_right, row_h, "Window", "window", "um", 10.0, 1, 100, 1)
+        # Window Size
+        self._create_field_fine_align(root, LBL_X, INP_X, UNIT_X, y, LBL_W, INP_W, UNIT_W,
+                                     "Window", "window", "um", 10.0, 1, 100, 1)
         self.fa_window_size = root.children["window_in"]
+        y += ROW
         
-        y_right += row_h
-        self._create_field(root, right_x, y_right, row_h, "Step", "fa_step", "um", 1.0, 0.1, 10, 0.1)
+        # Step Size
+        self._create_field_fine_align(root, LBL_X, INP_X, UNIT_X, y, LBL_W, INP_W, UNIT_W,
+                                     "Step Size", "fa_step", "um", 1.0, 0.1, 10, 0.1)
         self.fa_step_size = root.children["fa_step_in"]
+        y += ROW
         
-        y_right += row_h
-        self._create_field(root, right_x, y_right, row_h, "Max Iters", "max_iters", "", 10, 1, 100, 1)
+        # Max Iters
+        self._create_field_fine_align(root, LBL_X, INP_X, UNIT_X, y, LBL_W, INP_W, UNIT_W,
+                                     "Max Iters", "max_iters", "", 10, 1, 50, 1)
         self.fa_max_iters = root.children["max_iters_in"]
+        y += ROW
         
-        y_right += row_h
-        self._create_field(root, right_x, y_right, row_h, "Timeout", "timeout", "s", 30, 1, 300, 1)
-        self.fa_timeout = root.children["timeout_in"]
+        # Min Grad SS (new from user changes)
+        self._create_field_fine_align(root, LBL_X, INP_X, UNIT_X, y, LBL_W, INP_W, UNIT_W,
+                                     "Min Grad SS", "min_grad_ss", "um", 0.1, 0.001, 10, 0.1)
+        self.fa_min_grad_ss = root.children["min_grad_ss_in"]
+        y += ROW
         
-        y_right += 40
+        # Primary Detector dropdown (new from user changes)
+        StyledLabel(
+            container=root,
+            text="Detector",
+            variable_name="fa_detector_lb",
+            left=LBL_X,
+            top=y,
+            width=LBL_W,
+            height=24,
+            font_size=100,
+            flex=True,
+            justify_content="right",
+            color="#222",
+        )
+        self.fa_primary_detector = StyledDropDown(
+            container=root,
+            text=["ch1", "ch2", "Max"],
+            variable_name="fa_detector_dd",
+            left=INP_X,
+            top=y,
+            width=60,
+            height=24,
+            position="absolute"
+        )
+        y += ROW
         
-        # Initial Positions
+        # Reference Wavelength (new from user changes)
+        self._create_field_fine_align(root, LBL_X, INP_X, UNIT_X, y, LBL_W, INP_W, UNIT_W,
+                                     "Ref WL", "ref_wl", "nm", 1550.0, 1450.0, 1650.0, 0.01)
+        self.fa_ref_wl = root.children["ref_wl_in"]
+        y += ROW + 10
+        
+        # Initial Positions (simplified)
         StyledLabel(
             container=root,
             text="Initial Positions",
             variable_name="init_title",
-            left=right_x,
-            top=y_right,
-            width=200,
-            height=25,
+            left=col_x,
+            top=y,
+            width=col_width,
+            height=24,
             font_size=110,
             flex=True,
             justify_content="left",
-            color="#222",
+            color="#111",
             bold=True,
         )
+        y += 30
         
-        y_right += 30
-        
-        self._create_field(root, right_x, y_right, row_h, "Init X", "init_x", "um", 0.0, -50000, 50000, 1)
-        self.init_x = root.children["init_x_in"]
-        
-        y_right += row_h
-        self._create_field(root, right_x, y_right, row_h, "Init Y", "init_y", "um", 0.0, -50000, 50000, 1)
-        self.init_y = root.children["init_y_in"]
-        
-        y_right += row_h
-        self._create_field(root, right_x, y_right, row_h, "Init FA", "init_fa", "deg", 0.0, -360, 360, 0.1)
+        # Init FA only (as per user's changes - removed init_x and init_y) - default 8 degrees
+        self._create_field_fine_align(root, LBL_X, INP_X, UNIT_X, y, LBL_W, INP_W, UNIT_W,
+                                     "Init FA", "init_fa", "deg", 8.0, -360, 360, 0.1)
         self.init_fa = root.children["init_fa_in"]
+        y += ROW + 15
         
-        y_right += 40
-        
-        # Port Settings
+        # Port Settings (moved from column 3)
         StyledLabel(
             container=root,
             text="Port Settings",
             variable_name="port_title",
-            left=right_x,
-            top=y_right,
-            width=200,
-            height=25,
+            left=col_x,
+            top=y,
+            width=col_width,
+            height=24,
             font_size=110,
             flex=True,
             justify_content="left",
-            color="#222",
+            color="#111",
             bold=True,
         )
+        y += 30
         
-        y_right += 30
-        
-        self._create_field(root, right_x, y_right, row_h, "Stage Port", "stage_port", "", 7, 1, 99, 1)
+        # Stage Port (int values)
+        self._create_field_fine_align(root, LBL_X, INP_X, UNIT_X, y, LBL_W, INP_W, UNIT_W,
+                                     "Stage Port", "stage_port", "", 4, 1, 99, 1)
         self.stage_port = root.children["stage_port_in"]
+        y += ROW
         
-        y_right += row_h
-        self._create_field(root, right_x, y_right, row_h, "Sensor Port", "sensor_port", "", 20, 1, 99, 1)
+        # Sensor Port (int values)
+        self._create_field_fine_align(root, LBL_X, INP_X, UNIT_X, y, LBL_W, INP_W, UNIT_W,
+                                     "Sensor Port", "sensor_port", "", 20, 1, 99, 1)
         self.sensor_port = root.children["sensor_port_in"]
-        
-        y_right += 40
-        
-        # Configuration Labels
+    
+    def _create_field_fine_align(self, root, lbl_x, inp_x, unit_x, y, lbl_w, inp_w, unit_w,
+                                 label, prefix, unit, value, min_val, max_val, step):
+        """Helper for fine align style fields."""
         StyledLabel(
             container=root,
-            text="Configuration Labels",
-            variable_name="config_title",
-            left=right_x,
-            top=y_right,
-            width=200,
+            text=label,
+            variable_name=f"{prefix}_lb",
+            left=lbl_x,
+            top=y,
+            width=lbl_w,
+            height=24,
+            font_size=100,
+            flex=True,
+            justify_content="right",
+            color="#222",
+        )
+        StyledSpinBox(
+            container=root,
+            variable_name=f"{prefix}_in",
+            left=inp_x,
+            top=y,
+            width=inp_w,
+            height=24,
+            value=value,
+            min_value=min_val,
+            max_value=max_val,
+            step=step,
+            position="absolute"
+        )
+        if unit:
+            StyledLabel(
+                container=root,
+                text=unit,
+                variable_name=f"{prefix}_unit",
+                left=unit_x,
+                top=y,
+                width=unit_w,
+                height=24,
+                font_size=100,
+                flex=True,
+                justify_content="left",
+                color="#222",
+            )
+    
+    def _create_column3_detector_ports_config(self, root, col_x, y, col_width):
+        """Create column 3 with Detector Window Settings following sub_data_window_setting_gui.py pattern exactly."""
+        # Layout constants adjusted for wider column and better spacing
+        LBL_X = col_x     # Move Range/Ref labels more to the left
+        INP_X = col_x + 70   # Input boxes
+        UNIT_X = col_x + 150 # Unit labels
+        BTN_X = col_x + 180  # Buttons - more space between inputs and buttons
+        ROW = 30  # Row spacing
+        
+        # Detector Window Settings Title
+        StyledLabel(
+            container=root,
+            text="Detector Window Settings",
+            variable_name="detector_title",
+            left=col_x,
+            top=y,
+            width=col_width,
+            height=24,
+            font_size=110,
+            flex=True,
+            justify_content="left",
+            color="#111",
+            bold=True,
+        )
+        y += 30
+        
+        # =============== Channel 1 ===============
+        StyledLabel(
+            container=root,
+            text="Slot 1",
+            variable_name="ch1_label",
+            left=LBL_X,
+            top=y,
+            width=100,
             height=25,
             font_size=110,
             flex=True,
@@ -501,67 +788,657 @@ class DefaultSettingsConfig(App):
             color="#222",
             bold=True,
         )
+        y += 25
         
-        y_right += 30
-        
-        # Stage Configuration
+        # CH1 Range
         StyledLabel(
             container=root,
-            text="Stage Type",
-            variable_name="stage_config_lb",
-            left=right_x+10,
-            top=y_right,
-            width=100,
-            height=row_h,
+            text="Range",
+            variable_name="ch1_range_lb",
+            left=LBL_X,
+            top=y,
+            width=60,
+            height=25,
             font_size=100,
             flex=True,
             justify_content="right",
             color="#222",
         )
-        self.stage_config_dd = StyledDropDown(
+        self.ch1_range = StyledSpinBox(
             container=root,
-            text=["", "Thorlabs_controller", "Corvus_controller", "Dummy_controller"],
-            variable_name="stage_config_dd",
-            left=right_x+120,
-            top=y_right,
-            width=120,
+            variable_name="ch1_range_in",
+            left=INP_X,
+            top=y,
+            value=-10,
+            width=60,
             height=24,
+            min_value=-70,
+            max_value=10,
+            step=1,
+            position="absolute"
         )
-        
-        # Sensor Configuration
-        y_right += row_h
         StyledLabel(
             container=root,
-            text="Sensor Type",
-            variable_name="sensor_config_lb",
-            left=right_x+10,
-            top=y_right,
-            width=100,
-            height=row_h,
+            text="dBm",
+            variable_name="ch1_range_unit",
+            left=UNIT_X,
+            top=y,
+            width=30,
+            height=25,
+            font_size=100,
+            flex=True,
+            justify_content="left",
+            color="#222",
+        )
+        self.apply_range_btn1 = StyledButton(
+            container=root,
+            text="Apply Range",
+            variable_name="apply_range_btn1",
+            left=BTN_X,
+            top=y,
+            height=24,
+            width=80,
+            font_size=85,
+            normal_color="#007BFF",
+            press_color="#0056B3"
+        )
+        y += ROW
+        
+        # CH1 Reference
+        StyledLabel(
+            container=root,
+            text="Ref",
+            variable_name="ch1_ref_lb",
+            left=LBL_X,
+            top=y,
+            width=60,
+            height=25,
             font_size=100,
             flex=True,
             justify_content="right",
             color="#222",
         )
-        self.sensor_config_dd = StyledDropDown(
+        self.ch1_ref = StyledSpinBox(
             container=root,
-            text=["", "N7744A", "Dummy_sensor"],
-            variable_name="sensor_config_dd",
-            left=right_x+120,
-            top=y_right,
-            width=120,
+            variable_name="ch1_ref_in",
+            left=INP_X,
+            top=y,
+            value=-30,
+            width=60,
             height=24,
+            min_value=-100,
+            max_value=0,
+            step=1,
+            position="absolute"
         )
+        StyledLabel(
+            container=root,
+            text="dBm",
+            variable_name="ch1_ref_unit",
+            left=UNIT_X,
+            top=y,
+            width=30,
+            height=25,
+            font_size=100,
+            flex=True,
+            justify_content="left",
+            color="#222",
+        )
+        self.apply_ref_btn1 = StyledButton(
+            container=root,
+            text="Apply Ref",
+            variable_name="apply_ref_btn1",
+            left=BTN_X,
+            top=y,
+            height=24,
+            width=80,
+            font_size=85,
+            normal_color="#007BFF",
+            press_color="#0056B3"
+        )
+        y += ROW
+        
+        # CH1 Auto Range
+        self.apply_auto_btn1 = StyledButton(
+            container=root,
+            text="Auto Range CH1",
+            variable_name="apply_auto_btn1",
+            left=BTN_X,
+            top=y,
+            width=80,
+            height=24,
+            font_size=85,
+            normal_color="#007BFF",
+            press_color="#0056B3"
+        )
+        y += ROW + 5
+        
+        # =============== Channel 2 ===============
+        StyledLabel(
+            container=root,
+            text="Slot 2",
+            variable_name="ch2_label",
+            left=LBL_X,
+            top=y,
+            width=100,
+            height=25,
+            font_size=110,
+            flex=True,
+            justify_content="left",
+            color="#222",
+            bold=True,
+        )
+        y += 25
+        
+        # CH2 Range
+        StyledLabel(
+            container=root,
+            text="Range",
+            variable_name="ch2_range_lb",
+            left=LBL_X,
+            top=y,
+            width=60,
+            height=25,
+            font_size=100,
+            flex=True,
+            justify_content="right",
+            color="#222",
+        )
+        self.ch2_range = StyledSpinBox(
+            container=root,
+            variable_name="ch2_range_in",
+            left=INP_X,
+            top=y,
+            value=-10,
+            width=60,
+            height=24,
+            min_value=-70,
+            max_value=10,
+            step=1,
+            position="absolute"
+        )
+        StyledLabel(
+            container=root,
+            text="dBm",
+            variable_name="ch2_range_unit",
+            left=UNIT_X,
+            top=y,
+            width=30,
+            height=25,
+            font_size=100,
+            flex=True,
+            justify_content="left",
+            color="#222",
+        )
+        self.apply_range_btn2 = StyledButton(
+            container=root,
+            text="Apply Range",
+            variable_name="apply_range_btn2",
+            left=BTN_X,
+            top=y,
+            height=24,
+            width=80,
+            font_size=85,
+            normal_color="#007BFF",
+            press_color="#0056B3"
+        )
+        y += ROW
+        
+        # CH2 Reference
+        StyledLabel(
+            container=root,
+            text="Ref",
+            variable_name="ch2_ref_lb",
+            left=LBL_X,
+            top=y,
+            width=60,
+            height=25,
+            font_size=100,
+            flex=True,
+            justify_content="right",
+            color="#222",
+        )
+        self.ch2_ref = StyledSpinBox(
+            container=root,
+            variable_name="ch2_ref_in",
+            left=INP_X,
+            top=y,
+            value=-30,
+            width=60,
+            height=24,
+            min_value=-100,
+            max_value=0,
+            step=1,
+            position="absolute"
+        )
+        StyledLabel(
+            container=root,
+            text="dBm",
+            variable_name="ch2_ref_unit",
+            left=UNIT_X,
+            top=y,
+            width=30,
+            height=25,
+            font_size=100,
+            flex=True,
+            justify_content="left",
+            color="#222",
+        )
+        self.apply_ref_btn2 = StyledButton(
+            container=root,
+            text="Apply Ref",
+            variable_name="apply_ref_btn2",
+            left=BTN_X,
+            top=y,
+            height=24,
+            width=80,
+            font_size=85,
+            normal_color="#007BFF",
+            press_color="#0056B3"
+        )
+        y += ROW
+        
+        # CH2 Auto Range
+        self.apply_auto_btn2 = StyledButton(
+            container=root,
+            text="Auto Range CH2",
+            variable_name="apply_auto_btn2",
+            left=BTN_X,
+            top=y,
+            width=80,
+            height=24,
+            font_size=85,
+            normal_color="#007BFF",
+            press_color="#0056B3"
+        )
+        y += ROW + 5
+        
+        # =============== Channel 3 ===============
+        StyledLabel(
+            container=root,
+            text="Slot 3",
+            variable_name="ch3_label",
+            left=LBL_X,
+            top=y,
+            width=100,
+            height=25,
+            font_size=110,
+            flex=True,
+            justify_content="left",
+            color="#222",
+            bold=True,
+        )
+        y += 25
+        
+        # CH3 Range
+        StyledLabel(
+            container=root,
+            text="Range",
+            variable_name="ch3_range_lb",
+            left=LBL_X,
+            top=y,
+            width=60,
+            height=25,
+            font_size=100,
+            flex=True,
+            justify_content="right",
+            color="#222",
+        )
+        self.ch3_range = StyledSpinBox(
+            container=root,
+            variable_name="ch3_range_in",
+            left=INP_X,
+            top=y,
+            value=-10,
+            width=60,
+            height=24,
+            min_value=-70,
+            max_value=10,
+            step=1,
+            position="absolute"
+        )
+        StyledLabel(
+            container=root,
+            text="dBm",
+            variable_name="ch3_range_unit",
+            left=UNIT_X,
+            top=y,
+            width=30,
+            height=25,
+            font_size=100,
+            flex=True,
+            justify_content="left",
+            color="#222",
+        )
+        self.apply_range_btn3 = StyledButton(
+            container=root,
+            text="Apply Range",
+            variable_name="apply_range_btn3",
+            left=BTN_X,
+            top=y,
+            height=24,
+            width=80,
+            font_size=85,
+            normal_color="#007BFF",
+            press_color="#0056B3"
+        )
+        y += ROW
+        
+        # CH3 Reference
+        StyledLabel(
+            container=root,
+            text="Ref",
+            variable_name="ch3_ref_lb",
+            left=LBL_X,
+            top=y,
+            width=60,
+            height=25,
+            font_size=100,
+            flex=True,
+            justify_content="right",
+            color="#222",
+        )
+        self.ch3_ref = StyledSpinBox(
+            container=root,
+            variable_name="ch3_ref_in",
+            left=INP_X,
+            top=y,
+            value=-30,
+            width=60,
+            height=24,
+            min_value=-100,
+            max_value=0,
+            step=1,
+            position="absolute"
+        )
+        StyledLabel(
+            container=root,
+            text="dBm",
+            variable_name="ch3_ref_unit",
+            left=UNIT_X,
+            top=y,
+            width=30,
+            height=25,
+            font_size=100,
+            flex=True,
+            justify_content="left",
+            color="#222",
+        )
+        self.apply_ref_btn3 = StyledButton(
+            container=root,
+            text="Apply Ref",
+            variable_name="apply_ref_btn3",
+            left=BTN_X,
+            top=y,
+            height=24,
+            width=80,
+            font_size=85,
+            normal_color="#007BFF",
+            press_color="#0056B3"
+        )
+        y += ROW
+        
+        # CH3 Auto Range
+        self.apply_auto_btn3 = StyledButton(
+            container=root,
+            text="Auto Range CH3",
+            variable_name="apply_auto_btn3",
+            left=BTN_X,
+            top=y,
+            width=80,
+            height=24,
+            font_size=85,
+            normal_color="#007BFF",
+            press_color="#0056B3"
+        )
+        y += ROW + 5
+        
+        # =============== Channel 4 ===============
+        StyledLabel(
+            container=root,
+            text="Slot 4",
+            variable_name="ch4_label",
+            left=LBL_X,
+            top=y,
+            width=100,
+            height=25,
+            font_size=110,
+            flex=True,
+            justify_content="left",
+            color="#222",
+            bold=True,
+        )
+        y += 25
+        
+        # CH4 Range
+        StyledLabel(
+            container=root,
+            text="Range",
+            variable_name="ch4_range_lb",
+            left=LBL_X,
+            top=y,
+            width=60,
+            height=25,
+            font_size=100,
+            flex=True,
+            justify_content="right",
+            color="#222",
+        )
+        self.ch4_range = StyledSpinBox(
+            container=root,
+            variable_name="ch4_range_in",
+            left=INP_X,
+            top=y,
+            value=-10,
+            width=60,
+            height=24,
+            min_value=-70,
+            max_value=10,
+            step=1,
+            position="absolute"
+        )
+        StyledLabel(
+            container=root,
+            text="dBm",
+            variable_name="ch4_range_unit",
+            left=UNIT_X,
+            top=y,
+            width=30,
+            height=25,
+            font_size=100,
+            flex=True,
+            justify_content="left",
+            color="#222",
+        )
+        self.apply_range_btn4 = StyledButton(
+            container=root,
+            text="Apply Range",
+            variable_name="apply_range_btn4",
+            left=BTN_X,
+            top=y,
+            height=24,
+            width=80,
+            font_size=85,
+            normal_color="#007BFF",
+            press_color="#0056B3"
+        )
+        y += ROW
+        
+        # CH4 Reference
+        StyledLabel(
+            container=root,
+            text="Ref",
+            variable_name="ch4_ref_lb",
+            left=LBL_X,
+            top=y,
+            width=60,
+            height=25,
+            font_size=100,
+            flex=True,
+            justify_content="right",
+            color="#222",
+        )
+        self.ch4_ref = StyledSpinBox(
+            container=root,
+            variable_name="ch4_ref_in",
+            left=INP_X,
+            top=y,
+            value=-30,
+            width=60,
+            height=24,
+            min_value=-100,
+            max_value=0,
+            step=1,
+            position="absolute"
+        )
+        StyledLabel(
+            container=root,
+            text="dBm",
+            variable_name="ch4_ref_unit",
+            left=UNIT_X,
+            top=y,
+            width=30,
+            height=25,
+            font_size=100,
+            flex=True,
+            justify_content="left",
+            color="#222",
+        )
+        self.apply_ref_btn4 = StyledButton(
+            container=root,
+            text="Apply Ref",
+            variable_name="apply_ref_btn4",
+            left=BTN_X,
+            top=y,
+            height=24,
+            width=80,
+            font_size=85,
+            normal_color="#007BFF",
+            press_color="#0056B3"
+        )
+        y += ROW
+        
+        # CH4 Auto Range
+        self.apply_auto_btn4 = StyledButton(
+            container=root,
+            text="Auto Range CH4",
+            variable_name="apply_auto_btn4",
+            left=BTN_X,
+            top=y,
+            width=80,
+            height=24,
+            font_size=85,
+            normal_color="#007BFF",
+            press_color="#0056B3"
+        )
+        
+        # Wire up events exactly like sub_data_window_setting_gui.py
+        self.apply_auto_btn1.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch1_autorange))
+        self.apply_auto_btn2.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch2_autorange))
+        self.apply_auto_btn3.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch3_autorange))
+        self.apply_auto_btn4.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch4_autorange))
+        
+        self.apply_range_btn1.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch1_range))
+        self.apply_ref_btn1.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch1_ref))
+        
+        self.apply_range_btn2.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch2_range))
+        self.apply_ref_btn2.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch2_ref))
+        
+        self.apply_range_btn3.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch3_range))
+        self.apply_ref_btn3.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch3_ref))
+        
+        self.apply_range_btn4.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch4_range))
+        self.apply_ref_btn4.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch4_ref))
+    
+    # ================= CH1 EVENT HANDLERS =================
+    def onclick_apply_ch1_autorange(self):
+        """Apply auto range for CH1."""
+        update_detector_window_setting("DetectorRange_Ch1", {})
+        payload = {"Auto": 1}
+        update_detector_window_setting("DetectorAutoRange_Ch1", payload)
+        
+    def onclick_apply_ch1_range(self):
+        """Apply manual range for CH1."""
+        update_detector_window_setting("DetectorAutoRange_Ch1", {})
+        range_val = float(self.ch1_range.get_value())
+        payload = {"range_dbm": range_val}
+        update_detector_window_setting("DetectorRange_Ch1", payload)
+        
+    def onclick_apply_ch1_ref(self):
+        """Apply reference for CH1."""
+        ref_val = float(self.ch1_ref.get_value())
+        payload = {"ref_dbm": ref_val}
+        update_detector_window_setting("DetectorReference_Ch1", payload)
+        
+    # ================= CH2 EVENT HANDLERS =================
+    def onclick_apply_ch2_autorange(self):
+        """Apply auto range for CH2."""
+        update_detector_window_setting("DetectorRange_Ch2", {})
+        payload = {"Auto": 1}
+        update_detector_window_setting("DetectorAutoRange_Ch2", payload)
+        
+    def onclick_apply_ch2_range(self):
+        """Apply manual range for CH2."""
+        update_detector_window_setting("DetectorAutoRange_Ch2", {})
+        range_val = float(self.ch2_range.get_value())
+        payload = {"range_dbm": range_val}
+        update_detector_window_setting("DetectorRange_Ch2", payload)
+        
+    def onclick_apply_ch2_ref(self):
+        """Apply reference for CH2."""
+        ref_val = float(self.ch2_ref.get_value())
+        payload = {"ref_dbm": ref_val}
+        update_detector_window_setting("DetectorReference_Ch2", payload)
+        
+    # ================= CH3 EVENT HANDLERS =================
+    def onclick_apply_ch3_autorange(self):
+        """Apply auto range for CH3."""
+        update_detector_window_setting("DetectorRange_Ch3", {})
+        payload = {"Auto": 1}
+        update_detector_window_setting("DetectorAutoRange_Ch3", payload)
+        
+    def onclick_apply_ch3_range(self):
+        """Apply manual range for CH3."""
+        update_detector_window_setting("DetectorAutoRange_Ch3", {})
+        range_val = float(self.ch3_range.get_value())
+        payload = {"range_dbm": range_val}
+        update_detector_window_setting("DetectorRange_Ch3", payload)
+        
+    def onclick_apply_ch3_ref(self):
+        """Apply reference for CH3."""
+        ref_val = float(self.ch3_ref.get_value())
+        payload = {"ref_dbm": ref_val}
+        update_detector_window_setting("DetectorReference_Ch3", payload)
+        
+    # ================= CH4 EVENT HANDLERS =================
+    def onclick_apply_ch4_autorange(self):
+        """Apply auto range for CH4."""
+        update_detector_window_setting("DetectorRange_Ch4", {})
+        payload = {"Auto": 1}
+        update_detector_window_setting("DetectorAutoRange_Ch4", payload)
+        
+    def onclick_apply_ch4_range(self):
+        """Apply manual range for CH4."""
+        update_detector_window_setting("DetectorAutoRange_Ch4", {})
+        range_val = float(self.ch4_range.get_value())
+        payload = {"range_dbm": range_val}
+        update_detector_window_setting("DetectorRange_Ch4", payload)
+        
+    def onclick_apply_ch4_ref(self):
+        """Apply reference for CH4."""
+        ref_val = float(self.ch4_ref.get_value())
+        payload = {"ref_dbm": ref_val}
+        update_detector_window_setting("DetectorReference_Ch4", payload)
     
     def _create_save_buttons(self, root):
         """Create save buttons at bottom."""
-        y_buttons = 450
+        y_buttons = 550  # Adjusted for 4 detector slots
         
         self.save_user_btn = StyledButton(
             container=root,
             text="Save User Defaults",
             variable_name="save_user_btn",
-            left=50,
+            left=250,  # Adjusted for wider container
             top=y_buttons,
             width=160,
             height=35,
@@ -574,7 +1451,7 @@ class DefaultSettingsConfig(App):
             container=root,
             text="Save Project Settings",
             variable_name="save_project_btn",
-            left=470,
+            left=540,  # Adjusted for wider container
             top=y_buttons,
             width=160,
             height=35,
@@ -637,6 +1514,17 @@ class DefaultSettingsConfig(App):
             print(f"[Default_Settings] Updated shared_memory.json")
         except Exception as e:
             print(f"[Default_Settings] Error updating shared_memory.json: {e}")
+    
+    def _get_widget_value_by_name(self, widget_name, default_value):
+        """Get widget value by name, return default if not found."""
+        try:
+            # For detector settings widgets created dynamically
+            container = getattr(self, '_ui_container', None)
+            if container and hasattr(container, 'children') and widget_name in container.children:
+                return float(container.children[widget_name].get_value())
+            return default_value
+        except Exception:
+            return default_value
 
     def _build_config_from_ui(self):
         """Build configuration dictionary from UI widget values."""
@@ -653,18 +1541,29 @@ class DefaultSettingsConfig(App):
                     "x_step": float(self.area_x_step.get_value()),
                     "y_size": float(self.area_y_size.get_value()),
                     "y_step": float(self.area_y_step.get_value()),
+                    "spiral_step": float(self.area_spiral_step.get_value()),
                     "pattern": str(self.area_pattern_dd.get_value()),
                 },
                 "FineA": {
                     "window_size": float(self.fa_window_size.get_value()),
                     "step_size": float(self.fa_step_size.get_value()),
                     "max_iters": int(self.fa_max_iters.get_value()),
-                    "timeout_s": int(self.fa_timeout.get_value()),
+                    "min_gradient_ss": float(self.fa_min_grad_ss.get_value()),
+                    "detector": str(self.fa_primary_detector.get_value()),
+                    "ref_wl": float(self.fa_ref_wl.get_value()),
                 },
                 "InitialPositions": {
-                    "x": float(self.init_x.get_value()),
-                    "y": float(self.init_y.get_value()),
                     "fa": float(self.init_fa.get_value()),
+                },
+                "DetectorWindowSettings": {
+                    "ch1_range": int(self.ch1_range.get_value()) if self.ch1_range else -10,
+                    "ch1_ref": int(self.ch1_ref.get_value()) if self.ch1_ref else -30,
+                    "ch2_range": int(self.ch2_range.get_value()) if self.ch2_range else -10,
+                    "ch2_ref": int(self.ch2_ref.get_value()) if self.ch2_ref else -30,
+                    "ch3_range": int(self.ch3_range.get_value()) if self.ch3_range else -10,
+                    "ch3_ref": int(self.ch3_ref.get_value()) if self.ch3_ref else -30,
+                    "ch4_range": int(self.ch4_range.get_value()) if self.ch4_range else -10,
+                    "ch4_ref": int(self.ch4_ref.get_value()) if self.ch4_ref else -30,
                 },
                 "Port": {
                     "stage": int(self.stage_port.get_value()),
@@ -688,4 +1587,18 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    configuration = {
+        "config_project_name": "default_settings",
+        "config_address": "0.0.0.0",
+        "config_port": 7009,
+        "config_multiple_instance": False,
+        "config_enable_file_cache": False,
+        "config_start_browser": True,
+        "config_resourcepath": "./res/"
+    }
+    start(DefaultSettingsConfig,
+          address=configuration["config_address"],
+          port=configuration["config_port"],
+          multiple_instance=configuration["config_multiple_instance"],
+          enable_file_cache=configuration["config_enable_file_cache"],
+          start_browser=configuration["config_start_browser"])
