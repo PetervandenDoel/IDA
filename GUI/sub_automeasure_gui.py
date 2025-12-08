@@ -2,34 +2,15 @@ import datetime
 import json
 import os
 import threading
+import signal
+import sys
 
 from remi import App, start
 from GUI.lib_gui import *
+import webview  
 
 SHARED_PATH = os.path.join("database", "shared_memory.json")
 
-def update_detector_window_setting(names: list, payloads: list):
-    try:
-        with open(SHARED_PATH, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        data = {}
-
-    dws = data.get("DetectorWindowSettings", {})
-    if not isinstance(dws, dict):
-        dws = {}
-
-    # Overwrite the specific setting
-    for n, p  in zip(names, payloads):
-        dws[n] = p
-    
-    data["DetectorWindowSettings"] = dws
-
-    # Keep your change flag behavior
-    data["Detector_Change"] = "1"
-
-    with open(SHARED_PATH, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
 
 class AutoSweepConfig(App):
     """Auto sweep settings panel."""
@@ -52,6 +33,7 @@ class AutoSweepConfig(App):
         self.ref_value = None
         self.detector = None
         self.confirm_btn = None
+        self.detector_window_btn = None
 
         # REMI init (support editing_mode)
         editing_mode = kwargs.pop("editing_mode", False)
@@ -63,8 +45,39 @@ class AutoSweepConfig(App):
     # ---------------- REMI HOOKS ----------------
 
     def main(self):
-        ui = self.construct_ui()
-        self._load_from_shared()
+        print("[AutoSweepConfig] main() started")
+        ui = None
+        try:
+            ui = self.construct_ui()
+            # print("[AutoSweepConfig] UI constructed:", ui)
+            self._load_from_shared()
+            # print("[AutoSweepConfig] _load_from_shared() completed")
+        except Exception as e:
+            import traceback
+            print("[AutoSweepConfig] main() FAILED with:", repr(e))
+            traceback.print_exc()
+            # Fallback UI if something exploded so `ui` isn't None
+            root = StyledContainer(
+                variable_name="auto_sweep_container_error",
+                left=0,
+                top=0,
+                width=280,
+                height=260,
+            )
+            StyledLabel(
+                container=root,
+                text="AutoSweepConfig UI error",
+                variable_name="error_lb",
+                left=5,
+                top=10,
+                width=260,
+                height=30,
+                font_size=100,
+                flex=True,
+                justify_content="center",
+                color="#b00",
+            )
+            ui = root
         return ui
 
     def idle(self):
@@ -279,82 +292,20 @@ class AutoSweepConfig(App):
             color="#222",
         )
 
-        # Range + manual range (Ch1)
+        # Detector window launch settings
         y += row_h
-        StyledLabel(
+        self.detector_window_btn = StyledButton(
             container=root,
-            text="Range (Ch1)",
-            variable_name="range_lb",
-            left=5,
-            top=y,
-            width=95,
-            height=row_h,
-            font_size=100,
-            flex=True,
-            justify_content="right",
-            color="#222",
-        )
-        self.range_mode_dd = StyledDropDown(
-            container=root,
-            text=["Auto", "Manual"],
-            variable_name="range_mode_dd",
+            text="Detector Window",
+            variable_name="detector_window_btn",
             left=105,
             top=y,
-            width=70,
+            width=100,
             height=24,
+            font_size=90,
         )
-        self.manual_range = StyledSpinBox(
-            container=root,
-            variable_name="manual_range",
-            left=195,
-            top=y,
-            width=60,
-            height=24,
-            value=-10,
-            min_value=-120,
-            max_value=20,
-            step=1,
-        )
-
-        # Reference (Ch1)
-        y += row_h
-        StyledLabel(
-            container=root,
-            text="Ref (Ch1)",
-            variable_name="ref_lb",
-            left=5,
-            top=y,
-            width=95,
-            height=row_h,
-            font_size=100,
-            flex=True,
-            justify_content="right",
-            color="#222",
-        )
-        self.ref_value = StyledSpinBox(
-            container=root,
-            variable_name="ref_value",
-            left=105,
-            top=y,
-            width=70,
-            height=24,
-            value=-30,
-            min_value=-120,
-            max_value=20,
-            step=1,
-        )
-        StyledLabel(
-            container=root,
-            text="dBm",
-            variable_name="ref_unit",
-            left=195,
-            top=y,
-            width=40,
-            height=row_h,
-            font_size=100,
-            flex=True,
-            justify_content="left",
-            color="#222",
+        self.detector_window_btn.do_onclick(
+            lambda *_: self.run_in_thread(self.onclick_detector_window)
         )
 
         # FA detector selection (FineA.detector)
@@ -372,6 +323,7 @@ class AutoSweepConfig(App):
             justify_content="right",
             color="#222",
         )
+
         self.detector = StyledDropDown(
             container=root,
             variable_name="detector",
@@ -417,48 +369,6 @@ class AutoSweepConfig(App):
         self._set_spin_safely(self.step_size, self.sweep.get("step"))
         self._set_spin_safely(self.start_wvl, self.sweep.get("start"))
         self._set_spin_safely(self.stop_wvl, self.sweep.get("end"))
-
-        # Range / AutoRange for Ch1
-        mode = "Auto"
-        manual_val = -10.0
-
-        detector_data = data.get("DetectorWindowSettings")
-        dr1 = detector_data.get("DetectorRange_Ch1") or {}
-        ar1 = detector_data.get("DetectorAutoRange_Ch1") or {}
-
-        if dr1:
-            mode = "Manual"
-            manual_val = dr1.get("range_dbm", manual_val)
-        elif ar1:
-            mode = "Auto"
-
-        if self.range_mode_dd is not None:
-            try:
-                self.range_mode_dd.set_value(mode)
-            except Exception:
-                pass
-
-        if self.manual_range is not None:
-            self._set_spin_safely(self.manual_range, manual_val)
-
-        # Reference for Ch1
-        ref_dbm = None
-        ref_info = detector_data.get("DetectorReference_Ch1") or {}
-        if isinstance(ref_info, dict):
-            val = ref_info.get("ref_dbm")
-            try:
-                ref_dbm = float(val)
-            except (TypeError, ValueError):
-                ref_dbm = None
-
-        if ref_dbm is None and self.ref_value is not None:
-            try:
-                ref_dbm = float(self.ref_value.get_value())
-            except Exception:
-                ref_dbm = -30.0
-
-        if self.ref_value is not None and ref_dbm is not None:
-            self._set_spin_safely(self.ref_value, ref_dbm)
 
         # FineA.detector -> FA Detector dropdown (read-only / non-destructive)
         finea = data.get("FineA")
@@ -512,47 +422,6 @@ class AutoSweepConfig(App):
 
         File("shared_memory", "Sweep", existing_sweep).save()
 
-        ts = datetime.datetime.now().isoformat()
-        ch = 1
-
-        # ---- Ch1 Range / AutoRange ----
-        mode = (
-            self.range_mode_dd.get_value()
-            if self.range_mode_dd is not None
-            else "Auto"
-        )
-        try:
-            manual_val = float(self.manual_range.get_value())
-        except Exception:
-            manual_val = -10.0
-
-        # ---- Ch1 Reference ----
-        try:
-            ref_dbm = float(self.ref_value.get_value())
-        except Exception:
-            ref_dbm = -30.0
-
-        range_key = "DetectorRange_Ch1"
-        auto_key = "DetectorAutoRange_Ch1"
-        ref_key = "DetectorReference_Ch1"
-
-        if mode == "Manual":
-            # Manual: clear auto, set range_dbm
-            update_detector_window_setting(
-                [auto_key, range_key, ref_key],
-                [{},
-                 {"range_dbm": manual_val},
-                 {"ref_dbm": ref_dbm}]
-            )
-        else:
-            # Auto: clear manual, set autorange
-            update_detector_window_setting(
-                [auto_key, range_key, ref_key],
-                [{auto_key: {"Auto": 1}},
-                 {},
-                 {"ref_dbm": ref_dbm}]
-            )
-
         # ---- FineA.detector ----
         finea = data.get("FineA")
         if isinstance(finea, dict) and self.detector is not None:
@@ -577,40 +446,75 @@ class AutoSweepConfig(App):
             finea["detector"] = det_norm
             File("shared_memory", "FineA", finea).save()
 
-        print(
-            "[AutoSweepConfig] Updated Sweep , "
-            "Ch1 range/auto/ref, and FineA.detector "
-        )
-        import webview
-        # Set to a hidden window
-        local_ip = '127.0.0.1'
+        print("[AutoSweepConfig] Updated Sweep and FineA.detector")
+        # NOTE: removed the hidden webview.create_window here.
+        # This app just writes config; windows are managed by pywebview main.
+
+    def onclick_detector_window(self):
+        """Launch detector window settings."""
+        # local_ip = get_local_ip()  
+        local_ip = "127.0.0.1"
         webview.create_window(
-            "Setting",
-            f"http://{local_ip}:7109",
-            width=222,
-            height=266,
+            "Detector Window Settings",
+            f"http://{local_ip}:7006",
+            width=310 + web_w,
+            height=560 + web_h,
             resizable=True,
             on_top=True,
-            hidden=True
+            hidden=False,
         )
+        print("[AutoSweepConfig] Detector Window Settings requested")
+
+
+def run_remi():
+    start(
+        AutoSweepConfig,
+        address="0.0.0.0",
+        port=7109,
+        multiple_instance=False,
+        enable_file_cache=False,
+        start_browser=False,
+    )
+
+
+def disable_scroll():
+    try:
+        if webview.windows:
+            webview.windows[0].evaluate_js(
+                """
+                document.documentElement.style.overflow = 'hidden';
+                document.body.style.overflow = 'hidden';
+                """
+            )
+    except Exception as e:
+        print("JS Wrong", e)
 
 
 if __name__ == "__main__":
-    configuration = {
-        "config_project_name": "auto_sweep_config",
-        "config_address": "0.0.0.0",
-        "config_port": 7109,
-        "config_multiple_instance": False,
-        "config_enable_file_cache": False,
-        "config_start_browser": False,
-        "config_resourcepath": "./res/",
-    }
+    threading.Thread(target=run_remi, daemon=True).start()
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    start(
-        AutoSweepConfig,
-        address=configuration["config_address"],
-        port=configuration["config_port"],
-        multiple_instance=configuration["config_multiple_instance"],
-        enable_file_cache=configuration["config_enable_file_cache"],
-        start_browser=configuration["config_start_browser"],
+    local_ip = "127.0.0.1"
+
+    # Main window hosting this config panel
+    webview.create_window(
+        "Auto Sweep Config",
+        f"http://{local_ip}:7109",
+        width=280 + web_w,
+        height=260 + web_h,
+        resizable=True,
+        hidden=True,
     )
+
+    webview.create_window(
+        "Detector Window Settings",
+        f"http://{local_ip}:7006",
+        width=310 + web_w,
+        height=560 + web_h,
+        resizable=True,
+        on_top=True,
+        hidden=True,
+    )
+
+    webview.start(func=disable_scroll)
+    sys.exit(0)
