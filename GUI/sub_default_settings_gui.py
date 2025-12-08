@@ -45,11 +45,11 @@ class DefaultSettingsConfig(App):
         self.fa_window_size = None
         self.fa_step_size = None
         self.fa_max_iters = None
-        self.fa_timeout = None
+        self.fa_min_grad_ss = None
+        self.fa_primary_detector = None
+        self.fa_ref_wl = None
         
         # Widgets - Initial Positions
-        self.init_x = None
-        self.init_y = None
         self.init_fa = None
         
         # Widgets - VISA/Port Settings
@@ -175,13 +175,11 @@ class DefaultSettingsConfig(App):
         
         # Initial positions
         initial_pos = config.get("InitialPositions", {})
-        self._set_spin_safely(self.init_x, initial_pos.get("x", 0.0))
-        self._set_spin_safely(self.init_y, initial_pos.get("y", 0.0))
         self._set_spin_safely(self.init_fa, initial_pos.get("fa", 0.0))
         
         # Port settings
         port = config.get("Port", {})
-        self._set_spin_safely(self.stage_port, port.get("stage", 7))
+        self._set_spin_safely(self.stage_port, port.get("stage", 4))
         self._set_spin_safely(self.sensor_port, port.get("sensor", 20))
         
         # Configuration settings
