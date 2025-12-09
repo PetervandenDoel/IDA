@@ -212,7 +212,10 @@ class Starts(App):
             for section, data in merged_config.items():
                 file = File("shared_memory", section, data)
                 file.save()
-
+            
+            flag = File("shared_memory", "LoadConfig", True)
+            flag.save()
+            
             msg = f"[Start] Applied settings for {user}/{project}\n"
             print(msg)
             if hasattr(self, "terminal") and hasattr(self.terminal, "append_text"):

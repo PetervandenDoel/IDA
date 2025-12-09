@@ -276,7 +276,7 @@ class DefaultSettingsConfig(App):
                     )
             except Exception:
                 pass
-            
+
 
         except Exception as e:
             print(f"[Default_Settings] Error loading config: {e}")
@@ -1992,6 +1992,11 @@ class DefaultSettingsConfig(App):
             for section, data in config.items():
                 file = File("shared_memory", section, data)
                 file.save()
+            
+            # Signal other GUIs to reload config
+            flag = File("shared_memory", "LoadConfig", True)
+            flag.save()
+            
             print(f"[Default_Settings] Updated shared_memory.json")
         except Exception as e:
             print(f"[Default_Settings] Error updating shared_memory.json: {e}")

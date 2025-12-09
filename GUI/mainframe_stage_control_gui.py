@@ -94,7 +94,7 @@ class stage_control(App):
         self._progress_lock = threading.Lock()  # For progress.json 'w'
         
         # User config settings 
-        self.load_user_settings = True
+        self.load_user_settings = False  # False until loaded
         self.apply_initial_positions = True
         self.initial_positions = {}
         
@@ -140,6 +140,7 @@ class stage_control(App):
                     self.web = data.get("Web", "")
                     self.file_format = data.get("FileFormat", {})
                     self.file_path = data.get("FilePath", "")
+                    self.load_user_settings = data.get("LoadConfig", False)
                     
                     # Mainframe slot info? 
                     self.slot_info = data.get("SlotInfo", None)
@@ -166,6 +167,7 @@ class stage_control(App):
                 if self.load_user_settings:
                     # Load user settings on initial boot up 
                     self.load_user_settings = False  # Do this only once
+
                     # Import the class
                     from GUI.lib_gui import UserConfigManager
 
@@ -190,6 +192,14 @@ class stage_control(App):
                         # If there is no preference to initial positions
                         # Do not apply anything
                         self.apply_initial_positions = False
+                    else:
+                        self.apply_initial_positions = True  # Should reapply on a new config
+
+                    data["LoadConfig"] = False   # reset flag
+
+                    # write back to disk
+                    with open(shared_path, "w", encoding="utf-8") as f:
+                        json.dump(data, f, indent=2)
 
             except Exception as e:
                 print(f"[Warn] read json failed: {e}")
@@ -354,17 +364,16 @@ class stage_control(App):
                 previous_slot = slot
 
                 # Get data
-                detector_window_data = getattr(self, 'DetectorWindowSettings', {})
-                auto_range_attr = detector_window_data.get(f'detector_auto_ch{slot}', {})
-                manual_range_attr = detector_window_data.get(f'detector_range_ch{slot}', {})
-                ref_attr = detector_window_data.get(f'detector_ref_ch{slot}', {})
-                print('here', manual_range_attr, auto_range_attr, ref_attr)
+                detector_window_data = getattr(self, 'detector_window_settings', {})
+                auto_range_attr = detector_window_data.get(f'DetectorAutoRange_Ch{slot}', {})
+                manual_range_attr = detector_window_data.get(f'DetectorRange_Ch{slot}', {})
+                ref_attr = detector_window_data.get(f'DetectorReference_Ch{slot}', {})
                 ch_range, ch_ref = resolve_range_and_ref(
                     manual_range_attr,
                     auto_range_attr,
                     ref_attr
                 )
-                args_list.append((slot, ch_range, ch_ref))
+                args_list.append((slot, ch_ref, ch_range))
                 
             
             if len(args_list) == 0:
@@ -527,19 +536,6 @@ class stage_control(App):
                 if self.stage_manager.config.driver_types[AxisType.X] == "Corvus_controller":
                     self.onclick_home()  # Run "fake" home to get lims
                 
-                # Apply initial position settings
-                if self.apply_initial_positions:
-                    init_x = self.initial_positions.get("X", None)
-                    init_y = self.initial_positions.get("Y", None)
-                    init_fa = self.initial_positions.get("FA", None) 
-                    if init_x is not None:
-                        _ = asyncio.run(self.stage_manager.move_axis(AxisType.X, self.initial_x_config, False))
-                    if init_y is not None:
-                        _ = asyncio.run(self.stage_manager.move_axis(AxisType.Y, self.initial_y_config, False))
-                    if init_fa is not None:
-                        _ = asyncio.run(self.stage_manager.move_axis(AxisType.ROTATION_FIBER, self.initial_fa_config, False))
-                    self.apply_initial_positions = False  # Apply only once
-
                 # Setup state machine
                 self.configuration_stage = 1
                 self.configuration_check["stage"] = 2
@@ -628,24 +624,30 @@ class stage_control(App):
                 self.fiber_position_lb.set_text(str(45 - self.memory.fr_pos))
 
         if self.configuration_sensor == 1:
-            if self.sweep["sweep"] == 1 and self.sweep_count == 0:
+            # Use .get() so config-only dicts don't crash us
+            sweep_flag = self.sweep.get("sweep", 0)
+            if sweep_flag == 1 and self.sweep_count == 0:
                 self.sweep_count = 1
                 self.run_in_thread(self.laser_sweep)
 
-            if self.sweep["on"] != self.past_laser_on and self.sweep_count == 0:
+            on_flag = self.sweep.get("on", self.past_laser_on)
+            if on_flag != self.past_laser_on and self.sweep_count == 0:
                 self.sweep_count = 1
-                self.past_laser_on = self.sweep["on"]
+                self.past_laser_on = on_flag
                 self.run_in_thread(self.laser_on)
 
-            if self.sweep["wvl"] != self.past_wvl and self.sweep_count == 0:
+            wvl_val = self.sweep.get("wvl", self.past_wvl)
+            if wvl_val != self.past_wvl and self.sweep_count == 0:
                 self.sweep_count = 1
-                self.past_wvl = self.sweep["wvl"]
+                self.past_wvl = wvl_val
                 self.run_in_thread(self.set_wvl)
 
-            if self.sweep["power"] != self.past_power and self.sweep_count == 0:
+            power_val = self.sweep.get("power", self.past_power)
+            if power_val != self.past_power and self.sweep_count == 0:
                 self.sweep_count = 1
-                self.past_power = self.sweep["power"]
+                self.past_power = power_val
                 self.run_in_thread(self.set_power)
+
 
         if self.configuration_stage == 1 and self.configuration_sensor == 1:
             if self.auto_sweep == 1 and self.count == 0:
@@ -676,10 +678,15 @@ class stage_control(App):
                 if self.fine_align != None:
                     self.fine_align.stop_alignment()
 
-            if self.scanpos["move"] == 1 and (self.scanpos["x"] != self.pre_x or self.scanpos["y"] != self.pre_y):
-                self.run_in_thread(self.scan_move)
-                self.pre_x = self.scanpos["x"]
-                self.pre_y = self.scanpos["y"]
+            # Safely handle ScanPos; it may be {} right after loading config
+            move_flag = self.scanpos.get("move", 0)
+            if move_flag == 1:
+                x_val = self.scanpos.get("x")
+                y_val = self.scanpos.get("y")
+                if x_val != self.pre_x or y_val != self.pre_y:
+                    self.run_in_thread(self.scan_move)
+                    self.pre_x = x_val
+                    self.pre_y = y_val
 
             if self.ch_count == 0:
                 self.ch_count = 1
@@ -1327,6 +1334,16 @@ class stage_control(App):
             self.task_start = 0
             self.lock_all(0)
         print("Home Finished")
+
+        # Apply initial position settings
+        
+        if self.apply_initial_positions:
+            init_fa = self.initial_positions.get("fa", None)
+            print(f'INIT_FA TEST: {init_fa}') 
+            print("Applying FA angle")
+            if init_fa is not None:
+                _ = asyncio.run(self.stage_manager.move_axis(AxisType.ROTATION_FIBER, init_fa, False))
+            self.apply_initial_positions = False  # Apply only once
 
     def onclick_start(self):
         print("Start Fine Align")
