@@ -126,12 +126,18 @@ class Starts(App):
 
         self.add_btn = StyledButton(
             container=starts_container, text="Add", variable_name="add",
-            left=270, top=180, normal_color="#007BFF", press_color="#0056B3",
+            left=170, top=180, normal_color="#007BFF", press_color="#0056B3",
         )
 
         self.settings_btn = StyledButton(
             container=starts_container, text="Settings", variable_name="settings",
-            left=370, top=180, width=80, normal_color="#007BFF", press_color="#0056B3",
+            left=280, top=180, width=80, normal_color="#007BFF", press_color="#0056B3",
+        )
+
+        self.apply_settings_btn = StyledButton(
+            container=starts_container, text="Apply Settings", variable_name="apply_settings",
+            left=370, top=180, width=120, height=30,
+            normal_color="#007BFF", press_color="#0056B3",
         )
 
         self.user_btn = StyledButton(
@@ -159,6 +165,9 @@ class Starts(App):
         self.settings_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_settings))
         self.user_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_user_remove))
         self.project_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_project_remove))
+        self.apply_settings_btn.do_onclick(
+            lambda *_: self.run_in_thread(self.onclick_apply_settings)
+        )
 
         self.starts_container = starts_container
         return starts_container
@@ -184,11 +193,36 @@ class Starts(App):
         webview.create_window(
             "User Settings",
             f"http://{local_ip}:7009",
-            width=500+web_w,
-            height=600+web_h,
+            width=895+web_w,
+            height=650+web_h,
             resizable=True,
             on_top=True
         )
+    
+    def onclick_apply_settings(self):
+        """Apply merged config (project > user > defaults) into shared_memory.json."""
+        user = self.user_dd.get_value()
+        project = self.project_dd.get_value()
+        try:
+            #   project overrides > user defaults > stage defaults
+            config_manager = UserConfigManager(user, project)
+            merged_config = config_manager.load_config()
+
+            # Push each section into shared_memory.json
+            for section, data in merged_config.items():
+                file = File("shared_memory", section, data)
+                file.save()
+
+            msg = f"[Start] Applied settings for {user}/{project}\n"
+            print(msg)
+            if hasattr(self, "terminal") and hasattr(self.terminal, "append_text"):
+                self.terminal.append_text(msg)
+
+        except Exception as e:
+            msg = f"[Start] Failed to apply settings for {user}/{project}: {e}\n"
+            print(msg)
+            if hasattr(self, "terminal") and hasattr(self.terminal, "append_text"):
+                self.terminal.append_text(msg)
 
     def onclick_user_remove(self):
         folder = self.user_dd.get_value().replace(" ", "")
