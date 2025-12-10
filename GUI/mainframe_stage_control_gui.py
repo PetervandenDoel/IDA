@@ -1805,6 +1805,10 @@ class stage_control(App):
             if self.zero_state.get(prefix) is None:
                 self.zero_state[prefix] = pos
 
+                # Alter text box
+                box_widg = getattr(self, f'{prefix}_zero_btn')
+                box_widg.normal_color = "#942eb4"
+                
                 # Alter position label
                 pos_attr = f'{prefix}_position_lb'
                 pos_widg = getattr(self, pos_attr)
@@ -1821,7 +1825,11 @@ class stage_control(App):
 
             else:
                 self.zero_state[prefix] = None
-
+                
+                # Alter text box
+                box_widg = getattr(self, f'{prefix}_zero_btn')
+                box_widg.normal_color = "#6c757d"
+ 
                 # Reassign actual position to label
                 pos_attr = f'{prefix}_position_lb'
                 pos_widg = getattr(self, pos_attr)
