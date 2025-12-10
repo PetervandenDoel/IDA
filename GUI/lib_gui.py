@@ -552,16 +552,24 @@ class UserConfigManager:
     def __init__(self, user, project):
         self.user = user
         self.project = project
-        self.user_dir = os.path.join("UserData", user)
-        self.project_dir = os.path.join("UserData", user, project)
-        self.user_defaults_path = os.path.join(self.user_dir, "user_defaults.json")
-        self.project_config_path = os.path.join(self.project_dir, "project_config.json")
+        module_dir = Path(__file__).resolve().parent
+        base_userdata_dir = module_dir / "UserData"
+
+        self.user_dir = base_userdata_dir / user
+        self.project_dir = self.user_dir / project
+        self.user_defaults_path = self.user_dir / "user_defaults.json"
+        self.project_config_path = self.project_dir / "project_config.json"
+
+        # self.user_dir = os.path.join("UserData", user)
+        # self.project_dir = os.path.join("UserData", user, project)
+        # self.user_defaults_path = os.path.join(self.user_dir, "user_defaults.json")
+        # self.project_config_path = os.path.join(self.project_dir, "project_config.json")
         
         # Default configuration template
         self.default_config = {
             "Sweep": {
-                "start": 1540.0,
-                "end": 1580.0,
+                "start": 1500.0,
+                "end": 1600.0,
                 "step": 0.001,
                 "power": 0.0,
                 "on": False,
@@ -569,10 +577,10 @@ class UserConfigManager:
             },
             "DetectorWindowSettings": {},
             "AreaS": {
-                "x_size": 20.0,
-                "x_step": 1.0,
-                "y_size": 20.0,
-                "y_step": 1.0,
+                "x_size": 50,
+                "x_step": 5,
+                "y_size": 50,
+                "y_step": 5,
                 "pattern": "spiral",
                 "primary_detector": "MAX",
                 "plot": "New"
@@ -580,9 +588,9 @@ class UserConfigManager:
             "FineA": {
                 "window_size": 10.0,
                 "step_size": 1.0,
-                "min_gradient_ss": 0.1,
+                "min_gradient_ss": 0.5,
                 "max_iters": 10,
-                "detector": "ch1",
+                "detector": "Max",
                 "ref_wl": 1550.0,
                 "timeout_s": 30
             },
@@ -695,7 +703,7 @@ class UserConfigManager:
 class plot():
     def __init__(self, x=None, y=None, filename=None, fileTime=None, user=None, name=None, project=None, data=None,
                  file_format=None, file_path="", xticks = None, yticks=None, pos_i=None, pattern="spiral",
-                 slot_info: Optional[list] = None):
+                 slot_info: Optional[list] = None, destination_dir = {}):
         if file_format is None:
             self.file_format = {"csv": 1, "mat": 1, "png": 1, "pdf": 1}
         else:
@@ -714,7 +722,8 @@ class plot():
         self.pos_i = pos_i
         self.pattern = pattern
         self.slot_info = slot_info
-    
+        self.destination_dir = destination_dir
+
     def heat_map(self):
         import os
         import numpy as np
@@ -958,8 +967,14 @@ class plot():
         user = self.user
         name = self.name
         project = self.project
-        path = os.path.join(".", "UserData", user, project, "Spectrum", name)
-        file_path = os.path.join(self.file_path, user, project, "Spectrum", name)
+        if self.destination_dir == {}:
+            path = os.path.join(".", "UserData", user, project, "Spectrum", name)
+            file_path = os.path.join(self.file_path, user, project, "Spectrum", name)
+        else:
+            path = self.destination_dir.get("dest_dir")
+            file_path = path
+
+        print(f'[Debug]: {self.destination_dir} \n {path} \n {file_path}')
 
         try:
             plots = {"Wavelength [nm]": x_axis}

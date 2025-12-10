@@ -255,7 +255,7 @@ class NIRManager:
             return False
 
     def is_laser_on(self) -> bool:
-        """Check if laser is enabled"""
+        """ Check if laser is enabled """
         try:
             if not self.controller or not self._connected:
                 return False

@@ -6,7 +6,7 @@ from GUI.lib_tsp import TSPSolver
 
 command_path = os.path.join("database", "command.json")
 shared_path = os.path.join("database", "shared_memory.json")
-desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
+desktop_path = os.path.join("UserData")
 
 def fmt(val):
     try:
@@ -530,7 +530,13 @@ class testing(App):
 
         try:
             shutil.copytree(src, dest_path)
-            print(f"✅ Files saved to: {dest_path}")
+            print(f"! Files saved to: {dest_path}")
+            file = File(
+                "shared_memory",
+                "ExportRequest",
+                {"dest_dir": dest_dir}
+            )
+            file.save()
         except Exception as e:
             print(f"X Copy failed: {e}")
 

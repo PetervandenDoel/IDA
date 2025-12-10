@@ -632,27 +632,11 @@ class HP816xLambdaScan:
         self.lib.hp816x_getNoOfRegPWMChannels_Q(self.session, byref(n_pwm))
         n_pwm = n_pwm.value
 
-        # list of 3 tuples -> PWMIndex, Slot, Head
-        mapping = self.get_pwm_map(n_pwm)
-
         # --- Determine Detector settings using map ---
-        mapping_dict = {m[1]: (m[0], m[2]) for m in mapping}  # {slot: (PWMIndex, Head)}
-        if args is not None:
-            detector_dict = {d[0]: d[1:] for d in args}
-        else:
-            # If args not specified, fill detector dict to default
-            # Settings, ie. {Slot: (ref, autorange) for slot in mapping}
-            # where ref is -30.0 dBm, autorange is default range 
-            detector_dict = {m[-1]: (-30.0, None) for m in mapping}
-        
-        # Couple mapping dict and detector dict
-        # {Slot: ((PWMIndex, Head), (Reference, Range))}
-        # For each slot detected
-        full_mapping = {}
-        for slot, pwm_info in mapping_dict.items():
-            # Fallback to default if missing settings for a slot
-            det_info = detector_dict.get(slot, (-30.0, None))
-            full_mapping[slot] = (pwm_info, det_info)
+        # list of 3 tuples -> PWMIndex, Slot, Head
+        # This will be passed with args into 
+        # Apply ranging for each slot, head
+        mapping = self.get_pwm_map(n_pwm)
         
         # --- Normalize sweep parameters ---
         start_nm = max(1490.0, float(start_nm))
@@ -747,7 +731,7 @@ class HP816xLambdaScan:
                 continue
 
             # --- Apply settings based on mapping ---
-            self.apply_ranging(full_mapping, bottom_wl_m, top_wl_m)
+            self.apply_ranging(mapping, args, bottom_wl_m, top_wl_m)
 
             # --- execute MF scan, get wavelengths ---
             wl_buf = (c_double * points_seg)()
@@ -799,7 +783,7 @@ class HP816xLambdaScan:
                 pwr_seg = pwr_full[mask][valid]
 
                 # map MF array index -> mapping index
-                map_idx = array_idx - 1
+                map_idx = array_idx 
 
                 # retrieve physical detector identity
                 pwm, slot, head = mapping[map_idx]
@@ -833,17 +817,24 @@ class HP816xLambdaScan:
             "num_points": int(n_target),
         }
 
-    def apply_ranging(self, full_mapping, btm_wl, top_wl):
+    def apply_ranging(self, mapping, args_list, btm_wl, top_wl):
         """
         Wrapper: decides whether each slot uses manual or auto ranging.
-        For full_mapping pattern found in lambda_sweep
+        For full_mapping pattern found in lambda_scan
         - If range_dbm is None -> autorange
         - Otherwise -> manual
         """
-        for slot, ((pwm, head), (_, range_dbm)) in full_mapping.items():
+        args_dict = {}
+        for slot, ref, range in args_list:
+            args_dict[slot] = range
+
+        for pwm, slot, head in mapping:
+            range_dbm = args_dict.get(slot, 0.0)  # Default to 0 dBm
             if range_dbm is None:
+                print(f'Applying Autoranging for slot: {slot}, {pwm},{head}')
                 self.apply_auto_ranging(pwm, slot, head, (btm_wl, top_wl))
             else:
+                print(f'Applying Manual Ranging for slot: {slot}, {pwm},{head}')
                 self.apply_manual_ranging(pwm, slot, head, range_dbm)
 
     def apply_manual_ranging(self, pwm, slot, head, range_dbm):
@@ -1040,6 +1031,7 @@ class HP816xLambdaScan:
     def cancel(self):
         self._cancel = True
         self.disconnect()
+
     def disconnect(self):
         if self.session:
             self.lib.hp816x_unregisterMainframe(self.session)

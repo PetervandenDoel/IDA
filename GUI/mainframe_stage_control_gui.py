@@ -55,6 +55,7 @@ class stage_control(App):
         self.project = None
         self.scanpos = {}
         self.stagepos = {}
+        self.zero_state = {}
         self.stage_x_pos = 0
         self.stage_y_pos = 0
         self.sweep = {}
@@ -67,6 +68,7 @@ class stage_control(App):
         self.devices = None
         self.web = None
         self.file_format = {}
+        self.use_destination_dir = {}  # For auto file pathing
         self.file_path = None
         self.slot_info = None
         self.slot_info_flag = False
@@ -140,6 +142,7 @@ class stage_control(App):
                     self.web = data.get("Web", "")
                     self.file_format = data.get("FileFormat", {})
                     self.file_path = data.get("FilePath", "")
+                    self.use_destination_dir = data.get("ExportRequest", {})
                     self.load_user_settings = data.get("LoadConfig", False)
                     
                     # Mainframe slot info? 
@@ -310,7 +313,7 @@ class stage_control(App):
             # This is for manual measurements
             # Name is None if not auto
             # Assign a name and compute a single sweep
-            name = self.name
+            name = "Manual_Sweep" 
             self.busy_dialog()
             self.task_start = 1
             self.task_laser = 1
@@ -404,33 +407,55 @@ class stage_control(App):
         # Plotting the data
         x = wl
         active_detectors = []
-        for d in detectors:
-            active_detectors.append(d)
-        print(active_detectors)
-        y = np.vstack(active_detectors)
-        fileTime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        diagram = plot(
-            x, y, "spectral_sweep", fileTime, self.user, name,
-            self.project, auto, self.file_format, self.file_path,
-            self.slot_info  # For display
-        )
-        p = Process(target=diagram.generate_plots)
-        p.start()
-        p.join()
+        cancel_flag = getattr(self, "_scan_cancel", None)
+        was_cancelled = bool(cancel_flag and cancel_flag.is_set())
+        
+        if was_cancelled:
+            print("[Plot] Sweep flag is 0  cancelled; skipping plot & webview.")
+        else:
+            try:
+                # If detectors is None, treat as empty
+                if not detectors:
+                    raise ValueError("No detectors data to plot.")
 
-        if self.web != "" and auto == 0:
-            file_uri = Path(self.web).resolve().as_uri()
-            print(file_uri)
-            webview.create_window(
-                'Stage Control',
-                file_uri,
-                width=700, height=500,
-                resizable=True,
-                hidden=False
-            )
+                for d in detectors:
+                    active_detectors.append(d)
+
+                if not active_detectors:
+                    raise ValueError("Detector list empty after sweep.")
+
+                print(active_detectors)
+                y = np.vstack(active_detectors)
+
+                fileTime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+                print('WHY??', self.use_destination_dir)
+                diagram = plot(
+                    x, y, "spectral_sweep", fileTime, self.user, name,
+                    self.project, auto, self.file_format, self.file_path,
+                    self.slot_info,  # For display
+                    self.use_destination_dir  # For autosweeps
+                )
+                p = Process(target=diagram.generate_plots)
+                p.start()
+                p.join()
+
+                if self.web != "" and auto == 0:
+                    file_uri = Path(self.web).resolve().as_uri()
+                    print(file_uri)
+                    webview.create_window(
+                        'Stage Control',
+                        file_uri,
+                        width=700, height=500,
+                        resizable=True,
+                        hidden=False
+                    )
+
+            except Exception as e:
+                # Cancel / no data / plotting error → just log and continue
+                print(f"[Plot] Skipping plot due to error: {e}")
         
         if auto == 0:
-            if self.sweep["done"] == "Laser On":
+            if self.sweep.get("done", "Laser On") == "Laser On":
                 self.nir_manager.enable_laser(True)
             else:
                 self.nir_manager.enable_laser(False)
@@ -613,11 +638,20 @@ class stage_control(App):
             # Change positions using shared mem, if changed
             self.memory.reader_pos()
             if self.memory.x_pos != float(self.x_position_lb.get_text()):
-                self.x_position_lb.set_text(str(self.memory.x_pos))
+                x_zero = self.zero_state.get("x")
+                if x_zero is None:
+                    x_zero = 0.0
+                self.x_position_lb.set_text(str(round((self.memory.x_pos- x_zero), 3)))
             if self.memory.y_pos != float(self.y_position_lb.get_text()):
-                self.y_position_lb.set_text(str(self.memory.y_pos))
+                y_zero = self.zero_state.get("y")
+                if y_zero is None:
+                    y_zero = 0.0
+                self.y_position_lb.set_text(str(round((self.memory.y_pos - y_zero), 3)))
             if self.memory.z_pos != float(self.z_position_lb.get_text()):
-                self.z_position_lb.set_text(str(self.memory.z_pos))
+                z_zero = self.zero_state.get("z")
+                if z_zero is None:
+                    z_zero = 0.0
+                self.z_position_lb.set_text(str(round((self.memory.z_pos - z_zero), 3)))
             if self.memory.cp_pos != float(self.chip_position_lb.get_text()):
                 self.chip_position_lb.set_text(str(self.memory.cp_pos))
             if self.memory.fr_pos != float(self.fiber_position_lb.get_text()):
@@ -842,6 +876,7 @@ class stage_control(App):
             self.task_start = 0
             
         # For safety, turn off laser after an automated measurement
+        self.use_destination_dir = {}  # Reset destination dir
         self.nir_manager.enable_laser(False)
         print("The Auto Sweep Is Finished")
         time.sleep(1)
@@ -1010,11 +1045,12 @@ class stage_control(App):
             ))
 
             # Zero button
-            setattr(self, f"{prefix}_zero_btn", StyledButton(
-                container=xyz_container, text="Zero", variable_name=f"{prefix}_zero_button",
-                font_size=100, left=ZERO_LEFT, top=top, width=55, height=ROW_H,
-                normal_color="#6c757d", press_color="#5a6268"
-            ))
+            if prefix in ["x", "y", "z"]:
+                setattr(self, f"{prefix}_zero_btn", StyledButton(
+                    container=xyz_container, text="Zero", variable_name=f"{prefix}_zero_button",
+                    font_size=100, left=ZERO_LEFT, top=top, width=55, height=ROW_H,
+                    normal_color="#6c757d", press_color="#5a6268"
+                ))
 
         # ---- Right-hand panels ----
         limits_container = StyledContainer(
@@ -1203,8 +1239,8 @@ class stage_control(App):
         self.x_zero_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_zero, "x"))
         self.y_zero_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_zero, "y"))
         self.z_zero_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_zero, "z"))
-        self.chip_zero_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_zero, "chip"))
-        self.fiber_zero_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_zero, "fiber"))
+        # self.chip_zero_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_zero, "chip"))
+        # self.fiber_zero_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_zero, "fiber"))
         self.load_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_load))
         self.move_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_move))
         self.limit_setting_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_limit_setting_btn))
@@ -1747,7 +1783,7 @@ class stage_control(App):
 
     def onclick_zero(self, prefix: str):
         try:
-            if getattr(self, "axis_locked", {}).get(prefix, False):
+            if getattr(self, "axis_locked", {}).get(prefix, False) or prefix in ["chip", "fiber"]:
                 # print(f"[Zero] Axis '{prefix}' is locked; ignoring zero request.")
                 return
 
@@ -1755,18 +1791,55 @@ class stage_control(App):
             self.lock_all(1)
 
             # Map UI prefix -> StageManager axis enum
-            axis_map = {
-                "x": AxisType.X,
-                "y": AxisType.Y,
-                "z": AxisType.Z,
-                "chip": AxisType.ROTATION_CHIP,
-                "fiber": AxisType.ROTATION_FIBER,
+            memory_map = {
+                "x": self.memory.x_pos,
+                "y": self.memory.y_pos,
+                "z": self.memory.z_pos,
             }
-            axis = axis_map.get(prefix)
+            lims_map = {
+                "x": self.configure.position_limits[AxisType.X],
+                "y": self.configure.position_limits[AxisType.Y],
+                "z": self.configure.position_limits[AxisType.Z]
+            }
+            pos = memory_map.get(prefix)
+            if self.zero_state.get(prefix) is None:
+                self.zero_state[prefix] = pos
 
-            asyncio.run(self.stage_manager.zero_axis(axis))
+                # Alter position label
+                pos_attr = f'{prefix}_position_lb'
+                pos_widg = getattr(self, pos_attr)
+                pos_widg.set_text(str(0))
+
+                # If on zero, retrieve and alter ficticous limits
+                lim = lims_map.get(prefix)
+                if lim is None:
+                    return
+                label_attr = f'{prefix}_limit_lb'
+                label_widg = getattr(self, label_attr)
+                txt = f"lim: {round((lim[0] - pos), 2)}~{round((lim[1] - pos), 2)}"
+                label_widg.set_text(txt)
+
+            else:
+                self.zero_state[prefix] = None
+
+                # Reassign actual position to label
+                pos_attr = f'{prefix}_position_lb'
+                pos_widg = getattr(self, pos_attr)
+                pos_widg.set_text(f'{round(pos, 3)}')
+
+                # If not on zero, retrieve and alter ficticous limits
+                lim = lims_map.get(prefix)
+                if lim is None:
+                    return
+                label_attr = f'{prefix}_limit_lb'
+                label_widg = getattr(self, label_attr)
+                txt = f"lim: {round((lim[0]), 2)}~{round((lim[1]), 2)}"
+                label_widg.set_text(txt)
+
+
         except Exception as e:
             print(f"[Zero] Error handling zero for '{prefix}': {e}")
+        
         finally:
             # Always re-enable the UI
             with self._scan_done.get_lock():

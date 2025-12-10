@@ -99,6 +99,7 @@ def get_pwm_map(session, n_pwm):
 def apply_manual_ranging(session, mapping, range_dbm):
     """Apply manual power ranging to all PWM channels."""
     for pwm, slot, head in mapping:
+        print(f'pwm: {pwm}, sl: {slot}, head: {head}')
         st = dll.hp816x_setInitialRangeParams (
             session,
             pwm,       # PWMChannel

@@ -2,35 +2,96 @@ from GUI.lib_gui import *
 from remi import start, App
 import os, json, threading
 
+# --- Paths to JSON files ---
+SHARED_PATH = os.path.join("database", "shared_memory.json")
 command_path = os.path.join("database", "command.json")
+
 
 class area_scan(App):
     def __init__(self, *args, **kwargs):
-        self._user_mtime = None
+        # Track command.json changes
+        self._cmd_mtime = None
         self._first_command_check = True
+
+        # Track shared_memory.json changes
+        self._shared_mtime = None
+        self._first_shared_check = True
+
+        # Cache of AreaS block (optional, but handy)
+        self.area_s = {}
+
+        # REMI init
         if "editing_mode" not in kwargs:
-            super(area_scan, self).__init__(*args, **{"static_file_path": {"my_res": "./res/"}})
+            super(area_scan, self).__init__(
+                *args,
+                **{"static_file_path": {"my_res": "./res/"}}
+            )
 
-    def idle(self):
-        try:
-            mtime = os.path.getmtime(command_path)
-        except FileNotFoundError:
-            mtime = None
-        if self._first_command_check:
-            self._user_mtime = mtime
-            self._first_command_check = False
-            return
-        if mtime != self._user_mtime:
-            self._user_mtime = mtime
-            self.execute_command()
-
-    def main(self):
-        return self.construct_ui()
+    # ------------------- UTILITIES -------------------
 
     def run_in_thread(self, target, *args):
         threading.Thread(target=target, args=args, daemon=True).start()
 
-    # ---------------- UI ----------------
+    @staticmethod
+    def _set_spin_safely(widget, value):
+        """
+        Same pattern as AutoSweepConfig:
+        try to set a SpinBox with float, then raw, ignore if it fails.
+        """
+        if widget is None or value is None:
+            return
+        try:
+            widget.set_value(float(value))
+        except Exception:
+            try:
+                widget.set_value(value)
+            except Exception:
+                pass
+
+    # ------------------- REMI HOOKS -------------------
+
+    def idle(self):
+        """
+        Watch BOTH:
+        - command.json -> execute_command()
+        - shared_memory.json -> _load_from_shared()
+        """
+
+        # --- command.json watcher ---
+        try:
+            cmd_mtime = os.path.getmtime(command_path)
+        except FileNotFoundError:
+            cmd_mtime = None
+
+        if self._first_command_check:
+            self._cmd_mtime = cmd_mtime
+            self._first_command_check = False
+        else:
+            if cmd_mtime != self._cmd_mtime:
+                self._cmd_mtime = cmd_mtime
+                self.execute_command()
+
+        # --- shared_memory.json watcher (for AreaS) ---
+        try:
+            shared_mtime = os.path.getmtime(SHARED_PATH)
+        except FileNotFoundError:
+            shared_mtime = None
+
+        if self._first_shared_check:
+            self._shared_mtime = shared_mtime
+            self._first_shared_check = False
+        else:
+            if shared_mtime != self._shared_mtime:
+                self._shared_mtime = shared_mtime
+                self._load_from_shared()
+
+    def main(self):
+        ui = self.construct_ui()
+        # On first open, pull current AreaS into the UI
+        self._load_from_shared()
+        return ui
+
+    # ------------------- UI -------------------
     def construct_ui(self):
         # Layout constants for clean alignment
         BOX_W, BOX_H = 320, 350
@@ -60,7 +121,7 @@ class area_scan(App):
         # Title row
         StyledLabel(
             container=area_scan_setting_container, text="Area Scan Settings",
-            variable_name="title_lb", left=10, top=y, width=BOX_W-20, height=24,
+            variable_name="title_lb", left=10, top=y, width=BOX_W - 20, height=24,
             font_size=110, flex=True, justify_content="left", color="#111"
         )
         y += ROW
@@ -71,7 +132,8 @@ class area_scan(App):
                     font_size=100, flex=True, justify_content="right", color="#222")
         self.pattern_dd = StyledDropDown(
             container=area_scan_setting_container, variable_name="pattern_dd",
-            text=["Crosshair", "Spiral"], left=INP_X, top=y, width=INP_W+UNIT_W, height=24, position="absolute"
+            text=["Crosshair", "Spiral"], left=INP_X, top=y, width=INP_W + UNIT_W, height=24,
+            position="absolute"
         )
         self.pattern_dd.set_value("Spiral")
         y += ROW
@@ -79,7 +141,7 @@ class area_scan(App):
         # Pattern hint line (updates when Pattern changes)
         self.pattern_hint = StyledLabel(
             container=area_scan_setting_container, text="Crosshair: uses X Step and Y Step.",
-            variable_name="pattern_hint", left=LBL_X, top=y, width=BOX_W-2*LBL_X, height=22,
+            variable_name="pattern_hint", left=LBL_X, top=y, width=BOX_W - 2 * LBL_X, height=22,
             font_size=90, flex=True, justify_content="left", color="#666"
         )
         y += ROW
@@ -93,7 +155,7 @@ class area_scan(App):
             left=INP_X, top=y, value=50, width=INP_W, height=24,
             min_value=-1000, max_value=1000, step=1, position="absolute"
         )
-        StyledLabel(container=area_scan_setting_container, text="µm",  # nicer micro symbol
+        StyledLabel(container=area_scan_setting_container, text="µm",
                     variable_name="x_size_um", left=UNIT_X, top=y, width=UNIT_W, height=24,
                     font_size=100, flex=True, justify_content="left", color="#222")
         y += ROW
@@ -162,7 +224,7 @@ class area_scan(App):
                     font_size=100, flex=True, justify_content="right", color="#222")
         self.primary_detector_dd = StyledDropDown(
             container=area_scan_setting_container, variable_name="primary_detector_dd",
-            text=["CH1", "CH2", "MAX"], left=INP_X, top=y, width=INP_W+UNIT_W, height=24, position="absolute"
+            text=["CH1", "CH2", "MAX"], left=INP_X, top=y, width=INP_W + UNIT_W, height=24, position="absolute"
         )
         y += ROW
 
@@ -172,14 +234,14 @@ class area_scan(App):
                     font_size=100, flex=True, justify_content="right", color="#222")
         self.plot_dd = StyledDropDown(
             container=area_scan_setting_container, variable_name="plot_dd",
-            text=["New", "Previous"], left=INP_X, top=y, width=INP_W+UNIT_W, height=24, position="absolute"
+            text=["New", "Previous"], left=INP_X, top=y, width=INP_W + UNIT_W, height=24, position="absolute"
         )
         y += ROW
 
         # Confirm button
         self.confirm_btn = StyledButton(
             container=area_scan_setting_container, text="Confirm",
-            variable_name="confirm_btn", left=(BOX_W-80)//2, top=y+6, height=28, width=80, font_size=90
+            variable_name="confirm_btn", left=(BOX_W - 80) // 2, top=y + 6, height=28, width=80, font_size=90
         )
         self.confirm_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_confirm))
 
@@ -210,10 +272,101 @@ class area_scan(App):
             # fallback: ignore if StyledLabel doesn't expose set_text
             pass
 
-    # ---------------- Save (protocol unchanged) ----------------
+    # ------------------- LOAD FROM shared_memory.json (AreaS) -------------------
+
+    def _load_from_shared(self):
+        """
+        Mirror AutoSweepConfig._load_from_shared, but for AreaS.
+
+        shared_memory.json structure (relevant part):
+
+        "AreaS": {
+            "x_size": 119.0,
+            "x_step": 7.0,
+            "y_size": 119.0,
+            "y_step": 7.0,
+            "pattern": "spiral",
+            "primary_detector": "max",
+            "plot": "New"
+        }
+        """
+        try:
+            with open(SHARED_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception:
+            return
+
+        self.area_s = data.get("AreaS", {}) or {}
+
+        # Sizes
+        self._set_spin_safely(self.x_size, self.area_s.get("x_size"))
+        self._set_spin_safely(self.y_size, self.area_s.get("y_size"))
+
+        # Steps
+        x_step = self.area_s.get("x_step")
+        y_step = self.area_s.get("y_step")
+        self._set_spin_safely(self.x_step, x_step)
+        self._set_spin_safely(self.y_step, y_step)
+
+        # Pattern -> dropdown mapping
+        pat = str(self.area_s.get("pattern", "")).lower()
+        if pat == "spiral":
+            try:
+                self.pattern_dd.set_value("Spiral")
+            except Exception:
+                pass
+            # For spiral, use x_step as step_size if present
+            if x_step is not None:
+                self._set_spin_safely(self.step_size, x_step)
+        elif pat == "crosshair":
+            try:
+                self.pattern_dd.set_value("Crosshair")
+            except Exception:
+                pass
+        else:
+            # default
+            try:
+                self.pattern_dd.set_value("Spiral")
+            except Exception:
+                pass
+
+        # Primary detector mapping ("max", "ch1", "ch2" -> "MAX"/"CH1"/"CH2")
+        det = str(self.area_s.get("primary_detector", "")).lower()
+        if det == "ch1":
+            det_ui = "CH1"
+        elif det == "ch2":
+            det_ui = "CH2"
+        elif det == "max":
+            det_ui = "MAX"
+        else:
+            det_ui = "MAX"
+        try:
+            self.primary_detector_dd.set_value(det_ui)
+        except Exception:
+            pass
+
+        # Plot ("New"/"Previous")
+        plot = self.area_s.get("plot", "New")
+        if isinstance(plot, str):
+            low = plot.lower()
+            if low == "new":
+                plot = "New"
+            elif low == "previous":
+                plot = "Previous"
+            else:
+                plot = "New"
+            try:
+                self.plot_dd.set_value(plot)
+            except Exception:
+                pass
+
+        # Refresh hint text based on loaded pattern
+        self._update_pattern_hint()
+
+    # ------------------- Save (protocol unchanged) -------------------
     def onclick_confirm(self):
         """
-        We still write ONLY: x_size, x_step, y_size, y_step, plot.
+        We still write ONLY: x_size, x_step, y_size, y_step, plot, pattern, primary_detector.
         If Pattern == 'Spiral', mirror step_size into x_step & y_step here.
         """
         try:
@@ -234,17 +387,18 @@ class area_scan(App):
             y_step_out = float(self.y_step.get_value())
 
         value = {
-            "pattern": "spiral" if spiral else "crosshair",
             "x_size": float(self.x_size.get_value()),
             "x_step": float(x_step_out),
             "y_size": float(self.y_size.get_value()),
             "y_step": float(y_step_out),
+            "pattern": "spiral" if spiral else "crosshair",
             "primary_detector": str(self.primary_detector_dd.get_value().lower()),
             "plot": self.plot_dd.get_value(),
         }
         file = File("shared_memory", "AreaS", value)
         file.save()
         print("Confirm Area Scan Setting:", value)
+
         import webview
         # Set to a hidden window
         local_ip = '127.0.0.1'
@@ -258,7 +412,7 @@ class area_scan(App):
             hidden=True
         )
 
-    # ---------------- Commands ----------------
+    # ------------------- Commands (unchanged) -------------------
     def execute_command(self, path=command_path):
         area = 0
         record = 0
@@ -293,7 +447,7 @@ class area_scan(App):
                     v = val.upper()
                     if v not in ("CH1", "CH2", "MAX"):
                         v = "MAX"
-                    self.primary_detector_dd.set_value(v)    
+                    self.primary_detector_dd.set_value(v)
             elif key == "as_plot":
                 if isinstance(val, str):
                     low = val.lower()
@@ -312,7 +466,8 @@ class area_scan(App):
             file = File("command", "command", new_command)
             file.save()
 
-# ---- App entry (unchanged) ----
+
+# ---- App entry ----
 if __name__ == "__main__":
     configuration = {
         "config_project_name": "area_scan",

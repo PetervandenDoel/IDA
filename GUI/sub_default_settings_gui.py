@@ -351,22 +351,29 @@ class DefaultSettingsConfig(App):
         self._set_spin_safely(self.fa_step_size, fine_a.get("step_size", 1.0))
         self._set_spin_safely(self.fa_max_iters, fine_a.get("max_iters", 10))
         self._set_spin_safely(self.fa_min_grad_ss, fine_a.get("min_gradient_ss", 0.1))
-        self._set_dropdown_safely(self.fa_primary_detector, fine_a.get("detector", "ch1"))
+        self._set_dropdown_safely(self.fa_primary_detector, fine_a.get("detector", "Max"))
         self._set_spin_safely(self.fa_ref_wl, fine_a.get("ref_wl", 1550.0))
 
         # Initial positions
         initial_pos = config.get("InitialPositions", {})
-        self._set_spin_safely(self.init_fa, initial_pos.get("fa", 0.0))
+        self._set_spin_safely(self.init_fa, initial_pos.get("fa", 8.0))
 
         # Detector window settings (4 slots)
         detector_settings = config.get("DetectorWindowSettings", {})
-        self._set_spin_safely(self.ch1_range, detector_settings.get("ch1_range", -10))
+        detector_list = []
+        for i in range(1,5):
+            detector_list.append(
+                detector_settings.get(f'DetectorRange_Ch{i}', {}).get(
+                    "range_dbm", -10
+                )
+            )
+        self._set_spin_safely(self.ch1_range, detector_list[0])
         self._set_spin_safely(self.ch1_ref, detector_settings.get("ch1_ref", -30))
-        self._set_spin_safely(self.ch2_range, detector_settings.get("ch2_range", -10))
+        self._set_spin_safely(self.ch2_range, detector_list[1])
         self._set_spin_safely(self.ch2_ref, detector_settings.get("ch2_ref", -30))
-        self._set_spin_safely(self.ch3_range, detector_settings.get("ch3_range", -10))
+        self._set_spin_safely(self.ch3_range, detector_list[2])
         self._set_spin_safely(self.ch3_ref, detector_settings.get("ch3_ref", -30))
-        self._set_spin_safely(self.ch4_range, detector_settings.get("ch4_range", -10))
+        self._set_spin_safely(self.ch4_range, detector_list[3])
         self._set_spin_safely(self.ch4_ref, detector_settings.get("ch4_ref", -30))
 
         # Port settings
@@ -2095,11 +2102,11 @@ class DefaultSettingsConfig(App):
                 "step_size": self._safe_float(self.fa_step_size, 1.0),
                 "max_iters": self._safe_int(self.fa_max_iters, 10),
                 "min_gradient_ss": self._safe_float(self.fa_min_grad_ss, 0.1),
-                "detector": self._safe_str(self.fa_primary_detector, "ch1"),
+                "detector": self._safe_str(self.fa_primary_detector, "Max"),
                 "ref_wl": self._safe_float(self.fa_ref_wl, 1550.0),
             },
             "InitialPositions": {
-                "fa": self._safe_float(self.init_fa, 0.0),
+                "fa": self._safe_float(self.init_fa, 8.0),
             },
             "DetectorWindowSettings": {
                 # CH1

@@ -39,10 +39,10 @@ class add_btn(App):
                     self.sweep = data.get("Sweep", {})
             except Exception as e:
                 print(f"[Warn] read json failed: {e}")
-
-            self.power.set_value(self.sweep["power"])
-            self.start_wvl.set_value(self.sweep["start"])
-            self.stop_wvl.set_value(self.sweep["end"])
+            
+            self.power.set_value(self.sweep.get("power", 0.0))  # Default to 0.0
+            self.start_wvl.set_value(self.sweep.get("start", 1500))  # Default to 1500
+            self.stop_wvl.set_value(self.sweep.get("end", 1580))  # Default to 1580
 
     def main(self):
         return self.construct_ui()
@@ -137,14 +137,14 @@ class add_btn(App):
 
     def onclick_confirm(self):
         mem = {
-            "wvl": self.sweep["wvl"],
+            "wvl": self.sweep.get("wvl", 1550),
             "power": float(self.power.get_value()),
             "step": float(self.step_size.get_value()),
             "start": float(self.start_wvl.get_value()),
             "end": float(self.stop_wvl.get_value()),
             "done": self.on_off.get_value(),
-            "sweep": self.sweep["sweep"],
-            "on": self.sweep["on"]
+            "sweep": self.sweep.get("sweep", 0),  # Default to sweep off
+            "on": self.sweep.get("on", 1)  # Default to turned on
         }
         file = File("shared_memory", "Sweep", mem)
         file.save()

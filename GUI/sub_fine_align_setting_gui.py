@@ -1,36 +1,119 @@
 from GUI.lib_gui import *
 from remi import start, App
+import os, json, threading   # <- added
 
+# --- Paths to JSON files ---
+SHARED_PATH = os.path.join("database", "shared_memory.json")
 command_path = os.path.join("database", "command.json")
 
 
 class fine_align(App):
     def __init__(self, *args, **kwargs):
-        self._user_mtime = None
+        # Track command.json changes
+        self._cmd_mtime = None
         self._first_command_check = True
+
+        # Track shared_memory.json changes (for FineA)
+        self._shared_mtime = None
+        self._first_shared_check = True
+
+        # Optional cache of FineA block
+        self.fine_a = {}
+
         if "editing_mode" not in kwargs:
             super(fine_align, self).__init__(*args, **{"static_file_path": {"my_res": "./res/"}})
 
-    def idle(self):
-        try:
-            mtime = os.path.getmtime(command_path)
-        except FileNotFoundError:
-            mtime = None
-
-        if self._first_command_check:
-            self._user_mtime = mtime
-            self._first_command_check = False
-            return
-
-        if mtime != self._user_mtime:
-            self._user_mtime = mtime
-            self.execute_command()
-
-    def main(self):
-        return self.construct_ui()
+    # ---------------- UTILITIES ----------------
 
     def run_in_thread(self, target, *args):
         threading.Thread(target=target, args=args, daemon=True).start()
+
+    @staticmethod
+    def _set_spin_safely(widget, value):
+        """
+        Same pattern as AutoSweepConfig / area_scan:
+        try float, then raw; ignore on failure.
+        """
+        if widget is None or value is None:
+            return
+        try:
+            widget.set_value(float(value))
+        except Exception:
+            try:
+                widget.set_value(value)
+            except Exception:
+                pass
+
+         # --------- SAFE VALUE HELPERS (for Bug #2) ---------
+
+    @staticmethod
+    def _safe_float(widget, default):
+        try:
+            return float(widget.get_value())
+        except Exception:
+            return default
+
+    @staticmethod
+    def _safe_int(widget, default):
+        try:
+            return int(float(widget.get_value()))
+        except Exception:
+            return default
+
+    @staticmethod
+    def _safe_str(widget, default):
+        try:
+            val = widget.get_value()
+            if val is None:
+                return default
+            return str(val)
+        except Exception:
+            return default
+
+    # ---------------- REMI HOOKS ----------------
+
+    def idle(self):
+        """
+        Watch BOTH:
+        - command.json -> execute_command()
+        - shared_memory.json -> _load_from_shared()
+        """
+
+        # --- command.json watcher ---
+        try:
+            cmd_mtime = os.path.getmtime(command_path)
+        except FileNotFoundError:
+            cmd_mtime = None
+
+        if self._first_command_check:
+            self._cmd_mtime = cmd_mtime
+            self._first_command_check = False
+        else:
+            if cmd_mtime != self._cmd_mtime:
+                self._cmd_mtime = cmd_mtime
+                self.execute_command()
+
+        # --- shared_memory.json watcher for FineA ---
+        try:
+            shared_mtime = os.path.getmtime(SHARED_PATH)
+        except FileNotFoundError:
+            shared_mtime = None
+
+        if self._first_shared_check:
+            self._shared_mtime = shared_mtime
+            self._first_shared_check = False
+        else:
+            if shared_mtime != self._shared_mtime:
+                self._shared_mtime = shared_mtime
+                self._load_from_shared()
+
+    def main(self):
+        ui = self.construct_ui()
+        # On first open, load FineA from shared_memory.json
+        self._load_from_shared()
+        return ui
+
+    # ---------------- UI ----------------
 
     def construct_ui(self):
         fine_align_setting_container = StyledContainer(
@@ -123,7 +206,7 @@ class fine_align(App):
         )
 
         StyledLabel(
-            container=fine_align_setting_container, text="",  # iterations have no 'um'
+            container=fine_align_setting_container, text="",
             variable_name="max_iters_um",
             left=150, top=74,
             width=20, height=25,
@@ -180,7 +263,7 @@ class fine_align(App):
             position="absolute"
         )
 
-        # ----- Ref WL (inserted between Detector and Confirm) -----
+        # ----- Ref WL -----
         StyledLabel(
             container=fine_align_setting_container, text="Ref WL",
             variable_name="ref_wl_lb",
@@ -210,11 +293,11 @@ class fine_align(App):
             justify_content="left", color="#222"
         )
 
-        # ----- Confirm button (shifted down by one row) -----
+        # ----- Confirm button -----
         self.confirm_btn = StyledButton(
             container=fine_align_setting_container, text="Confirm",
             variable_name="confirm_btn",
-            left=68, top=202,   # was 174, now 174 + 32
+            left=68, top=202,
             height=25, width=70,
             font_size=90
         )
@@ -224,20 +307,72 @@ class fine_align(App):
         self.fine_align_setting_container = fine_align_setting_container
         return fine_align_setting_container
 
+    # ---------------- LOAD FROM shared_memory.json (FineA) ----------------
+
+    def _load_from_shared(self):
+        """
+        Load FineA block from shared_memory.json into the UI.
+
+        Expected structure:
+
+        "FineA": {
+            "window_size": 45.0,
+            "step_size": 5.0,
+            "min_gradient_ss": 0.5,
+            "max_iters": 10,
+            "detector": "Max",
+            "ref_wl": 1550.0,
+            "timeout_s": 30
+        }
+        """
+        try:
+            with open(SHARED_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception:
+            return
+
+        self.fine_a = data.get("FineA", {}) or {}
+
+        # Scalars
+        self._set_spin_safely(self.window_size, self.fine_a.get("window_size"))
+        self._set_spin_safely(self.step_size, self.fine_a.get("step_size"))
+        self._set_spin_safely(self.max_iters, self.fine_a.get("max_iters"))
+        self._set_spin_safely(self.min_grad_ss, self.fine_a.get("min_gradient_ss"))
+        self._set_spin_safely(self.ref_wl, self.fine_a.get("ref_wl"))
+
+        # Detector mapping into dropdown
+        det = str(self.fine_a.get("detector", "")).lower()
+        if det == "ch1":
+            target = "ch1"
+        elif det == "ch2":
+            target = "ch2"
+        elif det == "max":
+            target = "Max"
+        else:
+            target = None
+
+        if target is not None:
+            try:
+                self.detector.set_value(target)
+            except Exception:
+                pass
+
+    # ---------------- Save to shared_memory.json (FineA) ----------------
     def onclick_confirm(self):
         value = {
-            "window_size": float(self.window_size.get_value()),
-            "step_size": float(self.step_size.get_value()),
-            "max_iters": int(self.max_iters.get_value()),
-            "min_gradient_ss": float(self.min_grad_ss.get_value()),
-            "detector": str(self.detector.get_value()),
-            "ref_wl": float(self.ref_wl.get_value())
+            "window_size": self._safe_float(self.window_size, 10.0),
+            "step_size": self._safe_float(self.step_size, 1.0),
+            "max_iters":  self._safe_int(self.max_iters, 10),  # <- always int
+            "min_gradient_ss": self._safe_float(self.min_grad_ss, 0.1),
+            "detector":  self._safe_str(self.detector, "Max"),
+            "ref_wl":    self._safe_float(self.ref_wl, 1550.0),
         }
+
         file = File("shared_memory", "FineA", value)
         file.save()
         print("Confirm Fine Align Setting")
+
         import webview
-        # Set to a hidden window
         local_ip = '127.0.0.1'
         webview.create_window(
             "Setting",
@@ -248,6 +383,8 @@ class fine_align(App):
             on_top=True,
             hidden=True
         )
+
+    # ---------------- Commands (unchanged) ----------------
 
     def execute_command(self, path=command_path):
         fa = 0
