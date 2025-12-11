@@ -108,7 +108,7 @@ class area_scan(App):
         LBL_W, INP_W, UNIT_W = 120, 90, 50
         LBL_X = 10
         INP_X = LBL_X + LBL_W + 8
-        UNIT_X = INP_X + INP_W + 8
+        UNIT_X = INP_X + INP_W + 20
         ROW = 30
         y = 10
 
