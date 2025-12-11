@@ -16,9 +16,10 @@ class AreaSweepConfiguration:
     x_step = 1  # microns
     y_size = 50 # microns
     y_step = 1 # microns
-    pattern = "spiral" # or "crosshair"
-    primary_detector = None  # "ch1", "ch2", "MAX"
-
+    pattern = "spiral" # or no more crosshair
+    primary_detector = "MAX"  # "ch1", "ch2", "MAX"
+    slots: list[int] = field(default_factory=lambda: [1])
+    
     def to_dict(self) -> dict:
         """Convert to dictionary"""
         return {
@@ -27,7 +28,8 @@ class AreaSweepConfiguration:
             'y_size': self.y_size,
             'y_step': self.y_step,
             'pattern': self.pattern,
-            'primary_detector': self.primary_detector
+            'primary_detector': self.primary_detector,
+            'slots': self.slots
         }
 
     @classmethod

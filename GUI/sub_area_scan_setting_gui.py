@@ -138,13 +138,13 @@ class area_scan(App):
         self.pattern_dd.set_value("Spiral")
         y += ROW
 
-        # Pattern hint line (updates when Pattern changes)
-        self.pattern_hint = StyledLabel(
-            container=area_scan_setting_container, text="Crosshair: uses X Step and Y Step.",
-            variable_name="pattern_hint", left=LBL_X, top=y, width=BOX_W - 2 * LBL_X, height=22,
-            font_size=90, flex=True, justify_content="left", color="#666"
-        )
-        y += ROW
+        # # Pattern hint line (updates when Pattern changes)
+        # self.pattern_hint = StyledLabel(
+        #     container=area_scan_setting_container, text="Crosshair: uses X Step and Y Step.",
+        #     variable_name="pattern_hint", left=LBL_X, top=y, width=BOX_W - 2 * LBL_X, height=22,
+        #     font_size=90, flex=True, justify_content="left", color="#666"
+        # )
+        # y += ROW
 
         # X Size
         StyledLabel(container=area_scan_setting_container, text="X Size",
@@ -175,33 +175,33 @@ class area_scan(App):
         y += ROW
 
         # --- Crosshair controls ---
-        StyledLabel(container=area_scan_setting_container, text="X Step (Crosshair)",
-                    variable_name="x_step_lb", left=LBL_X, top=y, width=LBL_W, height=24,
-                    font_size=100, flex=True, justify_content="right", color="#222")
-        self.x_step = StyledSpinBox(
-            container=area_scan_setting_container, variable_name="x_step_in",
-            left=INP_X, top=y, value=5, width=INP_W, height=24,
-            min_value=-1000, max_value=1000, step=0.1, position="absolute"
-        )
-        tooltip(self.x_step, "Used when Pattern = Crosshair. Saved as x_step.")
-        StyledLabel(container=area_scan_setting_container, text="µm",
-                    variable_name="x_step_um", left=UNIT_X, top=y, width=UNIT_W, height=24,
-                    font_size=100, flex=True, justify_content="left", color="#222")
-        y += ROW
+        # StyledLabel(container=area_scan_setting_container, text="X Step (Crosshair)",
+                    # variable_name="x_step_lb", left=LBL_X, top=y, width=LBL_W, height=24,
+                    # font_size=100, flex=True, justify_content="right", color="#222")
+        # self.x_step = StyledSpinBox(
+            # container=area_scan_setting_container, variable_name="x_step_in",
+            # left=INP_X, top=y, value=5, width=INP_W, height=24,
+            # min_value=-1000, max_value=1000, step=0.1, position="absolute"
+        # )
+        # tooltip(self.x_step, "Used when Pattern = Crosshair. Saved as x_step.")
+        # StyledLabel(container=area_scan_setting_container, text="µm",
+                    # variable_name="x_step_um", left=UNIT_X, top=y, width=UNIT_W, height=24,
+                    # font_size=100, flex=True, justify_content="left", color="#222")
+        # y += ROW
 
-        StyledLabel(container=area_scan_setting_container, text="Y Step (Crosshair)",
-                    variable_name="y_step_lb", left=LBL_X, top=y, width=LBL_W, height=24,
-                    font_size=100, flex=True, justify_content="right", color="#222")
-        self.y_step = StyledSpinBox(
-            container=area_scan_setting_container, variable_name="y_step_in",
-            left=INP_X, top=y, value=5, width=INP_W, height=24,
-            min_value=-1000, max_value=1000, step=0.1, position="absolute"
-        )
-        tooltip(self.y_step, "Used when Pattern = Crosshair. Saved as y_step.")
-        StyledLabel(container=area_scan_setting_container, text="µm",
-                    variable_name="y_step_um", left=UNIT_X, top=y, width=UNIT_W, height=24,
-                    font_size=100, flex=True, justify_content="left", color="#222")
-        y += ROW
+        # StyledLabel(container=area_scan_setting_container, text="Y Step (Crosshair)",
+                    # variable_name="y_step_lb", left=LBL_X, top=y, width=LBL_W, height=24,
+                    # font_size=100, flex=True, justify_content="right", color="#222")
+        # self.y_step = StyledSpinBox(
+            # container=area_scan_setting_container, variable_name="y_step_in",
+            # left=INP_X, top=y, value=5, width=INP_W, height=24,
+            # min_value=-1000, max_value=1000, step=0.1, position="absolute"
+        # )
+        # tooltip(self.y_step, "Used when Pattern = Crosshair. Saved as y_step.")
+        # StyledLabel(container=area_scan_setting_container, text="µm",
+                    # variable_name="y_step_um", left=UNIT_X, top=y, width=UNIT_W, height=24,
+                    # font_size=100, flex=True, justify_content="left", color="#222")
+        # y += ROW
 
         # --- Spiral control ---
         StyledLabel(container=area_scan_setting_container, text="Step Size (Spiral)",
@@ -224,7 +224,9 @@ class area_scan(App):
                     font_size=100, flex=True, justify_content="right", color="#222")
         self.primary_detector_dd = StyledDropDown(
             container=area_scan_setting_container, variable_name="primary_detector_dd",
-            text=["CH1", "CH2", "MAX"], left=INP_X, top=y, width=INP_W + UNIT_W, height=24, position="absolute"
+            text=["CH1", "CH2", "MAX",
+                  "CH3", "CH4", "CH5",
+                  "CH6", "CH7", "CH8"], left=INP_X, top=y, width=INP_W + UNIT_W, height=24, position="absolute"
         )
         y += ROW
 
@@ -298,6 +300,31 @@ class area_scan(App):
 
         self.area_s = data.get("AreaS", {}) or {}
 
+        # ---- Build detector list from SlotInfo ----
+        slot_info = data.get("SlotInfo", [])
+        channel_labels = []
+
+        for entry in slot_info:
+            if not isinstance(entry, (list, tuple)) or len(entry) != 2:
+                continue
+            slot, head = entry
+            try:
+                ch = 2*(int(slot)-1) + int(head) + 1
+                channel_labels.append(f"CH{ch}")
+            except:
+                pass
+
+        if channel_labels:
+            channel_labels = sorted(set(channel_labels), key=lambda x: int(x[2:]))
+        channel_labels.append("MAX")
+
+        try:
+            self.primary_detector_dd.set_options(channel_labels)
+        except:
+            try:
+                self.primary_detector_dd.update_options(channel_labels)
+            except:
+                pass
         # Sizes
         self._set_spin_safely(self.x_size, self.area_s.get("x_size"))
         self._set_spin_safely(self.y_size, self.area_s.get("y_size"))
@@ -329,15 +356,15 @@ class area_scan(App):
                 self.pattern_dd.set_value("Spiral")
             except Exception:
                 pass
-
+            
         # Primary detector mapping ("max", "ch1", "ch2" -> "MAX"/"CH1"/"CH2")
         det = str(self.area_s.get("primary_detector", "")).lower()
-        if det == "ch1":
-            det_ui = "CH1"
-        elif det == "ch2":
-            det_ui = "CH2"
-        elif det == "max":
-            det_ui = "MAX"
+        if det.startswith("ch"):
+            try:
+                num = int(det[2:])
+                det_ui = f"CH{num}"
+            except:
+                det_ui = "MAX"
         else:
             det_ui = "MAX"
         try:
