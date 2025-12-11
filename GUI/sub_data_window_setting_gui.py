@@ -25,45 +25,124 @@ def update_detector_window_setting(name, payload):
     dws["Detector_Change"] = "1"
     data["DetectorWindowSettings"] = dws
 
-
     with open(shared_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
 
 class data_window(App):
     def __init__(self, *args, **kwargs):
-        self._user_mtime = None
+        # Track modification times of command.json and shared_memory.json
+        self._cmd_mtime = None
+        self._shared_mtime = None
         self._first_command_check = True
+        self._first_shared_check = True
+
         if "editing_mode" not in kwargs:
             super(data_window, self).__init__(*args, **{"static_file_path": {"my_res": "./res/"}})
 
-    def idle(self):
+    # ------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------
+    @staticmethod
+    def _set_spin_safely(widget, value):
+        """Safely set a SpinBox value if value is not None."""
+        if widget is None or value is None:
+            return
         try:
-            mtime = os.path.getmtime(command_path)
+            widget.set_value(float(value))
+        except Exception:
+            try:
+                widget.set_value(value)
+            except Exception:
+                pass
+
+    def idle(self):
+        # ---------------- command.json watcher ----------------
+        try:
+            cmd_mtime = os.path.getmtime(command_path)
         except FileNotFoundError:
-            mtime = None
+            cmd_mtime = None
 
         if self._first_command_check:
-            self._user_mtime = mtime
+            self._cmd_mtime = cmd_mtime
             self._first_command_check = False
-            return
-
-        if mtime != self._user_mtime:
-            self._user_mtime = mtime
+        elif cmd_mtime != self._cmd_mtime:
+            self._cmd_mtime = cmd_mtime
             self.execute_command()
 
+        # ---------------- shared_memory.json watcher ----------------
+        try:
+            shared_mtime = os.path.getmtime(shared_path)
+        except FileNotFoundError:
+            shared_mtime = None
+
+        if self._first_shared_check:
+            self._shared_mtime = shared_mtime
+            self._first_shared_check = False
+        elif shared_mtime != self._shared_mtime:
+            self._shared_mtime = shared_mtime
+            self._load_from_shared()
+
     def main(self):
-        return self.construct_ui()
+        ui = self.construct_ui()
+        # Load initial values from shared_memory.json (DetectorWindowSettings)
+        self._load_from_shared()
+        return ui
 
     def run_in_thread(self, target, *args):
         threading.Thread(target=target, args=args, daemon=True).start()
 
+    # ------------------------------------------------------
+    # Load from shared_memory.json → DetectorWindowSettings
+    # ------------------------------------------------------
+    def _load_from_shared(self):
+        """
+        Read DetectorWindowSettings from shared_memory.json and
+        update the CH1–CH4 range/ref spin boxes.
+        """
+        try:
+            with open(shared_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception:
+            return
+
+        dws = data.get("DetectorWindowSettings", {})
+        if not isinstance(dws, dict):
+            return
+
+        # CH1
+        ch1_range = dws.get("DetectorRange_Ch1", {})
+        ch1_ref = dws.get("DetectorReference_Ch1", {})
+        self._set_spin_safely(self.ch1_range, ch1_range.get("range_dbm"))
+        self._set_spin_safely(self.ch1_ref, ch1_ref.get("ref_dbm"))
+
+        # CH2
+        ch2_range = dws.get("DetectorRange_Ch2", {})
+        ch2_ref = dws.get("DetectorReference_Ch2", {})
+        self._set_spin_safely(self.ch2_range, ch2_range.get("range_dbm"))
+        self._set_spin_safely(self.ch2_ref, ch2_ref.get("ref_dbm"))
+
+        # CH3
+        ch3_range = dws.get("DetectorRange_Ch3", {})
+        ch3_ref = dws.get("DetectorReference_Ch3", {})
+        self._set_spin_safely(self.ch3_range, ch3_range.get("range_dbm"))
+        self._set_spin_safely(self.ch3_ref, ch3_ref.get("ref_dbm"))
+
+        # CH4
+        ch4_range = dws.get("DetectorRange_Ch4", {})
+        ch4_ref = dws.get("DetectorReference_Ch4", {})
+        self._set_spin_safely(self.ch4_range, ch4_range.get("range_dbm"))
+        self._set_spin_safely(self.ch4_ref, ch4_ref.get("ref_dbm"))
+
+    # ------------------------------------------------------
+    # UI construction
+    # ------------------------------------------------------
     def construct_ui(self):
         data_window_container = StyledContainer(
             variable_name="data_window_container", left=0, top=0, height=520, width=280
         )
 
-        # =============== Channel 1 ===============
+        # =============== Channel 1 ===============                                                                                 
         StyledLabel(
             container=data_window_container, text="Slot 1",
             variable_name="ch1_label", left=10, top=15,

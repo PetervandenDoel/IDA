@@ -44,13 +44,13 @@ class FineAlign:
         self.logger = setup_logger("FineAlign", debug_mode=debug)
 
         # Extract config params
-        self.step_size = config.get("step_size", 1.0)  # microns
-        self.scan_window = config.get("scan_window", 10.0)
-        self.threshold = config.get("threshold", -10.0)
+        self.step_size = config.get("step_size", 5.0)  # microns
+        self.scan_window = config.get("scan_window", 45.0)
+        self.threshold = config.get("threshold", -45.0)
         self.max_gradient_iters = max(1, config.get("gradient_iters", 10))
         self.min_gradient_ss = config.get("min_gradient_ss", 0.2)  # microns
         self.grad_step = (self.step_size - self.min_gradient_ss) / self.max_gradient_iters
-        self.primary_detector = config.get("primary_detector", "ch1")
+        self.primary_detector = config.get("primary_detector", "Max")
         self.slots = config.get("slot", [1])
         if "ch" in self.primary_detector and len(self.slots) > 1:
             # Edge case, if not using max, we only want 1 slot 
@@ -196,6 +196,7 @@ class FineAlign:
             if best_loss >= self.threshold:
                 self.best_position = best_pos
                 self.log("Spiral skipped: threshold already met.", "info")
+                
                 return True
 
             while num_steps <= limit and not self._cancelled():
@@ -215,7 +216,9 @@ class FineAlign:
                         best_pos = [x.actual, y.actual]
                         self.lowest_loss = best_loss
                         if best_loss >= self.threshold:
-                            self.log(f"Threshold {self.threshold} met, skipping spiral")
+                            # self.log(f"Threshold {self.threshold} met, skipping spiral")
+                            self.log(f"Threshold {self.threshold} met, skipping spiral", "info")
+
                             return True
                         
                     covered += 1
@@ -239,7 +242,9 @@ class FineAlign:
                         best_pos = [x.actual, y.actual]
                         self.lowest_loss = best_loss
                         if best_loss >= self.threshold:
-                            self.log(f"Threshold ({self.threshold}) met, skipping spiral")
+                            # self.log(f"Threshold ({self.threshold}) met, skipping spiral")
+                            self.log(f"Threshold {self.threshold} met, skipping spiral", "info")
+
                             return True
                     covered += 1
                     self._report(100.0 * covered / total_moves, f"Spiral: step {covered}/{total_moves}")
@@ -290,8 +295,6 @@ class FineAlign:
                 y = await self.stage_manager.get_position(AxisType.Y)
                 self.best_position = [x.actual, y.actual]
 
-            # lm, ls = self.nir_manager.read_power(slot=self.slot)
-            # current = self._select_detector_channel(lm, ls)
             current = self.get_power()
             self.lowest_loss = current
 
@@ -305,6 +308,8 @@ class FineAlign:
             axes = [(AxisType.X, +1), (AxisType.X, -1), (AxisType.Y, +1), (AxisType.Y, -1)]
             tried_min_step = False
 
+            # NOTE: threshold is intentionally *not* used as a stopping condition here.
+            # Gradient is meant to refine to convergence based on step size / lack of improvement.
             while ss >= self.min_gradient_ss:
                 improved = False
                 best_axis, best_dir, best_val = None, 0, self.lowest_loss
@@ -317,8 +322,6 @@ class FineAlign:
                         return False
 
                     await self.stage_manager.move_axis(axis, ss * direction, relative=True, wait_for_completion=True)
-                    # lm, ls = self.nir_manager.read_power(slot=self.slot)
-                    # val = self._select_detector_channel(lm, ls)
                     val = self.get_power()
 
                     # Immediately move back
@@ -352,10 +355,8 @@ class FineAlign:
                     self._report(min(99.0, 100.0 * probes_done / total_probes),
                                  f"Gradient: improved -> {self.lowest_loss:.2f} dBm")
 
-                    if self.lowest_loss >= self.threshold:
-                        self.log(f"Gradient met threshold at {self.lowest_loss:.2f} dBm", "info")
-                        self._report(100.0, f"Gradient: threshold {self.lowest_loss:.2f} dBm")
-                        return True
+                    # No threshold-based exit here anymore
+
                 else:
                     # No progress at this scale -> shrink step
                     if ss <= self.min_gradient_ss:

@@ -1,6 +1,6 @@
 from GUI.lib_gui import *
 from remi import start, App
-import os, json, threading 
+import os, json, threading
 
 # --- Paths to JSON files ---
 SHARED_PATH = os.path.join("database", "shared_memory.json")
@@ -21,7 +21,10 @@ class fine_align(App):
         self.fine_a = {}
 
         if "editing_mode" not in kwargs:
-            super(fine_align, self).__init__(*args, **{"static_file_path": {"my_res": "./res/"}})
+            super(fine_align, self).__init__(
+                *args,
+                **{"static_file_path": {"my_res": "./res/"}}
+            )
 
     # ---------------- UTILITIES ----------------
 
@@ -44,7 +47,7 @@ class fine_align(App):
             except Exception:
                 pass
 
-         # --------- SAFE VALUE HELPERS (for Bug #2) ---------
+    # --------- SAFE VALUE HELPERS ---------
 
     @staticmethod
     def _safe_float(widget, default):
@@ -116,30 +119,42 @@ class fine_align(App):
     # ---------------- UI ----------------
 
     def construct_ui(self):
+        BOX_W = 240  # container width
         fine_align_setting_container = StyledContainer(
             variable_name="fine_align_setting_container",
             left=0,
             top=0,
-            height=330,   # increased to fit new rows
-            width=200
+            height=370,   # adjust as needed
+            width=BOX_W
         )
+
+        # Layout constants for vertical stacking
+        ROW = 32   # vertical spacing between rows
+        y = 10     # initial top offset
+
+        # Horizontal layout (similar style to area_scan, but scaled for 230px width)
+        LBL_X = 10
+        LBL_W = 90
+        INP_W = 70
+        UNIT_W = 30
+
+        INP_X = LBL_X + LBL_W + 8           # right after label + small gap
+        UNIT_X = INP_X + INP_W + 20         # right after input + small gap
 
         # ----- Window -----
         StyledLabel(
             container=fine_align_setting_container, text="Window",
             variable_name="window_size_lb",
-            left=0, top=10,
-            width=70, height=25,
-            font_size=100, flex=True,
-            justify_content="right", color="#222"
+            left=LBL_X, top=y,
+            width=LBL_W, height=25
         )
 
         self.window_size = StyledSpinBox(
             container=fine_align_setting_container,
             variable_name="window_size_in",
-            left=80, top=10,
+            left=INP_X, top=y,
             value=10,
-            width=50, height=24,
+            width=INP_W, height=24,
             min_value=-1000, max_value=1000,
             step=1,
             position="absolute"
@@ -148,28 +163,25 @@ class fine_align(App):
         StyledLabel(
             container=fine_align_setting_container, text="um",
             variable_name="window_size_um",
-            left=150, top=10,
-            width=20, height=25,
-            font_size=100, flex=True,
-            justify_content="left", color="#222"
+            left=UNIT_X, top=y,
+            width=UNIT_W, height=25
         )
+        y += ROW
 
         # ----- Step Size -----
         StyledLabel(
             container=fine_align_setting_container, text="Step Size",
             variable_name="step_size_lb",
-            left=0, top=42,
-            width=70, height=25,
-            font_size=100, flex=True,
-            justify_content="right", color="#222"
+            left=LBL_X, top=y,
+            width=LBL_W, height=25
         )
 
         self.step_size = StyledSpinBox(
             container=fine_align_setting_container,
             variable_name="step_size_in",
-            left=80, top=42,
+            left=INP_X, top=y,
             value=1,
-            width=50, height=24,
+            width=INP_W, height=24,
             min_value=-1000, max_value=1000,
             step=0.1,
             position="absolute"
@@ -178,28 +190,25 @@ class fine_align(App):
         StyledLabel(
             container=fine_align_setting_container, text="um",
             variable_name="step_size_um",
-            left=150, top=42,
-            width=20, height=25,
-            font_size=100, flex=True,
-            justify_content="left", color="#222"
+            left=UNIT_X, top=y,
+            width=UNIT_W, height=25
         )
+        y += ROW
 
         # ----- Max Iters -----
         StyledLabel(
             container=fine_align_setting_container, text="Max Iters",
             variable_name="max_iters_lb",
-            left=0, top=74,
-            width=70, height=25,
-            font_size=100, flex=True,
-            justify_content="right", color="#222"
+            left=LBL_X, top=y,
+            width=LBL_W, height=25
         )
 
         self.max_iters = StyledSpinBox(
             container=fine_align_setting_container,
             variable_name="max_iters_in",
-            left=80, top=74,
+            left=INP_X, top=y,
             value=10,
-            width=50, height=24,
+            width=INP_W, height=24,
             min_value=0, max_value=50,
             step=1,
             position="absolute"
@@ -208,28 +217,25 @@ class fine_align(App):
         StyledLabel(
             container=fine_align_setting_container, text="",
             variable_name="max_iters_um",
-            left=150, top=74,
-            width=20, height=25,
-            font_size=100, flex=True,
-            justify_content="left", color="#222"
+            left=UNIT_X, top=y,
+            width=UNIT_W, height=25
         )
+        y += ROW
 
         # ----- Min Grad SS -----
         StyledLabel(
             container=fine_align_setting_container, text="Min Grad SS",
             variable_name="min_grad_ss_lb",
-            left=0, top=106,
-            width=70, height=25,
-            font_size=100, flex=True,
-            justify_content="right", color="#222"
+            left=LBL_X, top=y,
+            width=LBL_W, height=25
         )
 
         self.min_grad_ss = StyledSpinBox(
             container=fine_align_setting_container,
             variable_name="min_grad_ss_in",
-            left=80, top=106,
+            left=INP_X, top=y,
             value=0.1,
-            width=50, height=24,
+            width=INP_W, height=24,
             min_value=0.001, max_value=10,
             step=1,
             position="absolute"
@@ -238,20 +244,125 @@ class fine_align(App):
         StyledLabel(
             container=fine_align_setting_container, text="um",
             variable_name="min_grad_ss_um",
-            left=150, top=106,
-            width=20, height=25,
-            font_size=100, flex=True,
-            justify_content="left", color="#222"
+            left=UNIT_X, top=y,
+            width=UNIT_W, height=25
+        )
+        y += ROW
+
+        # ----- G.D. Threshold -----
+        StyledLabel(
+            container=fine_align_setting_container, text="G.D. Threshold",
+            variable_name="threshold_lb",
+            left=LBL_X, top=y,
+            width=LBL_W, height=25
         )
 
-        # ----- Detector -----
+        self.threshold = StyledSpinBox(
+            container=fine_align_setting_container,
+            variable_name="threshold_in",
+            left=INP_X, top=y,
+            value=-10.0,
+            width=INP_W, height=24,
+            min_value=-100.0, max_value=20.0,
+            step=0.1,
+            position="absolute"
+        )
+
+        StyledLabel(
+            container=fine_align_setting_container, text="dBm",
+            variable_name="threshold_dbm",
+            left=UNIT_X, top=y,
+            width=UNIT_W, height=25
+        )
+        y += ROW
+
+        # ----- Ref WL -----
+        StyledLabel(
+            container=fine_align_setting_container, text="Primary Ref WvL",
+            variable_name="ref_wl_lb",
+            left=LBL_X, top=y,
+            width=LBL_W, height=25
+        )
+
+        self.ref_wl = StyledSpinBox(
+            container=fine_align_setting_container,
+            variable_name="ref_wl_in",
+            left=INP_X, top=y,
+            value=1550.0,
+            width=INP_W, height=24,
+            min_value=1450.0, max_value=1650.0,
+            step=0.01,
+            position="absolute"
+        )
+
+        StyledLabel(
+            container=fine_align_setting_container, text="nm",
+            variable_name="ref_wl_nm",
+            left=UNIT_X, top=y,
+            width=UNIT_W, height=25
+        )
+        y += ROW
+
+        # ----- Secondary WL -----
+        StyledLabel(
+            container=fine_align_setting_container, text="Secondary Ref Wvl",
+            variable_name="secondary_wl_lb",
+            left=LBL_X, top=y,
+            width=LBL_W, height=25
+        )
+
+        self.secondary_wl = StyledSpinBox(
+            container=fine_align_setting_container,
+            variable_name="secondary_wl_in",
+            left=INP_X, top=y,
+            value=1540.0,
+            width=INP_W, height=24,
+            min_value=1450.0, max_value=1650.0,
+            step=0.01,
+            position="absolute"
+        )
+
+        StyledLabel(
+            container=fine_align_setting_container, text="nm",
+            variable_name="secondary_wl_nm",
+            left=UNIT_X, top=y,
+            width=UNIT_W, height=25
+        )
+        y += ROW
+
+        # ----- Secondary Loss -----
+        StyledLabel(
+            container=fine_align_setting_container, text="Secondary Wvl Threshold",
+            variable_name="secondary_loss_lb",
+            left=LBL_X, top=y,
+            width=LBL_W, height=25
+        )
+
+        self.secondary_loss = StyledSpinBox(
+            container=fine_align_setting_container,
+            variable_name="secondary_loss_in",
+            left=INP_X, top=y,
+            value=-50.0,
+            width=INP_W, height=24,
+            min_value=-100.0, max_value=80.0,
+            step=0.1,
+            position="absolute"
+        )
+
+        StyledLabel(
+            container=fine_align_setting_container, text="dBm",
+            variable_name="secondary_loss_dbm",
+            left=UNIT_X, top=y,
+            width=UNIT_W, height=25
+        )
+        y += ROW
+
+        # ----- Detector (bottom) -----
         StyledLabel(
             container=fine_align_setting_container, text="Detector",
             variable_name="detector_lb",
-            left=0, top=138,
-            width=70, height=25,
-            font_size=100, flex=True,
-            justify_content="right", color="#222"
+            left=LBL_X, top=y,
+            width=LBL_W, height=25
         )
 
         # Initial options; will be overridden from SlotInfo in _load_from_shared
@@ -262,138 +373,19 @@ class fine_align(App):
                 "ch1", "ch2", "ch3", "ch4",
                 "ch5", "ch6", "ch7", "ch8",
                 "Max"],
-            left=80, top=138,
-            width=60, height=25,
+            left=INP_X, top=y,
+            width=INP_W, height=25,
             position="absolute"
         )
+        y += ROW
 
-        # ----- Ref WL -----
-        StyledLabel(
-            container=fine_align_setting_container, text="Ref WL",
-            variable_name="ref_wl_lb",
-            left=0, top=170,
-            width=70, height=25,
-            font_size=100, flex=True,
-            justify_content="right", color="#222"
-        )
-
-        self.ref_wl = StyledSpinBox(
-            container=fine_align_setting_container,
-            variable_name="ref_wl_in",
-            left=80, top=170,
-            value=1550.0,
-            width=50, height=24,
-            min_value=1450.0, max_value=1650.0,
-            step=0.01,
-            position="absolute"
-        )
-
-        StyledLabel(
-            container=fine_align_setting_container, text="nm",
-            variable_name="ref_wl_nm",
-            left=150, top=170,
-            width=20, height=25,
-            font_size=100, flex=True,
-            justify_content="left", color="#222"
-        )
-
-        # ----- Threshold (dBm) -----
-        StyledLabel(
-            container=fine_align_setting_container, text="Threshold",
-            variable_name="threshold_lb",
-            left=0, top=202,
-            width=70, height=25,
-            font_size=100, flex=True,
-            justify_content="right", color="#222"
-        )
-
-        self.threshold = StyledSpinBox(
-            container=fine_align_setting_container,
-            variable_name="threshold_in",
-            left=80, top=202,
-            value=-10.0,
-            width=50, height=24,
-            min_value=-100.0, max_value=20.0,
-            step=0.1,
-            position="absolute"
-        )
-
-        StyledLabel(
-            container=fine_align_setting_container, text="dBm",
-            variable_name="threshold_dbm",
-            left=150, top=202,
-            width=30, height=25,
-            font_size=100, flex=True,
-            justify_content="left", color="#222"
-        )
-
-        # ----- Secondary WL -----
-        StyledLabel(
-            container=fine_align_setting_container, text="2nd WL",
-            variable_name="secondary_wl_lb",
-            left=0, top=234,
-            width=70, height=25,
-            font_size=100, flex=True,
-            justify_content="right", color="#222"
-        )
-
-        self.secondary_wl = StyledSpinBox(
-            container=fine_align_setting_container,
-            variable_name="secondary_wl_in",
-            left=80, top=234,
-            value=1540.0,
-            width=50, height=24,
-            min_value=1450.0, max_value=1650.0,
-            step=0.01,
-            position="absolute"
-        )
-
-        StyledLabel(
-            container=fine_align_setting_container, text="nm",
-            variable_name="secondary_wl_nm",
-            left=150, top=234,
-            width=20, height=25,
-            font_size=100, flex=True,
-            justify_content="left", color="#222"
-        )
-
-        # ----- Secondary Loss -----
-        StyledLabel(
-            container=fine_align_setting_container, text="2nd Loss",
-            variable_name="secondary_loss_lb",
-            left=0, top=266,
-            width=70, height=25,
-            font_size=100, flex=True,
-            justify_content="right", color="#222"
-        )
-
-        self.secondary_loss = StyledSpinBox(
-            container=fine_align_setting_container,
-            variable_name="secondary_loss_in",
-            left=80, top=266,
-            value=50.0,
-            width=50, height=24,
-            min_value=-100.0, max_value=80.0,
-            step=0.1,
-            position="absolute"
-        )
-
-        StyledLabel(
-            container=fine_align_setting_container, text="dBm",
-            variable_name="secondary_loss_dbm",
-            left=150, top=266,
-            width=30, height=25,
-            font_size=100, flex=True,
-            justify_content="left", color="#222"
-        )
-
-        # ----- Confirm button -----
+        # ----- Confirm button (centered) -----
+        btn_w = 90
         self.confirm_btn = StyledButton(
             container=fine_align_setting_container, text="Confirm",
             variable_name="confirm_btn",
-            left=68, top=298,
-            height=25, width=70,
-            font_size=90
+            left=(BOX_W - btn_w) // 2, top=y,
+            height=25, width=btn_w
         )
 
         self.confirm_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_confirm))
@@ -443,7 +435,6 @@ class fine_align(App):
                 self.detector.set_options(channel_labels)
             elif hasattr(self.detector, "update_options"):
                 self.detector.update_options(channel_labels)
-            # else: leave existing options; selection logic below still works
         except Exception:
             pass
 
@@ -483,7 +474,6 @@ class fine_align(App):
             except Exception:
                 pass
 
-
     # ---------------- Save to shared_memory.json (FineA) ----------------
     def onclick_confirm(self):
         value = {
@@ -493,9 +483,9 @@ class fine_align(App):
             "min_gradient_ss":   self._safe_float(self.min_grad_ss, 0.1),
             "detector":          self._safe_str(self.detector, "Max"),
             "ref_wl":            self._safe_float(self.ref_wl, 1550.0),
-            "threshold":         self._safe_float(self.threshold, -10.0),
+            "threshold":         self._safe_float(self.threshold, -40.0),
             "secondary_wl":      self._safe_float(self.secondary_wl, 1540.0),
-            "secondary_loss":    self._safe_float(self.secondary_loss, 50.0),
+            "secondary_loss":    self._safe_float(self.secondary_loss, -50.0),
         }
 
         file = File("shared_memory", "FineA", value)
@@ -513,7 +503,6 @@ class fine_align(App):
             on_top=True,
             hidden=True
         )
-
 
     # ---------------- Commands (unchanged) ----------------
 
@@ -589,9 +578,11 @@ if __name__ == "__main__":
         "config_start_browser": False,
         "config_resourcepath": "./res/"
     }
-    start(fine_align,
-          address=configuration["config_address"],
-          port=configuration["config_port"],
-          multiple_instance=configuration["config_multiple_instance"],
-          enable_file_cache=configuration["config_enable_file_cache"],
-          start_browser=configuration["config_start_browser"])
+    start(
+        fine_align,
+        address=configuration["config_address"],
+        port=configuration["config_port"],
+        multiple_instance=configuration["config_multiple_instance"],
+        enable_file_cache=configuration["config_enable_file_cache"],
+        start_browser=configuration["config_start_browser"]
+    )

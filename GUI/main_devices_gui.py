@@ -2,10 +2,11 @@ from remi.gui import *
 from GUI.lib_gui import *
 from remi import start, App
 from GUI import lib_coordinates
-import threading, math, json
+import threading, math, json, os, time
 from tinydb import TinyDB, Query
 
 command_path = os.path.join("database", "command.json")
+
 
 def fmt(val):
     try:
@@ -26,8 +27,6 @@ class devices(App):
         self.length = 0
         self.checkbox_state = []
         self.filtered_idx = []
-        self.page_size = 50
-        self.page_index = 0
 
         self._user_mtime = None
         self._first_command_check = True
@@ -54,17 +53,20 @@ class devices(App):
         return devices.construct_ui(self)
 
     def build_table_rows(self):
+        """
+        Build table rows using ALL indices in self.filtered_idx.
+        Scrolling is handled by the coordinate_container (overflow=True).
+        """
         table = self.table
+        # children: [header_row, row1, row2, ...]
         data_rows = list(table.children.values())[1:]
 
-        start_i = self.page_index * self.page_size
-        end_i = min(len(self.filtered_idx), start_i + self.page_size)
-        page_idx_slice = self.filtered_idx[start_i:end_i]
-        needed = len(page_idx_slice)
-        cur = len(data_rows)
+        # We now show ALL filtered indices on one "page"
+        needed = len(self.filtered_idx)
 
-        if needed > cur:
-            for _ in range(needed - cur):
+        # Ensure we have enough TableRow instances
+        if needed > len(data_rows):
+            for _ in range(needed - len(data_rows)):
                 tr = TableRow()
                 for w in self.col_widths:
                     tr.append(TableItem("", style={
@@ -80,50 +82,62 @@ class devices(App):
                 table.append(tr)
                 data_rows.append(tr)
 
+        # Fill visible rows
         for row_idx, row in enumerate(data_rows):
             if row_idx < needed:
-                global_idx = page_idx_slice[row_idx]
+                global_idx = self.filtered_idx[row_idx]
                 cells = list(row.children.values())
-                bg = "#ffffff" if (start_i + row_idx) % 2 == 0 else "#f6f7f9"
+
+                # Alternate row background
+                bg = "#ffffff" if (row_idx % 2) == 0 else "#f6f7f9"
                 for c in cells:
                     c.style.update({"display": "table-cell", "background-color": bg})
 
+                # Device name
                 cells[0].set_text(self.devicename[global_idx])
                 cells[0].attributes["title"] = self.devicename[global_idx]
-                cb_name = f"test_{global_idx}"
 
+                # Checkbox
+                cb_name = f"test_{global_idx}"
                 if not hasattr(self, cb_name):
-                    cb = StyledCheckBox(container=None, variable_name=cb_name,
-                                        left=0, top=0, width=10, height=10, position="inherit")
-                    cb.onchange.do(lambda emitter, value, idx=global_idx:
-                                   self.checkbox_state.__setitem__(idx, value))
+                    cb = StyledCheckBox(
+                        container=None,
+                        variable_name=cb_name,
+                        left=0, top=0, width=10, height=10,
+                        position="inherit"
+                    )
+                    cb.onchange.do(
+                        lambda emitter, value, idx=global_idx: self.checkbox_state.__setitem__(idx, value)
+                    )
                     setattr(self, cb_name, cb)
 
                 cb = getattr(self, cb_name)
                 cb.set_value(self.checkbox_state[global_idx])
                 cells[1].empty()
                 cells[1].append(cb)
+
+                # Mode
                 cells[2].set_text(self.polarization[global_idx])
                 cells[2].attributes["title"] = self.polarization[global_idx]
+
+                # Wavelength
                 cells[3].set_text(fmt(self.wavelength[global_idx]))
                 cells[3].attributes["title"] = self.wavelength[global_idx]
+
+                # Type
                 cells[4].set_text(self.type[global_idx])
                 cells[4].attributes["title"] = self.type[global_idx]
+
+                # x, y coordinates
                 cells[5].set_text(fmt(self.coordinate[global_idx][0]))
                 cells[5].attributes["title"] = fmt(self.coordinate[global_idx][0])
+
                 cells[6].set_text(fmt(self.coordinate[global_idx][1]))
                 cells[6].attributes["title"] = fmt(self.coordinate[global_idx][1])
             else:
+                # Hide unused rows
                 for c in row.children.values():
                     c.style["display"] = "none"
-
-        self.page_input.set_text(str(self.page_index + 1))
-        self.prev_btn.set_enabled(self.page_index != 0)
-        self.next_btn.set_enabled(self.page_index + 1 < self.total_pages())
-        self.total_page_label.set_text(f"/ {self.total_pages()}")
-
-    def total_pages(self):
-        return max(1, math.ceil(len(self.filtered_idx) / self.page_size))
 
     def run_in_thread(self, target, *args):
         threading.Thread(target=target, args=args, daemon=True).start()
@@ -133,6 +147,7 @@ class devices(App):
             variable_name="devices_container", left=0, top=0
         )
 
+        # Main coordinate table container with scroll (overflow=True)
         coordinate_container = StyledContainer(
             container=devices_container, variable_name="coordinate_container",
             left=10, top=10, height=320, width=625, overflow=True, border=True
@@ -143,9 +158,11 @@ class devices(App):
 
         self.table = StyledTable(
             container=coordinate_container, variable_name="device_table",
-            left=0, top=0, height=30, table_width=620, headers=headers, widths=self.col_widths, row=1
+            left=0, top=0, height=30, table_width=620, headers=headers,
+            widths=self.col_widths, row=1
         )
 
+        # Selection / filter section
         self.selection_container = StyledContainer(
             container=devices_container, variable_name="selection_container",
             left=10, top=350, height=100, width=625, border=True
@@ -179,19 +196,23 @@ class devices(App):
         )
 
         self.filter_btn = StyledButton(
-            container=sc, text="Apply Filter", variable_name="reset_filter", left=435, top=55, width=80, height=25
+            container=sc, text="Apply Filter", variable_name="reset_filter",
+            left=435, top=55, width=80, height=25
         )
 
         self.clear_btn = StyledButton(
-            container=sc, text="Clear All", variable_name="clear_all", left=525, top=55, width=80, height=25
+            container=sc, text="Clear All", variable_name="clear_all",
+            left=525, top=55, width=80, height=25
         )
 
         self.all_btn = StyledButton(
-            container=sc, text="Select All", variable_name="select_all", left=525, top=20, width=80, height=25
+            container=sc, text="Select All", variable_name="select_all",
+            left=525, top=20, width=80, height=25
         )
 
         self.confirm_btn = StyledButton(
-            container=sc, text="Confirm", variable_name="confirm", left=435, top=20, width=80, height=25
+            container=sc, text="Confirm", variable_name="confirm",
+            left=435, top=20, width=80, height=25
         )
 
         StyledLabel(
@@ -200,90 +221,42 @@ class devices(App):
         )
 
         StyledLabel(
-            container=sc, text="Mode", variable_name="mode", left=162, top=30, width=100, height=25
+            container=sc, text="Mode", variable_name="mode",
+            left=162, top=30, width=100, height=25
         )
 
         StyledLabel(
-            container=sc, text="Wavelength", variable_name="wavelength", left=232, top=30, width=100, height=25
+            container=sc, text="Wavelength", variable_name="wavelength",
+            left=232, top=30, width=100, height=25
         )
 
         StyledLabel(
-            container=sc, text="Type", variable_name="type", left=332, top=30, width=100, height=25
+            container=sc, text="Type", variable_name="type",
+            left=332, top=30, width=100, height=25
         )
 
-        pg = StyledContainer(
-            container=devices_container, variable_name="pagination_container", left=10, top=455, height=35, width=625
-        )
-
-        self.prev_btn = StyledButton(
-            container=pg, text="◀ Prev", variable_name="prev_page", left=0, top=5, width=80, height=25
-        )
-
-        self.page_input = StyledTextInput(
-            container=pg, variable_name="page_input", text="1", left=100, top=5, width=25, height=25
-        )
-
-        self.total_page_label = StyledLabel(
-            container=pg, text=f"/ {self.total_pages()}", variable_name="page_total",
-            left=145, top=5, width=40, height=25, flex=True, justify_content="left"
-        )
-
-        self.jump_btn = StyledButton(
-            container=pg, text="Go", variable_name="jump_page", left=180, top=5, width=40, height=25
-        )
-
-        self.next_btn = StyledButton(
-            container=pg, text="Next ▶", variable_name="next_page", left=235, top=5, width=80, height=25
-        )
-
-        self.load_btn = StyledButton(
-            container=pg, text="Load", variable_name="load_page", left=330, top=5, width=60, height=25
-        )
-
+        # Terminal
         terminal_container = StyledContainer(
             container=devices_container, variable_name="terminal_container",
             left=0, top=500, height=150, width=650, bg_color=True
         )
 
         self.terminal = Terminal(
-            container=terminal_container, variable_name="terminal_text", left=10, top=15, width=610, height=100
+            container=terminal_container, variable_name="terminal_text",
+            left=10, top=15, width=610, height=100
         )
 
-        self.prev_btn.do_onclick(lambda *_: self.run_in_thread(self.goto_prev_page))
-        self.next_btn.do_onclick(lambda *_: self.run_in_thread(self.goto_next_page))
-        self.jump_btn.do_onclick(lambda *_: self.run_in_thread(self.goto_input_page))
+        # Event bindings
         self.filter_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_filter))
         self.clear_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_clear))
         self.all_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_all))
         self.confirm_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_confirm))
-        self.load_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_load))
 
         self.devices_container = devices_container
+
+        # Initial empty table build
         self.build_table_rows()
         return devices_container
-
-    def goto_prev_page(self):
-        if self.page_index > 0:
-            self.page_index -= 1
-            self.build_table_rows()
-
-    def goto_next_page(self):
-        if (self.page_index + 1) < self.total_pages():
-            self.page_index += 1
-            self.build_table_rows()
-
-    def goto_input_page(self):
-        page = int(self.page_input.get_text().strip())
-        max_page = self.total_pages()
-        if page < 1:
-            self.page_index = 0
-            self.page_input.set_text("1")
-        elif page > max_page:
-            self.page_index = max_page - 1
-            self.page_input.set_text(f"{self.total_pages()}")
-        else:
-            self.page_index = page - 1
-        self.build_table_rows()
 
     def onclick_filter(self):
         id_sub = self.device_id.get_text().strip()
@@ -292,14 +265,17 @@ class devices(App):
         type_val = self.device_type.get_value()
 
         def match(idx):
-            if id_sub and id_sub not in self.devicename[idx]: return False
-            if mode_val != "Any" and self.polarization[idx] != mode_val: return False
-            if wvl_val != "Any" and str(self.wavelength[idx]) != wvl_val: return False
-            if type_val != "Any" and self.type[idx] != type_val: return False
+            if id_sub and id_sub not in self.devicename[idx]:
+                return False
+            if mode_val != "Any" and self.polarization[idx] != mode_val:
+                return False
+            if wvl_val != "Any" and str(self.wavelength[idx]) != wvl_val:
+                return False
+            if type_val != "Any" and self.type[idx] != type_val:
+                return False
             return True
 
         self.filtered_idx = [i for i in range(self.length) if match(i)]
-        self.page_index = 0
         self.build_table_rows()
 
     def __set_all_checkboxes(self, value: bool):
@@ -316,13 +292,21 @@ class devices(App):
         self.__set_all_checkboxes(True)
 
     def onclick_confirm(self):
-        selected_idx = sorted(i+1 for i, v in enumerate(self.checkbox_state) if v)
+        selected_idx = sorted(i + 1 for i, v in enumerate(self.checkbox_state) if v)
         if not selected_idx:
             print("No device selected — serial not saved.")
             return
+
+        # 1) Save selection for everyone
         file = File("shared_memory", "Selection", selected_idx)
         file.save()
 
+        # 2) Tell testing GUI to load this selection
+        cmd = {
+            "testing_control": 1,   # mark as testing-related command
+            "testing_load": 1       # testing.execute_command will call load_file()
+        }
+        File("command", "command", cmd).save()
 
     def onclick_load(self):
         self.read_file()
@@ -336,14 +320,14 @@ class devices(App):
         self.polarization = self.gds.listdeviceparam("polarization")
         self.wavelength = self.gds.listdeviceparam("wavelength")
         self.type = self.gds.listdeviceparam("type")
-        self.devicename = [f"{name} ({num})" for name, num in zip(
-            self.gds.listdeviceparam("devicename"), self.number)]
+        self.devicename = [
+            f"{name} ({num})"
+            for name, num in zip(self.gds.listdeviceparam("devicename"), self.number)
+        ]
 
         self.length = len(self.number)
         self.checkbox_state = [False] * self.length
         self.filtered_idx = list(range(self.length))
-        self.page_size = 50
-        self.page_index = 0
 
     def execute_command(self, path=command_path):
         device = 0
@@ -404,14 +388,14 @@ class devices(App):
                 self.device_type.set_value(val)
             elif key == "devices_sel":
                 for i in val:
-                    self.checkbox_state[i-1] = True
-                    cb = getattr(self, f"test_{i-1}", None)
+                    self.checkbox_state[i - 1] = True
+                    cb = getattr(self, f"test_{i - 1}", None)
                     if cb is not None:
                         cb.set_value(True)
             elif key == "devices_del":
                 for i in val:
-                    self.checkbox_state[i-1] = False
-                    cb = getattr(self, f"test_{i-1}", None)
+                    self.checkbox_state[i - 1] = False
+                    cb = getattr(self, f"test_{i - 1}", None)
                     if cb is not None:
                         cb.set_value(False)
             elif key == "devices_confirm":
@@ -422,7 +406,6 @@ class devices(App):
             time.sleep(1)
             file = File("command", "command", new_command)
             file.save()
-
 
 
 if __name__ == "__main__":
@@ -436,9 +419,11 @@ if __name__ == "__main__":
         "config_resourcepath": "./res/"
     }
 
-    start(devices,
-          address=configuration["config_address"],
-          port=configuration["config_port"],
-          multiple_instance=configuration["config_multiple_instance"],
-          enable_file_cache=configuration["config_enable_file_cache"],
-          start_browser=configuration["config_start_browser"])
+    start(
+        devices,
+        address=configuration["config_address"],
+        port=configuration["config_port"],
+        multiple_instance=configuration["config_multiple_instance"],
+        enable_file_cache=configuration["config_enable_file_cache"],
+        start_browser=configuration["config_start_browser"]
+    )

@@ -34,9 +34,9 @@ EXCLUDE_DIRS = {PROJECT_ROOT / "venv", PROJECT_ROOT / ".venv", PROJECT_ROOT / "b
 PY = sys.executable
 LOG_FILE = PROJECT_ROOT / "GUI" / "log.txt"
 OPEN_LOG_TERMINAL = True
-LOG_TAIL_LINES = 200
+LOG_TAIL_LINES = 0#200
 
-KEEP_LINES = 500
+KEEP_LINES = 0#500
 TRIM_THRESHOLD = 750
 # ───────────────────────────────────
 

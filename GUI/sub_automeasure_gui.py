@@ -34,6 +34,7 @@ class AutoSweepConfig(App):
         self.detector = None
         self.confirm_btn = None
         self.detector_window_btn = None
+        self.fine_align_btn = None  # NEW
 
         # REMI init (support editing_mode)
         editing_mode = kwargs.pop("editing_mode", False)
@@ -129,7 +130,39 @@ class AutoSweepConfig(App):
         y = 10
         row_h = 28
 
+        # Detector window launch settings
+        self.detector_window_btn = StyledButton(
+            container=root,
+            text="Detector Window",
+            variable_name="detector_window_btn",
+            left=105,
+            top=y,
+            width=100,
+            height=24,
+            font_size=90,
+        )
+        self.detector_window_btn.do_onclick(
+            lambda *_: self.run_in_thread(self.onclick_detector_window)
+        )
+
+        # Fine Align button (directly below Detector Window)  # NEW
+        y += row_h
+        self.fine_align_btn = StyledButton(
+            container=root,
+            text="Fine Align",
+            variable_name="fine_align_btn",
+            left=105,
+            top=y,
+            width=100,
+            height=24,
+            font_size=90,
+        )
+        self.fine_align_btn.do_onclick(
+            lambda *_: self.run_in_thread(self.onclick_fine_align)
+        )
         # Power
+        y += row_h
+
         StyledLabel(
             container=root,
             text="Power",
@@ -292,48 +325,33 @@ class AutoSweepConfig(App):
             color="#222",
         )
 
-        # Detector window launch settings
-        y += row_h
-        self.detector_window_btn = StyledButton(
-            container=root,
-            text="Detector Window",
-            variable_name="detector_window_btn",
-            left=105,
-            top=y,
-            width=100,
-            height=24,
-            font_size=90,
-        )
-        self.detector_window_btn.do_onclick(
-            lambda *_: self.run_in_thread(self.onclick_detector_window)
-        )
 
         # FA detector selection (FineA.detector)
-        y += row_h
-        StyledLabel(
-            container=root,
-            text="FA Detector",
-            variable_name="detector_lb",
-            left=5,
-            top=y,
-            width=95,
-            height=25,
-            font_size=100,
-            flex=True,
-            justify_content="right",
-            color="#222",
-        )
+        # y += row_h
+        # StyledLabel(
+        #     container=root,
+        #     text="FA Detector",
+        #     variable_name="detector_lb",
+        #     left=5,
+        #     top=y,
+        #     width=95,
+        #     height=25,
+        #     font_size=100,
+        #     flex=True,
+        #     justify_content="right",
+        #     color="#222",
+        # )
 
-        self.detector = StyledDropDown(
-            container=root,
-            variable_name="detector",
-            text=["ch1", "ch2", "Max"],
-            left=105,
-            top=y,
-            width=70,
-            height=25,
-            position="absolute",
-        )
+        # self.detector = StyledDropDown(
+        #     container=root,
+        #     variable_name="detector",
+        #     text=["ch1", "ch2", "Max"],
+        #     left=105,
+        #     top=y,
+        #     width=70,
+        #     height=25,
+        #     position="absolute",
+        # )
 
         # Confirm button
         y += row_h
@@ -370,24 +388,24 @@ class AutoSweepConfig(App):
         self._set_spin_safely(self.start_wvl, self.sweep.get("start"))
         self._set_spin_safely(self.stop_wvl, self.sweep.get("end"))
 
-        # FineA.detector -> FA Detector dropdown (read-only / non-destructive)
-        finea = data.get("FineA")
-        if isinstance(finea, dict) and self.detector is not None:
-            det = str(finea.get("detector", "")).lower()
-            if det == "ch1":
-                target = "ch1"
-            elif det == "ch2":
-                target = "ch2"
-            elif det == "max":
-                target = "Max"
-            else:
-                target = None
+        # # FineA.detector -> FA Detector dropdown (read-only / non-destructive)
+        # finea = data.get("FineA")
+        # if isinstance(finea, dict) and self.detector is not None:
+        #     det = str(finea.get("detector", "")).lower()
+        #     if det == "ch1":
+        #         target = "ch1"
+        #     elif det == "ch2":
+        #         target = "ch2"
+        #     elif det == "max":
+        #         target = "Max"
+        #     else:
+        #         target = None
 
-            if target:
-                try:
-                    self.detector.set_value(target)
-                except Exception:
-                    pass
+        #     if target:
+        #         try:
+        #             self.detector.set_value(target)
+        #         except Exception:
+        #             pass
 
     # ---------------- CONFIRM: WRITE BACK ----------------
 
@@ -465,6 +483,19 @@ class AutoSweepConfig(App):
         )
         print("[AutoSweepConfig] Detector Window Settings requested")
 
+    def onclick_fine_align(self):  # NEW
+        """Launch Fine Alignment window."""
+        local_ip = "127.0.0.1"
+        webview.create_window(
+            "Setting",
+            f"http://{local_ip}:7003",
+            width=240,
+            height=370,
+            resizable=True,
+            on_top=True,
+            hidden=False,   # set False so it actually shows when button is clicked
+        )
+        print("[AutoSweepConfig] Fine Align window requested")
 
 def run_remi():
     start(
@@ -515,6 +546,18 @@ if __name__ == "__main__":
         on_top=True,
         hidden=True,
     )
+
+
+    webview.create_window(
+        "Fine Alignment Settings",
+        f"http://{local_ip}:7003",
+        width=240 + web_w,
+        height=370 + web_h,
+        resizable=True,
+        on_top=True,
+        hidden=True,
+    )
+
 
     webview.start(func=disable_scroll)
     sys.exit(0)

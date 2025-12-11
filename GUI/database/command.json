@@ -1,5 +1,3 @@
 {
-  "command": {
-    "sensor_set_ref_ch1": -40.0
-  }
+  "command": {}
 }

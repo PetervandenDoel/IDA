@@ -13,10 +13,10 @@ def fmt(val):
         return f"{float(val):.2f}"
     except (ValueError, TypeError):
         return str(val)
-
+    
 
 class testing(App):
-    """Testing GUI with per-device 5-second timer that updates status and elapsed/remaining time."""
+    """Testing GUI with per-device timer that updates status and elapsed/remaining time."""
 
     def __init__(self, *args, **kwargs):
         # ------------------------------------------------------------------ LOAD DATA
@@ -41,8 +41,6 @@ class testing(App):
         self.devicename = None
         self.status = None
         self.filtered_idx = []
-        self.page_size = 50
-        self.page_index = 0
 
         self._last_user = ""
         self._last_user_paths = []
@@ -92,7 +90,6 @@ class testing(App):
                         self.device_num = data.get("DeviceNum", 0)
                         self.auto_sweep = data.get("AutoSweep", 0)
                         self.project = data.get("Project", "")
-
                 except Exception as e:
                     print(f"[Warn] read json failed: {e}")
 
@@ -136,42 +133,17 @@ class testing(App):
             file = File("shared_memory", "FilePath", self.path)
             file.save()
 
-    # ------------------------------------------------------------------ UI BUILDERS
-    # def update_path_dropdown(self):
-    #     """Update save format dropdown if user or contents change."""
-    #     if not self.cur_user:
-    #         return
-    #
-    #     user_dir = os.path.join("UserData", self.cur_user)
-    #     if not os.path.isdir(user_dir):
-    #         return
-    #
-    #     entries = [
-    #         name for name in os.listdir(user_dir)
-    #         if os.path.isdir(os.path.join(user_dir, name)) or name.endswith((".json", ".txt", ".csv"))
-    #     ]
-    #     entries_sorted = sorted(entries)
-    #
-    #     if self.cur_user != self._last_user or entries_sorted != self._last_user_paths:
-    #         self.path_dd.empty()
-    #         self.path_dd.append("All")
-    #         for name in entries_sorted:
-    #             self.path_dd.append(name)
-    #         self._last_user = self.cur_user
-    #         self._last_user_paths = entries_sorted
-
-    def total_pages(self):
-        return max(1, math.ceil(len(self.filtered_idx) / self.page_size))
-
+    # ------------------------------------------------------------------ TABLE RENDERING (SCROLL, NO PAGES)
     def build_table_rows(self):
-        """Re-render table rows for current page."""
+        """
+        Display ALL devices referenced in self.filtered_idx in a scrollable table.
+
+        Scrolling is handled by the table container (overflow=True).
+        """
         table = self.table
         data_rows = list(table.children.values())[1:]  # children[0] is the header row
 
-        start_i = self.page_index * self.page_size
-        end_i = min(len(self.filtered_idx), start_i + self.page_size)
-        page_idx_slice = self.filtered_idx[start_i:end_i]
-        needed = len(page_idx_slice)
+        needed = len(self.filtered_idx)
         cur = len(data_rows)
 
         # create extra rows if needed
@@ -195,9 +167,11 @@ class testing(App):
         # fill / hide rows
         for row_idx, row in enumerate(data_rows):
             if row_idx < needed:
-                global_idx = page_idx_slice[row_idx]
+                global_idx = self.filtered_idx[row_idx]
                 cells = list(row.children.values())
-                bg = "#ffffff" if (start_i + row_idx) % 2 == 0 else "#f6f7f9"
+
+                # alternate row background by row_idx
+                bg = "#ffffff" if (row_idx % 2) == 0 else "#f6f7f9"
                 for c in cells:
                     c.style.update({"display": "table-cell", "background-color": bg})
 
@@ -210,39 +184,9 @@ class testing(App):
                 for c in row.children.values():
                     c.style["display"] = "none"
 
-        # update pagination widgets
-        self.page_input.set_text(str(self.page_index + 1))
-        self.prev_btn.set_enabled(self.page_index != 0)
-        self.next_btn.set_enabled(self.page_index + 1 < self.total_pages())
-        self.total_page_label.set_text(f"/ {self.total_pages()}")
-
     # ------------------------------------------------------------------ THREAD HELPERS
     def run_in_thread(self, target, *args):
         threading.Thread(target=target, args=args, daemon=True).start()
-
-    # ------------------------------------------------------------------ NAVIGATION
-    def goto_prev_page(self):
-        if self.page_index > 0:
-            self.page_index -= 1
-            self.build_table_rows()
-
-    def goto_next_page(self):
-        if (self.page_index + 1) < self.total_pages():
-            self.page_index += 1
-            self.build_table_rows()
-
-    def goto_input_page(self):
-        page = int(self.page_input.get_text().strip())
-        max_page = self.total_pages()
-        if page < 1:
-            self.page_index = 0
-            self.page_input.set_text("1")
-        elif page > max_page:
-            self.page_index = max_page - 1
-            self.page_input.set_text(f"{self.total_pages()}")
-        else:
-            self.page_index = page - 1
-        self.build_table_rows()
 
     # ------------------------------------------------------------------ UI LAYOUT
     def construct_ui(self):
@@ -277,7 +221,9 @@ class testing(App):
         )
 
         self.file_dd = StyledDropDown(
-            container=path_container, text=["All", ".csv + .png", ".csv + .pdf", ".mat + .png", ".mat + .pdf"], variable_name="save_file_dd",
+            container=path_container,
+            text=["All", ".csv + .png", ".csv + .pdf", ".mat + .png", ".mat + .pdf"],
+            variable_name="save_file_dd",
             left=90, top=55, width=180, height=30
         )
 
@@ -298,7 +244,8 @@ class testing(App):
 
         # -------------------------------------------------- SETTING BLOCK
         setting_container = StyledContainer(
-            container=testing_container, variable_name="setting_container", left=400, top=10, height=475, width=240
+            container=testing_container, variable_name="setting_container",
+            left=400, top=10, height=475, width=240
         )
 
         StyledDropDown(
@@ -311,13 +258,12 @@ class testing(App):
             left=131, top=2.5, width=50, height=25, normal_color="#007BFF", press_color="#0056B3"
         )
 
-        self.load_btn = StyledButton(
-            container=setting_container, text="Load", variable_name="load",
-            left=191, top=2.5, width=50, height=25, normal_color="#007BFF", press_color="#0056B3"
-        )
+        # NOTE: there is no Load button anymore; loading is triggered by testing_load command.
 
         headers = ["Device", "Status"]
         self.col_widths = [100, 40]
+
+        # Scrollable table container
         table_container = StyledContainer(
             container=setting_container, variable_name="setting_container",
             left=0, top=40, height=230, width=235, border=True, overflow=True
@@ -359,31 +305,9 @@ class testing(App):
             left=165, top=415, width=75, height=25, font_size=100, color="#222", border=True, flex=True
         )
 
-        # ---- pagination controls
-        self.prev_btn = StyledButton(
-            container=setting_container, text="◀", variable_name="prev_page",
-            left=20, top=285, width=35, height=25
-        )
-
-        self.page_input = StyledTextInput(
-            container=setting_container, variable_name="page_input", left=63, top=285, width=25, height=25
-        )
-
-        self.total_page_label = StyledLabel(
-            container=setting_container, text=f"/ {self.total_pages()}", variable_name="page_total",
-            left=108, top=285, width=40, height=25, flex=True, justify_content="left"
-        )
-
-        self.jump_btn = StyledButton(
-            container=setting_container, text="Go", variable_name="jump_page", left=138, top=285, width=40, height=25
-        )
-
-        self.next_btn = StyledButton(
-            container=setting_container, text="▶", variable_name="next_page", left=186, top=285, width=35, height=25
-        )
-
         self.tsp_btn = StyledButton(
-            container=setting_container, text="Solve", variable_name="solve_tsp", left=0, top=335, width=70, height=30
+            container=setting_container, text="Solve", variable_name="solve_tsp",
+            left=0, top=335, width=70, height=30
         )
 
         self.solve_time = StyledSpinBox(
@@ -397,13 +321,9 @@ class testing(App):
         )
 
         # ---- event bindings
-        self.prev_btn.do_onclick(lambda *_: self.run_in_thread(self.goto_prev_page))
-        self.next_btn.do_onclick(lambda *_: self.run_in_thread(self.goto_next_page))
-        self.jump_btn.do_onclick(lambda *_: self.run_in_thread(self.goto_input_page))
         self.tsp_btn.do_onclick(lambda *_: self.run_in_thread(self.tsp_solve))
         self.start_btn.do_onclick(lambda *_: self.run_in_thread(self.start_sequence))
         self.stop_btn.do_onclick(lambda *_: self.run_in_thread(self.stop_sequence))
-        self.load_btn.do_onclick(lambda *_: self.run_in_thread(self.load_file))
         self.open_btn.do_onclick(lambda *_: self.run_in_thread(self.open_file_path))
         self.save_btn.do_onclick(lambda *_: self.run_in_thread(self.save_file))
         self.setting_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_laser_sweep_setting_btn))
@@ -419,7 +339,7 @@ class testing(App):
             left=10, top=15, width=610, height=100
         )
 
-        # initial data load
+        # initial state
         self.start_btn.set_enabled(False)
         self.stop_btn.set_enabled(False)
         self.build_table_rows()
@@ -477,11 +397,12 @@ class testing(App):
             self.polarization = self.gds.listdeviceparam("polarization")
             self.wavelength = self.gds.listdeviceparam("wavelength")
             self.type = self.gds.listdeviceparam("type")
-            self.devicename = [f"{name} ({num})" for name, num in zip(self.gds.listdeviceparam("devicename"), self.number)]
+            self.devicename = [
+                f"{name} ({num})"
+                for name, num in zip(self.gds.listdeviceparam("devicename"), self.number)
+            ]
             self.status = ["0"] * len(self.devicename)
-            self.filtered_idx = [i - 1 for i in self.serial_list]  # current filter result (list of global indices)
-            self.page_size = 50
-            self.page_index = 0
+            self.filtered_idx = [i - 1 for i in self.serial_list]
             self.build_table_rows()
         else:
             print("No device found!")
@@ -518,7 +439,6 @@ class testing(App):
             except Exception as e:
                 print(f"X Failed to create directory: {e}")
                 return
-
 
         if os.path.exists(dest_path):
             try:
@@ -608,7 +528,6 @@ class testing(App):
             file.save()
 
     def onclick_laser_sweep_setting_btn(self):
-        # local_ip = get_local_ip()
         local_ip = '127.0.0.1'
         webview.create_window(
             "Setting",
@@ -619,6 +538,7 @@ class testing(App):
             on_top=True,
             hidden=False
         )
+
 
 def run_remi():
     start(
@@ -634,16 +554,7 @@ def run_remi():
 if __name__ == "__main__":
     threading.Thread(target=run_remi, daemon=True).start()
     local_ip = '127.0.0.1'
-    
-    # webview.create_window(
-    #     "Setting",
-    #     f"http://{local_ip}:7109",
-    #     width=222,
-    #     height=236,
-    #     resizable=True,
-    #     on_top=True,
-    #     hidden=True
-    # )
+
     webview.create_window(
         "Main Window",
         f"http://{local_ip}:9104",

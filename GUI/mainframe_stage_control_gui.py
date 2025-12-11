@@ -1941,8 +1941,8 @@ class stage_control(App):
         webview.create_window(
             "Setting",
             f"http://{local_ip}:7003",
-            width=222 + web_w,
-            height=278 + web_h,
+            width=250 + web_w,
+            height=380 + web_h,
             resizable=True,
             on_top=True,
             hidden=False

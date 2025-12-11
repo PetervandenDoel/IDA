@@ -1,55 +1,145 @@
 from GUI.lib_gui import *
 from remi import start, App
+import os
+import json
+import threading
 
 command_path = os.path.join("database", "command.json")
 shared_path = os.path.join("database", "shared_memory.json")
 
+
 class add_btn(App):
     def __init__(self, *args, **kwargs):
-        self._user_mtime = None
-        self._user_stime = None
+        # Track modification times
+        self._cmd_mtime = None
+        self._shared_mtime = None
         self._first_command_check = True
-        self.sweep = None
+        self._first_shared_check = True
+
+        # Local cache of Sweep block from shared_memory.json
+        self.sweep = {}
+
         if "editing_mode" not in kwargs:
             super(add_btn, self).__init__(*args, **{"static_file_path": {"my_res": "./res/"}})
 
-    def idle(self):
-        try:
-            mtime = os.path.getmtime(command_path)
-            stime = os.path.getmtime(shared_path)
-        except FileNotFoundError:
-            mtime = None
-            stime = None
-
-        if self._first_command_check:
-            self._user_mtime = mtime
-            self._first_command_check = False
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
+    @staticmethod
+    def _set_spin_safely(widget, value):
+        """Safely set SpinBox value with float fallback."""
+        if widget is None or value is None:
             return
-
-        if mtime != self._user_mtime:
-            self._user_mtime = mtime
-            self.execute_command()
-
-        if stime != self._user_stime:
-            self._user_stime = stime
-
+        try:
+            widget.set_value(float(value))
+        except Exception:
             try:
-                with open(shared_path, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                    self.sweep = data.get("Sweep", {})
-            except Exception as e:
-                print(f"[Warn] read json failed: {e}")
-            
-            self.power.set_value(self.sweep.get("power", 0.0))  # Default to 0.0
-            self.start_wvl.set_value(self.sweep.get("start", 1500))  # Default to 1500
-            self.stop_wvl.set_value(self.sweep.get("end", 1580))  # Default to 1580
-
-    def main(self):
-        return self.construct_ui()
+                widget.set_value(value)
+            except Exception:
+                pass
 
     def run_in_thread(self, target, *args):
         threading.Thread(target=target, args=args, daemon=True).start()
 
+    # ------------------------------------------------------------------
+    # REMI hooks
+    # ------------------------------------------------------------------
+    def idle(self):
+        # ---------------- command.json watcher ----------------
+        try:
+            cmd_mtime = os.path.getmtime(command_path)
+        except FileNotFoundError:
+            cmd_mtime = None
+
+        if self._first_command_check:
+            self._cmd_mtime = cmd_mtime
+            self._first_command_check = False
+        elif cmd_mtime != self._cmd_mtime:
+            self._cmd_mtime = cmd_mtime
+            self.execute_command()
+
+        # ---------------- shared_memory.json watcher ----------------
+        try:
+            shared_mtime = os.path.getmtime(shared_path)
+        except FileNotFoundError:
+            shared_mtime = None
+
+        if self._first_shared_check:
+            self._shared_mtime = shared_mtime
+            self._first_shared_check = False
+        elif shared_mtime != self._shared_mtime:
+            self._shared_mtime = shared_mtime
+            self._load_from_shared()
+
+    def main(self):
+        ui = self.construct_ui()
+        # Load Sweep settings from shared_memory.json on startup
+        self._load_from_shared()
+        return ui
+
+    # ------------------------------------------------------------------
+    # Load from shared_memory.json → Sweep block
+    # ------------------------------------------------------------------
+    def _load_from_shared(self):
+        """
+        Populate laser sweep UI from shared_memory.json::Sweep.
+
+        Expected structure (example):
+        {
+          "Sweep": {
+            "wvl": 1550.0,
+            "power": 0.0,
+            "step": 0.001,
+            "start": 1540.0,
+            "end": 1580.0,
+            "done": "Laser On" | "Laser Off" | "on" | "off",
+            "sweep": 0 or 1,
+            "on": 0 or 1
+          }
+        }
+        """
+        try:
+            with open(shared_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception as e:
+            print(f"[Warn] read shared_memory.json failed: {e}")
+            return
+
+        sweep = data.get("Sweep", {})
+        if not isinstance(sweep, dict):
+            sweep = {}
+
+        self.sweep = sweep
+
+        # Power
+        self._set_spin_safely(self.power, sweep.get("power", 0.0))
+
+        # Step size (was not previously pulled from shared; now mirrored from Sweep.step)
+        self._set_spin_safely(self.step_size, sweep.get("step", 0.001))
+
+        # Start / Stop wavelength
+        self._set_spin_safely(self.start_wvl, sweep.get("start", 1540.0))
+        self._set_spin_safely(self.stop_wvl, sweep.get("end", 1580.0))
+
+        # When Done (Laser On / Laser Off)
+        done = sweep.get("done")
+        if isinstance(done, str):
+            d = done.strip().lower()
+            if d in ("laser on", "on"):
+                try:
+                    self.on_off.set_value("Laser On")
+                except Exception:
+                    pass
+            elif d in ("laser off", "off"):
+                try:
+                    self.on_off.set_value("Laser Off")
+                except Exception:
+                    pass
+        # If done is missing, keep whatever the UI default currently is
+
+    # ------------------------------------------------------------------
+    # UI construction
+    # ------------------------------------------------------------------
     def construct_ui(self):
         laser_sweep_container = StyledContainer(
             variable_name="laser_sweep_container", left=0, top=0, height=224, width=240
@@ -135,21 +225,26 @@ class add_btn(App):
         self.laser_sweep_container = laser_sweep_container
         return laser_sweep_container
 
+    # ------------------------------------------------------------------
+    # Save to shared_memory.json (Sweep block)
+    # ------------------------------------------------------------------
     def onclick_confirm(self):
+        # Use cached sweep values for fields we don't edit directly
         mem = {
             "wvl": self.sweep.get("wvl", 1550),
             "power": float(self.power.get_value()),
             "step": float(self.step_size.get_value()),
             "start": float(self.start_wvl.get_value()),
             "end": float(self.stop_wvl.get_value()),
-            "done": self.on_off.get_value(),
-            "sweep": self.sweep.get("sweep", 0),  # Default to sweep off
-            "on": self.sweep.get("on", 1)  # Default to turned on
+            "done": self.on_off.get_value(),                  # "Laser On" or "Laser Off"
+            "sweep": self.sweep.get("sweep", 0),              # keep sweep status
+            "on": self.sweep.get("on", 1)                     # keep on/off status
         }
         file = File("shared_memory", "Sweep", mem)
         file.save()
 
         print("Confirm Sweep Setting")
+
         import webview
         # Set to a hidden window
         local_ip = "127.0.0.1"
@@ -163,6 +258,9 @@ class add_btn(App):
             hidden=True
         )
 
+    # ------------------------------------------------------------------
+    # Command JSON integration
+    # ------------------------------------------------------------------
     def execute_command(self, path=command_path):
         sweep = 0
         record = 0
@@ -204,6 +302,7 @@ class add_btn(App):
                 record = 1
                 new_command[key] = val
 
+            # Direct control commands → UI
             elif key == "sweep_power":
                 self.power.set_value(val)
             elif key == "sweep_step_size":
@@ -213,9 +312,9 @@ class add_btn(App):
             elif key == "sweep_stop_wvl":
                 self.stop_wvl.set_value(val)
             elif key == "sweep_done":
-                if val == "on":
+                if str(val).lower() == "on":
                     self.on_off.set_value("Laser On")
-                elif val == "off":
+                elif str(val).lower() == "off":
                     self.on_off.set_value("Laser Off")
             elif key == "sweep_confirm":
                 self.onclick_confirm()
@@ -224,6 +323,7 @@ class add_btn(App):
             print("sweep record")
             file = File("command", "command", new_command)
             file.save()
+
 
 if __name__ == "__main__":
     configuration = {
@@ -235,9 +335,11 @@ if __name__ == "__main__":
         "config_start_browser": False,
         "config_resourcepath": "./res/"
     }
-    start(add_btn,
-          address=configuration["config_address"],
-          port=configuration["config_port"],
-          multiple_instance=configuration["config_multiple_instance"],
-          enable_file_cache=configuration["config_enable_file_cache"],
-          start_browser=configuration["config_start_browser"])
+    start(
+        add_btn,
+        address=configuration["config_address"],
+        port=configuration["config_port"],
+        multiple_instance=configuration["config_multiple_instance"],
+        enable_file_cache=configuration["config_enable_file_cache"],
+        start_browser=configuration["config_start_browser"]
+    )
