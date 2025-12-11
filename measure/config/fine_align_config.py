@@ -16,8 +16,10 @@ class FineAlignConfiguration:
     primary_detector: str = "ch1"   # "ch1" or "ch2"
     ref_wl: float = 1550.0          # nm
     secondary_wl = 1540.0           # nm
-    secondary_loss = 50.0           # dBm 
-    slots: list[int] = [1]          # only set to len > 1 if max
+    secondary_loss = -50.0           # dBm 
+    slots: list[int] = field(
+        default_factory=lambda: [1]
+    )       # only set to len > 1 if max
     timeout_s: float = 60.0         # seconds
     
     def to_dict(self) -> dict:

@@ -58,7 +58,7 @@ class FineAlign:
             self.slots = [((num-1) // 2 + 1)]
         self.ref_wl = config.get("ref_wl", 1550.0)
         self.secondary_wl = config.get("secondary_wl", 1540)
-        self.secondary_loss = config.get("secondary_loss", 50.0)  # dBm 
+        self.secondary_loss = config.get("secondary_loss", -50.0)  # dBm 
         self.timeout_s = float(config.get("timeout_s", 180.0))
         self._start_time = 0.0
 
@@ -113,8 +113,9 @@ class FineAlign:
                     self.log("Spiral search failed.", "error")
                 return False
 
-            if self.lowest_loss >= self.secondary_loss:
+            if self.lowest_loss <= self.secondary_loss:
                 # dBm thresh not met, proceed with secondary wl
+                self.log(f"Loss not met, changing to 2ndary wl {self.secondary_wl}.", "info")
                 self.nir_manager.set_wavelength(self.secondary_wl)
 
                 # Now, recompute spiral
@@ -185,7 +186,7 @@ class FineAlign:
             # initial sample
             # lm, ls = self.nir_manager.read_power(slot=self.slot)
             # best_loss = self._select_detector_channel(lm, ls)
-            best_loss = await self.get_power()
+            best_loss = self.get_power()
             x = await self.stage_manager.get_position(AxisType.X)
             y = await self.stage_manager.get_position(AxisType.Y)
             best_pos = [x.actual, y.actual]
@@ -205,7 +206,7 @@ class FineAlign:
                     await self.stage_manager.move_axis(AxisType.X, step * direction, relative=True, wait_for_completion=True)
                     # lm, ls = self.nir_manager.read_power(slot=self.slot)
                     # val = self._select_detector_channel(lm, ls)
-                    val = await self.get_power()
+                    val = self.get_power()
 
                     if val > best_loss:
                         best_loss = val
@@ -230,7 +231,7 @@ class FineAlign:
                     await self.stage_manager.move_axis(AxisType.Y, step * direction, relative=True, wait_for_completion=True)
                     # lm, ls = self.nir_manager.read_power(slot=self.slot)
                     # val = self._select_detector_channel(lm, ls)
-                    val = await self.get_power()
+                    val = self.get_power()
                     if val > best_loss:
                         best_loss = val
                         x = await self.stage_manager.get_position(AxisType.X)
@@ -291,7 +292,7 @@ class FineAlign:
 
             # lm, ls = self.nir_manager.read_power(slot=self.slot)
             # current = self._select_detector_channel(lm, ls)
-            current = await self.get_power()
+            current = self.get_power()
             self.lowest_loss = current
 
             # Step schedule
@@ -318,7 +319,7 @@ class FineAlign:
                     await self.stage_manager.move_axis(axis, ss * direction, relative=True, wait_for_completion=True)
                     # lm, ls = self.nir_manager.read_power(slot=self.slot)
                     # val = self._select_detector_channel(lm, ls)
-                    val = await self.get_power()
+                    val = self.get_power()
 
                     # Immediately move back
                     await self.stage_manager.move_axis(axis, -ss * direction, relative=True, wait_for_completion=True)
@@ -372,19 +373,19 @@ class FineAlign:
             print(f"GRADIETN EXCEPTION FOUDN!!! {e}")
             return False
     
-    async def get_power(self):
+    def get_power(self):
         """Return the requested power by method"""
         if "ch" not in self.primary_detector:
             # Max
             best = -100
             for slot in self.slots:
-                m, s = await self.nir_manager.read_power(slot=slot)
+                m, s = self.nir_manager.read_power(slot=slot)
                 best = max(best, m, s)
             return best
         else:
             num = int(re.findall(r'\d+', self.primary_detector)[0])
             slot = self.slots[0]  # if a ch is passed, only 1 slot exists
-            lm, ls = await self.nir_manager.read_power(slot=slot)
+            lm, ls = self.nir_manager.read_power(slot=slot)
             if (num % 2) == 0:
                 # Ch2, Ch4, Ch6, ...
                 # If num is odd, then its the slave

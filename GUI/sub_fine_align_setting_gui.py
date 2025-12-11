@@ -258,7 +258,10 @@ class fine_align(App):
         self.detector = StyledDropDown(
             container=fine_align_setting_container,
             variable_name="detector",
-            text=["ch1", "ch2", "Max"],
+            text=[
+                "ch1", "ch2", "ch3", "ch4",
+                "ch5", "ch6", "ch7", "ch8",
+                "Max"],
             left=80, top=138,
             width=60, height=25,
             position="absolute"
@@ -296,7 +299,7 @@ class fine_align(App):
 
         # ----- Threshold (dBm) -----
         StyledLabel(
-            container=fine_align_setting_container, text="Thresh",
+            container=fine_align_setting_container, text="Threshold",
             variable_name="threshold_lb",
             left=0, top=202,
             width=70, height=25,
@@ -426,15 +429,13 @@ class fine_align(App):
             channel_labels.append(f"ch{ch_num}")
 
         if channel_labels:
-            # Deduplicate and sort numerically (ch1, ch2, ch7, ch8…)
-            try:
-                channel_labels = sorted(set(channel_labels), key=lambda x: int(x[2:]))
-            except Exception:
-                channel_labels = sorted(set(channel_labels))
             channel_labels.append("Max")
         else:
             # Fallback if SlotInfo missing
-            channel_labels = ["ch1", "ch2", "Max"]
+            channel_labels = [
+                "ch1", "ch2", "ch3", "ch4",
+                "ch5", "ch6", "ch7", "ch8",
+                "Max"]
 
         # Try to apply options to StyledDropDown, if the helper exists
         try:
