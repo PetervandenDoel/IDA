@@ -1406,7 +1406,13 @@ class stage_control(App):
             config.threshold = self.fine_a.get("threshold", -10.0)
             config.secondary_wl = self.fine_a.get("secondary_wl", 1540.0)
             config.secondary_loss = self.fine_a.get("secondary_loss", 50.0)
-            
+            if self.slot_info is not None:
+                s_temp = list(set(self.slot_info)).sort()
+                print(s_temp)
+            else:
+                s_temp = [1]  # Assume only primary slot
+            config.slots = s_temp
+
             # Create aligner
             self.fine_align = FineAlign(
                 config.to_dict(),
@@ -1607,6 +1613,13 @@ class stage_control(App):
             config.y_size = int(self.area_s.get("y_size", "y_size") or "y_size")
             config.y_step = int(self.area_s.get("y_step", "y_step") or "y_step")
             config.primary_detector = str(self.area_s.get("primary_detector", "ch1") or "ch1")
+            if self.slot_info is not None:
+                s_temp = list(set(self.slot_info)).sort()
+                print(s_temp)
+            else:
+                s_temp = [1]  # Assume only primary slot
+            config.slots = s_temp
+
             self.area_sweep = AreaSweep(
                 config, self.stage_manager, self.nir_manager,
                 progress=self._as_progress,
