@@ -1,3 +1,5 @@
 {
-  "command": {}
+  "command": {
+    "devices_load": 1
+  }
 }

@@ -1,11 +1,15 @@
-from GUI.lib_gui import *
+import threading
+import asyncio
+import signal
+import webview 
+import time
+import datetime
+
 from remi.gui import *
 from remi import start, App
-import threading, webview, signal
+
 from GUI import lib_coordinates
-import asyncio, datetime
-from motors.stage_manager import StageManager
-from motors.config.stage_config import StageConfiguration
+from GUI.lib_gui import *
 from NIR.nir_manager import NIRManager
 from NIR.config.nir_config import NIRConfiguration
 from measure.area_sweep import AreaSweep
@@ -13,15 +17,21 @@ from measure.fine_align import FineAlign
 from measure.config.area_sweep_config import AreaSweepConfiguration
 from measure.config.fine_align_config import FineAlignConfiguration
 from utils.progress_write_helpers import write_progress_file
-import time
+from motors.stage_manager import StageManager
+from motors.config.stage_config import StageConfiguration
 
-filename = "coordinates.json"
-
-command_path = os.path.join("database", "command.json")
-shared_path = os.path.join("database", "shared_memory.json")
+# Global Vars
+FILENAME = "coordinates.json"
+COMMAND_PATH = os.path.join("database", "command.json")
+SHARED_PATH = os.path.join("database", "shared_memory.json")
 
 
 class stage_control(App):
+    """
+    Primary control method for state machine involving movements
+    and operations
+    """
+
     def __init__(self, *args, **kwargs):
         # Mixed Label + (high level) State vars
         self.memory = None
@@ -105,8 +115,8 @@ class stage_control(App):
 
     def idle(self):
         try:
-            mtime = os.path.getmtime(command_path)
-            stime = os.path.getmtime(shared_path)
+            mtime = os.path.getmtime(COMMAND_PATH)
+            stime = os.path.getmtime(SHARED_PATH)
         except FileNotFoundError:
             mtime = None
             stime = None
@@ -123,7 +133,7 @@ class stage_control(App):
         if stime != self._user_stime:
             self._user_stime = stime
             try:
-                with open(shared_path, "r", encoding="utf-8") as f:
+                with open(SHARED_PATH, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     self.user = data.get("User", "")
                     self.project = data.get("Project", "")
@@ -137,7 +147,7 @@ class stage_control(App):
                     self.scanpos = data.get("ScanPos", {})
                     self.sweep = data.get("Sweep", {})
                     self.name = data.get("DeviceName", "")
-                    self.data_window = data.get("DataWindow", {})  # ?
+                    self.data_window = data.get("DataWindow", {})
                     self.port = data.get("Port", {})
                     self.web = data.get("Web", "")
                     self.file_format = data.get("FileFormat", {})
@@ -145,7 +155,7 @@ class stage_control(App):
                     self.use_destination_dir = data.get("ExportRequest", {})
                     self.load_user_settings = data.get("LoadConfig", False)
                     
-                    # Mainframe slot info? 
+                    # Mainframe slot info
                     self.slot_info = data.get("SlotInfo", None)
 
                     # Read detector range and reference settings
@@ -160,7 +170,7 @@ class stage_control(App):
                         data["DetectorWindowSettings"]["Detector_Change"] = "0"   # reset flag
 
                         # write back to disk
-                        with open(shared_path, "w", encoding="utf-8") as f:
+                        with open(SHARED_PATH, "w", encoding="utf-8") as f:
                             json.dump(data, f, indent=2)
                     
                     else:
@@ -201,7 +211,7 @@ class stage_control(App):
                     data["LoadConfig"] = False   # reset flag
 
                     # write back to disk
-                    with open(shared_path, "w", encoding="utf-8") as f:
+                    with open(SHARED_PATH, "w", encoding="utf-8") as f:
                         json.dump(data, f, indent=2)
 
             except Exception as e:
@@ -213,11 +223,11 @@ class stage_control(App):
             self.slot_info_flag = True
 
             try:
-                with open(shared_path, "r", encoding="utf-8") as f:
+                with open(SHARED_PATH, "r", encoding="utf-8") as f:
                     data = json.load(f)
                 data["SlotInfo"] = self.slot_info
                 
-                with open(shared_path, "w", encoding="utf-8") as f:
+                with open(SHARED_PATH, "w", encoding="utf-8") as f:
                     json.dump(data, f, indent=2)
             except:
                 pass
@@ -244,29 +254,14 @@ class stage_control(App):
     
     def apply_detector_auto_range(self, channel):
         success = self.nir_manager.set_power_range_auto(channel)
-        if success:
-            # print(f"Applied detector autorange to  CH{channel}")
-            pass
-        else:
-            print(f"Failed to apply detector autorange to  CH{channel}")
         return success
 
     def apply_detector_range(self, range_dbm, channel):
         success = self.nir_manager.set_power_range(range_dbm, channel)
-        if success:
-            # print(f"Applied detector range {range_dbm} dBm to channel {channel}")
-            pass
-        else:
-            print(f"Failed to apply detector range {range_dbm} dBm to channel {channel}")
         return success
     
     def apply_detector_reference(self, ref_dbm, channel):
         success = self.nir_manager.set_power_reference(ref_dbm, channel)
-        if success:
-            # print(f"Applied detector reference {ref_dbm} dBm to channel {channel}")
-            pass
-        else:
-            print(f"Failed to apply detector reference {ref_dbm} dBm to channel {channel}")
         return success
     
     def apply_detector_window(self, channel):
@@ -294,18 +289,14 @@ class stage_control(App):
                     channel=channel
                 )
             else:
-                # Don't apply for now
-                # self.apply_detector_reference(
-                #     ref_dbm=-80,  # dBm default
-                #     channel=channel
-                # )
+                # Keep default if not set
                 pass
             return True
+        
         except Exception as e:
             print(f'Detector window error: {e}')
             return False
              
-
     def laser_sweep(self, name=None):
         print("Sweep Start")
         auto = 0
@@ -483,23 +474,17 @@ class stage_control(App):
         x_step = float(self.area_s["x_step"])
         y_step = float(self.area_s["y_step"])
 
-        use_rel = ("x_rel" in sp) and ("y_rel" in sp) and ("pattern" in sp)
+        use_rel = ("x_rel" in sp) and ("y_rel" in sp)
 
         if use_rel:
-            pattern = str(sp["pattern"]).lower()
             xr = float(sp["x_rel"])
             yr = float(sp["y_rel"])
 
-            if pattern == "spiral":
-                # You must set these once at spiral start; see below.
-                x_anchor = float(getattr(self, "stage_x_center", self.stage_x_pos))
-                y_anchor = float(getattr(self, "stage_y_center", self.stage_y_pos))
-                x_pos = x_anchor + xr
-                y_pos = y_anchor + yr
-            else:
-                # crosshair or any BL-based pattern
-                x_pos = float(self.stage_x_pos) + xr
-                y_pos = float(self.stage_y_pos) + yr
+            # You must set these once at spiral start; see below.
+            x_anchor = float(getattr(self, "stage_x_center", self.stage_x_pos))
+            y_anchor = float(getattr(self, "stage_y_center", self.stage_y_pos))
+            x_pos = x_anchor + xr
+            y_pos = y_anchor + yr
         else:
             # Legacy path: BL indices
             j = int(sp["x"])
@@ -521,7 +506,7 @@ class stage_control(App):
         if self.configuration["stage"] != "" and self.configuration_stage == 0 and self.configuration_check[
             "stage"] == 0:
             # Connect stage control instance
-            self.gds = lib_coordinates.coordinates(("./res/" + filename), read_file=False,
+            self.gds = lib_coordinates.coordinates(("./res/" + FILENAME), read_file=False,
                                                    name="./database/coordinates.json")
             self.number = self.gds.listdeviceparam("number")
             self.coordinate = self.gds.listdeviceparam("coordinate")
@@ -1225,7 +1210,7 @@ class stage_control(App):
         self.stop_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_stop))
         self.home_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_home))
         self.start_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_fine_align))
-        self.scan_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_scan))
+        self.scan_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_area_scan))
         self.x_left_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_x_left))
         self.x_right_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_x_right))
         self.y_left_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_y_left))
@@ -1245,7 +1230,7 @@ class stage_control(App):
         self.move_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_move))
         self.limit_setting_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_limit_setting_btn))
         self.fine_align_setting_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_fine_align_setting_btn))
-        self.scan_setting_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_scan_setting_btn))
+        self.scan_setting_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_area_scan_setting_btn))
         self.lock_box.onchange.do(lambda emitter, value: self.run_in_thread(self.onchange_lock_box, emitter, value))
         self.move_dd.onchange.do(lambda emitter, value: self.run_in_thread(self.onchange_move_dd, emitter, value))
         self.x_lock.onchange.do(lambda e, v: self.run_in_thread(self.onchange_axis_lock, "x", v))
@@ -1407,7 +1392,7 @@ class stage_control(App):
             config.secondary_wl = self.fine_a.get("secondary_wl", 1540.0)
             config.secondary_loss = self.fine_a.get("secondary_loss", 50.0)
             if self.slot_info is not None:
-                s_temp = list(set(self.slot_info)).sort()
+                s_temp = list(set([s[0] for s in self.slot_info]))  # remove dups
                 print(s_temp)
             else:
                 s_temp = [1]  # Assume only primary slot
@@ -1598,7 +1583,7 @@ class stage_control(App):
         )
         self._busy_proc.start()
 
-    def onclick_scan(self):
+    def onclick_area_scan(self):
         print("Start Scan")
         self.busy_dialog()
         self.task_start = 1
@@ -1607,14 +1592,13 @@ class stage_control(App):
             self.stage_x_pos = self.memory.x_pos
             self.stage_y_pos = self.memory.y_pos
             config = AreaSweepConfiguration()
-            config.pattern = str(self.area_s.get("pattern", "spiral") or "spiral")
             config.x_size = int(self.area_s.get("x_size", "x_size") or "x_size")
             config.x_step = int(self.area_s.get("x_step", "x_step") or "x_step")
             config.y_size = int(self.area_s.get("y_size", "y_size") or "y_size")
             config.y_step = int(self.area_s.get("y_step", "y_step") or "y_step")
             config.primary_detector = str(self.area_s.get("primary_detector", "ch1") or "ch1")
             if self.slot_info is not None:
-                s_temp = list(set(self.slot_info)).sort()
+                s_temp = list(set([s[0] for s in self.slot_info]))  # remove dups
                 print(s_temp)
             else:
                 s_temp = [1]  # Assume only primary slot
@@ -1629,29 +1613,16 @@ class stage_control(App):
             fileTime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             
             # Create window for plotting
-            if str(self.area_s["pattern"]) == "spiral":
-                diagram = plot(
-                    filename="heat_map",
-                    fileTime=fileTime,
-                    user=self.user,
-                    project=self.project,
-                    data=self.data,
-                    xticks=int(self.area_s["x_step"]),
-                    yticks=None,
-                    pos_i = [self.stage_x_pos, self.stage_y_pos],
-                    pattern="spiral")
-            else:
-                diagram = plot(
-                    filename="heat_map",
-                    fileTime=fileTime,
-                    user=self.user,
-                    project=self.project,
-                    data=self.data,
-                    xticks=int(self.area_s["x_step"]),
-                    yticks=int(self.area_s["y_step"]),
-                    pos_i = [self.stage_x_pos, self.stage_y_pos],
-                    pattern="crosshair")
-
+            diagram = plot(
+                filename="heat_map",
+                fileTime=fileTime,
+                user=self.user,
+                project=self.project,
+                data=self.data,
+                xticks=int(self.area_s["x_step"]),
+                yticks=None,
+                pos_i = [self.stage_x_pos, self.stage_y_pos]
+            )
 
             with self._scan_done.get_lock():
                 self._scan_done.value = 1
@@ -1666,7 +1637,12 @@ class stage_control(App):
 
         elif self.area_s["plot"] == "Previous":
             fileTime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            diagram = plot(filename="heat_map", fileTime=fileTime, user=self.user, project=self.project, data=self.data)
+            diagram = plot(
+                filename="heat_map",
+                fileTime=fileTime,
+                user=self.user,
+                project=self.project,
+                data=self.data)
 
             with self._scan_done.get_lock():
                 self._scan_done.value = 1
@@ -1779,7 +1755,7 @@ class stage_control(App):
         self.lock_all(0)
 
     def onclick_load(self):
-        self.gds = lib_coordinates.coordinates(("./res/" + filename), read_file=False,
+        self.gds = lib_coordinates.coordinates(("./res/" + FILENAME), read_file=False,
                                                name="./database/coordinates.json")
         self.number = self.gds.listdeviceparam("number")
         self.coordinate = self.gds.listdeviceparam("coordinate")
@@ -1961,7 +1937,7 @@ class stage_control(App):
             hidden=False
         )
 
-    def onclick_scan_setting_btn(self):
+    def onclick_area_scan_setting_btn(self):
         # local_ip = get_local_ip()
         local_ip = '127.0.0.1'
         webview.create_window(
@@ -1974,7 +1950,7 @@ class stage_control(App):
             hidden=False
         )
 
-    def execute_command(self, path=command_path):
+    def execute_command(self, path=COMMAND_PATH):
         stage = 0
         record = 0
         new_command = {}
@@ -2073,7 +2049,7 @@ class stage_control(App):
             elif key == "stage_start":
                 self.onclick_fine_align()
             elif key == "stage_scan":
-                self.onclick_scan()
+                self.onclick_area_scan()
             elif key == "stage_move":
                 self.onclick_move()
             elif key == "stage_lock":

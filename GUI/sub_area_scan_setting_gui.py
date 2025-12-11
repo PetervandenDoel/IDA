@@ -12,19 +12,6 @@ command_path = os.path.join("database", "command.json")
 
 
 class area_scan(App):
-    """
-    Area Scan Settings GUI.
-
-    Restored to original structure:
-    - Crosshair + Spiral modes
-    - X/Y step size (Crosshair)
-    - Step Size (Spiral)
-    - Pattern hint
-    - Detector dropdown (CH1–CH8 + MAX)
-    Now includes:
-    - SlotInfo→dynamic channels
-    """
-
     def __init__(self, *args, **kwargs):
         # Track json modification times
         self._cmd_mtime = None
@@ -35,9 +22,13 @@ class area_scan(App):
         # Local cache
         self.area_s = {}
 
-        # Required dummy attributes (used by commands)
-        self.x_step = None
-        self.y_step = None
+        # Widget references (initialized in construct_ui)
+        self.x_size = None
+        self.y_size = None
+        self.step_size = None
+        self.primary_detector_dd = None
+        self.plot_dd = None
+        self.confirm_btn = None
 
         if "editing_mode" not in kwargs:
             super(area_scan, self).__init__(
@@ -104,7 +95,8 @@ class area_scan(App):
     # UI construction
     # ----------------------------------------------------------------------
     def construct_ui(self):
-        BOX_W, BOX_H = 330, 410
+        # Overall box and layout constants
+        BOX_W, BOX_H = 330, 260
         LBL_W, INP_W, UNIT_W = 120, 90, 50
         LBL_X = 10
         INP_X = LBL_X + LBL_W + 8
@@ -114,8 +106,10 @@ class area_scan(App):
 
         container = StyledContainer(
             variable_name="area_scan_setting_container",
-            left=0, top=0,
-            width=BOX_W, height=BOX_H
+            left=0,
+            top=0,
+            width=BOX_W,
+            height=BOX_H
         )
 
         try:
@@ -128,173 +122,169 @@ class area_scan(App):
             container=container,
             text="Area Scan Settings",
             variable_name="title_lb",
-            left=10, top=y,
-            width=BOX_W - 20, height=24,
+            left=10,
+            top=y,
+            width=BOX_W - 20,
+            height=24,
             font_size=110
         )
         y += ROW
 
-        # Pattern
+        # X Size
         StyledLabel(
             container=container,
-            text="Pattern",
-            variable_name="pattern_lb",
+            text="X Size",
+            variable_name="x_size_lb",
             left=LBL_X,
             top=y,
             width=LBL_W,
             height=24
         )
-        self.pattern_dd = StyledDropDown(
-            container=container,
-            variable_name="pattern_dd",
-            text=["Crosshair", "Spiral"],
-            left=INP_X, top=y,
-            width=INP_W + UNIT_W, height=24
-        )
-        self.pattern_dd.set_value("Spiral")
-        y += ROW
-
-        # Pattern hint
-        self.pattern_hint = StyledLabel(
-            container=container,
-            text="Spiral: uses Step Size; Crosshair uses X/Y Step.",
-            variable_name="pattern_hint",
-            left=LBL_X,
-            top=y,
-            width=BOX_W - 20,
-            height=22,
-            font_size=90,
-            color="#666"
-        )
-        y += ROW
-
-        # X Size
-        StyledLabel(container=container, text="X Size",
-                    variable_name="x_size_lb",
-                    left=LBL_X, top=y,
-                    width=LBL_W, height=24)
         self.x_size = StyledSpinBox(
-            container=container, variable_name="x_size_in",
-            left=INP_X, top=y,
-            width=INP_W, height=24,
-            value=50, min_value=-1000, max_value=1000
+            container=container,
+            variable_name="x_size_in",
+            left=INP_X,
+            top=y,
+            width=INP_W,
+            height=24,
+            value=50,
+            min_value=-1000,
+            max_value=1000
         )
-        StyledLabel(container=container, text="µm",
-                    variable_name="x_size_unit",
-                    left=UNIT_X, top=y,
-                    width=UNIT_W, height=24)
+        StyledLabel(
+            container=container,
+            text="µm",
+            variable_name="x_size_unit",
+            left=UNIT_X,
+            top=y,
+            width=UNIT_W,
+            height=24
+        )
         y += ROW
 
         # Y Size
-        StyledLabel(container=container, text="Y Size",
-                    variable_name="y_size_lb",
-                    left=LBL_X, top=y,
-                    width=LBL_W, height=24)
+        StyledLabel(
+            container=container,
+            text="Y Size",
+            variable_name="y_size_lb",
+            left=LBL_X,
+            top=y,
+            width=LBL_W,
+            height=24
+        )
         self.y_size = StyledSpinBox(
-            container=container, variable_name="y_size_in",
-            left=INP_X, top=y,
-            width=INP_W, height=24,
-            value=50, min_value=-1000, max_value=1000
+            container=container,
+            variable_name="y_size_in",
+            left=INP_X,
+            top=y,
+            width=INP_W,
+            height=24,
+            value=50,
+            min_value=-1000,
+            max_value=1000
         )
-        StyledLabel(container=container, text="µm",
-                    variable_name="y_size_unit",
-                    left=UNIT_X, top=y,
-                    width=UNIT_W, height=24)
-        y += ROW
-
-        # X Step (Crosshair)
-        StyledLabel(container=container, text="X Step",
-                    variable_name="x_step_lb",
-                    left=LBL_X, top=y,
-                    width=LBL_W, height=24)
-        self.x_step = StyledSpinBox(
-            container=container, variable_name="x_step_in",
-            left=INP_X, top=y,
-            width=INP_W, height=24,
-            value=5, step=0.1
+        StyledLabel(
+            container=container,
+            text="µm",
+            variable_name="y_size_unit",
+            left=UNIT_X,
+            top=y,
+            width=UNIT_W,
+            height=24
         )
-        StyledLabel(container=container, text="µm",
-                    variable_name="x_step_unit",
-                    left=UNIT_X, top=y,
-                    width=UNIT_W, height=24)
-        y += ROW
-
-        # Y Step (Crosshair)
-        StyledLabel(container=container, text="Y Step",
-                    variable_name="y_step_lb",
-                    left=LBL_X, top=y,
-                    width=LBL_W, height=24)
-        self.y_step = StyledSpinBox(
-            container=container, variable_name="y_step_in",
-            left=INP_X, top=y,
-            width=INP_W, height=24,
-            value=5, step=0.1
-        )
-        StyledLabel(container=container, text="µm",
-                    variable_name="y_step_unit",
-                    left=UNIT_X, top=y,
-                    width=UNIT_W, height=24)
         y += ROW
 
         # Step Size (Spiral)
-        StyledLabel(container=container, text="Step Size (Spiral)",
-                    variable_name="step_size_lb",
-                    left=LBL_X, top=y,
-                    width=LBL_W, height=24)
-        self.step_size = StyledSpinBox(
-            container=container, variable_name="step_size_in",
-            left=INP_X, top=y,
-            width=INP_W, height=24,
-            value=5, min_value=0.001, max_value=1000, step=0.1
+        StyledLabel(
+            container=container,
+            text="Step Size",
+            variable_name="step_size_lb",
+            left=LBL_X,
+            top=y,
+            width=LBL_W,
+            height=24
         )
-        StyledLabel(container=container, text="µm",
-                    variable_name="step_size_unit",
-                    left=UNIT_X, top=y,
-                    width=UNIT_W, height=24)
+        self.step_size = StyledSpinBox(
+            container=container,
+            variable_name="step_size_in",
+            left=INP_X,
+            top=y,
+            width=INP_W,
+            height=24,
+            value=5,
+            min_value=0.001,
+            max_value=1000,
+            step=0.1
+        )
+        StyledLabel(
+            container=container,
+            text="µm",
+            variable_name="step_size_unit",
+            left=UNIT_X,
+            top=y,
+            width=UNIT_W,
+            height=24
+        )
         y += ROW
 
         # Primary Detector
-        StyledLabel(container=container, text="Primary Detector",
-                    variable_name="primary_ch_lb",
-                    left=LBL_X, top=y,
-                    width=LBL_W, height=24)
+        StyledLabel(
+            container=container,
+            text="Primary Detector",
+            variable_name="primary_ch_lb",
+            left=LBL_X,
+            top=y,
+            width=LBL_W,
+            height=24
+        )
 
-        # Default CH1–CH8 + MAX
+        # Default CH1–CH8 + MAX; will be overridden by SlotInfo if present
         default_chs = [f"CH{i}" for i in range(1, 9)] + ["MAX"]
-
         self.primary_detector_dd = StyledDropDown(
             container=container,
             variable_name="primary_detector_dd",
             text=default_chs,
-            left=INP_X, top=y,
-            width=INP_W + UNIT_W, height=24
+            left=INP_X,
+            top=y,
+            width=INP_W + UNIT_W,
+            height=24
         )
         y += ROW
 
         # Plot
-        StyledLabel(container=container, text="Plot",
-                    variable_name="plot_lb",
-                    left=LBL_X, top=y,
-                    width=LBL_W, height=24)
+        StyledLabel(
+            container=container,
+            text="Plot",
+            variable_name="plot_lb",
+            left=LBL_X,
+            top=y,
+            width=LBL_W,
+            height=24
+        )
         self.plot_dd = StyledDropDown(
             container=container,
             variable_name="plot_dd",
             text=["New", "Previous"],
-            left=INP_X, top=y,
-            width=INP_W + UNIT_W, height=24
+            left=INP_X,
+            top=y,
+            width=INP_W + UNIT_W,
+            height=24
         )
         y += ROW
 
-        # Confirm
+        # Confirm button
         self.confirm_btn = StyledButton(
             container=container,
             text="Confirm",
             variable_name="confirm_btn",
             left=(BOX_W - 90) // 2,
             top=y + 5,
-            width=90, height=28
+            width=90,
+            height=28
         )
-        self.confirm_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_confirm))
+        self.confirm_btn.do_onclick(
+            lambda *_: self.run_in_thread(self.onclick_confirm)
+        )
 
         return container
 
@@ -337,20 +327,14 @@ class area_scan(App):
         # -------- Basic fields --------
         self._set_spin_safely(self.x_size, self.area_s.get("x_size"))
         self._set_spin_safely(self.y_size, self.area_s.get("y_size"))
-        self._set_spin_safely(self.x_step, self.area_s.get("x_step"))
-        self._set_spin_safely(self.y_step, self.area_s.get("y_step"))
 
-        step_val = self.area_s.get("x_step", self.area_s.get("step_size"))
+        # Prefer x_step from saved data if present, otherwise step_size
+        step_val = (
+            self.area_s.get("x_step",
+                            self.area_s.get("step_size", None))
+        )
         if step_val is not None:
             self._set_spin_safely(self.step_size, step_val)
-
-        # -------- Pattern --------
-        pat = str(self.area_s.get("pattern", "spiral")).lower()
-        val = "Spiral" if pat == "spiral" else "Crosshair"
-        try:
-            self.pattern_dd.set_value(val)
-        except Exception:
-            pass
 
         # -------- Primary detector --------
         det = str(self.area_s.get("primary_detector", "")).lower()
@@ -380,31 +364,38 @@ class area_scan(App):
     # Save
     # ----------------------------------------------------------------------
     def onclick_confirm(self):
-        """Save values to shared_memory.json."""
+        """Save values to shared_memory.json (Spiral-only)."""
         try:
-            pat = self.pattern_dd.get_value()
-            spiral = pat.lower() == "spiral"
+            step_val = float(self.step_size.get_value())
         except Exception:
-            spiral = True
+            step_val = 1.0
 
-        if spiral:
-            try:
-                step_val = float(self.step_size.get_value())
-            except Exception:
-                step_val = 1.0
-            x_step_out = step_val
-            y_step_out = step_val
-        else:
-            x_step_out = float(self.x_step.get_value())
-            y_step_out = float(self.y_step.get_value())
+        x_step_out = step_val
+        y_step_out = step_val
+
+        try:
+            x_size_val = float(self.x_size.get_value())
+        except Exception:
+            x_size_val = 0.0
+
+        try:
+            y_size_val = float(self.y_size.get_value())
+        except Exception:
+            y_size_val = 0.0
 
         value = {
-            "x_size": float(self.x_size.get_value()),
-            "x_step": float(x_step_out),
-            "y_size": float(self.y_size.get_value()),
-            "y_step": float(y_step_out),
-            "pattern": "spiral" if spiral else "crosshair",
-            "primary_detector": str(self.primary_detector_dd.get_value().lower()),
+            "x_size": x_size_val,
+            "y_size": y_size_val,
+            # For compatibility with existing area-sweep logic:
+            "x_step": x_step_out,
+            "y_step": y_step_out,
+            # Explicit step_size field:
+            "step_size": step_val,
+            # Spiral-only pattern:
+            "pattern": "spiral",
+            "primary_detector": str(
+                self.primary_detector_dd.get_value()
+            ).lower(),
             "plot": self.plot_dd.get_value()
         }
 
@@ -441,18 +432,30 @@ class area_scan(App):
                 new_command[key] = val
 
             elif key == "as_x_size":
-                self.x_size.set_value(val)
+                try:
+                    self.x_size.set_value(val)
+                except Exception:
+                    pass
 
             elif key == "as_y_size":
-                self.y_size.set_value(val)
+                try:
+                    self.y_size.set_value(val)
+                except Exception:
+                    pass
 
             elif key == "as_x_step":
-                self.step_size.set_value(val)
-                self.x_step.set_value(val)
+                # Spiral-only: map both x_step and y_step commands to step_size
+                try:
+                    self.step_size.set_value(val)
+                except Exception:
+                    pass
 
             elif key == "as_y_step":
-                self.step_size.set_value(val)
-                self.y_step.set_value(val)
+                # Same mapping for compatibility
+                try:
+                    self.step_size.set_value(val)
+                except Exception:
+                    pass
 
             elif key == "as_primary_detector":
                 try:
@@ -462,7 +465,10 @@ class area_scan(App):
 
             elif key == "as_plot":
                 v = "Previous" if str(val).lower() == "previous" else "New"
-                self.plot_dd.set_value(v)
+                try:
+                    self.plot_dd.set_value(v)
+                except Exception:
+                    pass
 
             elif key == "as" and val == "confirm":
                 self.onclick_confirm()

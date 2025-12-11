@@ -68,6 +68,7 @@ class FineAlign:
         # Tracking
         self.best_position = None
         self.lowest_loss = -80
+        self.spiral_threshold_met = False
 
     def _report(self, percent: float, msg: str) -> None:
         """Report progress to GUI if a callback was provided."""
@@ -87,8 +88,8 @@ class FineAlign:
         """
         self.is_running = True
         try:
-            self.log("Fine alignment starting…", "info")
-            self._report(0.0, "Fine alignment: starting…")
+            self.log("Fine alignment starting...", "info")
+            self._report(0.0, "Fine alignment: starting...")
             self.nir_manager.enable_laser(True)  # Enforce laser on
             self.nir_manager.set_wavelength(self.ref_wl)
             self._start_time = time.monotonic()
@@ -196,7 +197,7 @@ class FineAlign:
             if best_loss >= self.threshold:
                 self.best_position = best_pos
                 self.log("Spiral skipped: threshold already met.", "info")
-                
+                self.spiral_threshold_met = True
                 return True
 
             while num_steps <= limit and not self._cancelled():
@@ -218,7 +219,7 @@ class FineAlign:
                         if best_loss >= self.threshold:
                             # self.log(f"Threshold {self.threshold} met, skipping spiral")
                             self.log(f"Threshold {self.threshold} met, skipping spiral", "info")
-
+                            self.spiral_threshold_met = True
                             return True
                         
                     covered += 1
@@ -242,9 +243,8 @@ class FineAlign:
                         best_pos = [x.actual, y.actual]
                         self.lowest_loss = best_loss
                         if best_loss >= self.threshold:
-                            # self.log(f"Threshold ({self.threshold}) met, skipping spiral")
                             self.log(f"Threshold {self.threshold} met, skipping spiral", "info")
-
+                            self.spiral_threshold_met = True
                             return True
                     covered += 1
                     self._report(100.0 * covered / total_moves, f"Spiral: step {covered}/{total_moves}")
@@ -270,6 +270,7 @@ class FineAlign:
             if best_loss >= self.threshold:
                 self._report(100.0, f"Spiral: reached {best_loss:.2f} dBm")
                 self.log(f"Spiral completed: reached {best_loss:.2f} dBm", "info")
+                self.spiral_threshold_met = True
             else:
                 self.log(f"Spiral completed: best {best_loss:.2f} dBm (threshold {self.threshold:.2f} dBm not met)", "info")
                 self._report(min(99.0, 100.0 * covered / total_moves),
@@ -302,8 +303,15 @@ class FineAlign:
             total_shrink = max(0.0, self.step_size - self.min_gradient_ss)
             grad_step = self.grad_step if self.grad_step > 0 else (total_shrink / iters)
 
-            ss = self.step_size
-
+            if self.spiral_threshold_met:
+                # If threshold is met during spiral search
+                # Limit step size for faster convergence
+                ss = self.step_size if self.step_size < 3.0 else 3.0 
+            else:
+                # Otherwise, we are too far away from 
+                # Convergence
+                ss = self.step_size
+            
             # Probe order: +/-X then +/-Y
             axes = [(AxisType.X, +1), (AxisType.X, -1), (AxisType.Y, +1), (AxisType.Y, -1)]
             tried_min_step = False
@@ -342,20 +350,27 @@ class FineAlign:
 
                 if improved and best_axis is not None:
                     # Commit the best probing direction
-                    await self.stage_manager.move_axis(best_axis, ss * best_dir, relative=True, wait_for_completion=True)
+                    await self.stage_manager.move_axis(
+                        best_axis, ss * best_dir, relative=True, wait_for_completion=True)
 
                     # Update from controller
                     x = await self.stage_manager.get_position(AxisType.X)
                     y = await self.stage_manager.get_position(AxisType.Y)
                     self.best_position = [x.actual, y.actual]
 
+                    # If the delta between the best val and lowest loss is too
+                    # Small, then exit. 
+                    if abs(self.lowest_loss - best_val) <= 0.1:
+                        self.log("Gradient descent converged early "
+                        "(delta:{abs(self.lowest_loss - best_val)})",
+                                  "info")
+                        return True
                     self.lowest_loss = best_val
                     current = best_val
 
                     self._report(min(99.0, 100.0 * probes_done / total_probes),
                                  f"Gradient: improved -> {self.lowest_loss:.2f} dBm")
 
-                    # No threshold-based exit here anymore
 
                 else:
                     # No progress at this scale -> shrink step
