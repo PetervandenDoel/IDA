@@ -313,7 +313,7 @@ class stage_control(App):
             # This is for manual measurements
             # Name is None if not auto
             # Assign a name and compute a single sweep
-            name = "Manual_Sweep" 
+            name = "Manual_Sweep"
             self.busy_dialog()
             self.task_start = 1
             self.task_laser = 1
@@ -843,7 +843,7 @@ class stage_control(App):
             activity = f"Device {device_num}/{device_count}: Fine alignment"
             self._write_progress_file(device_num, activity, progress_percent)
 
-            self.onclick_start()
+            self.onclick_fine_align()
             if self.auto_sweep == 0:
                 break
 
@@ -1224,7 +1224,7 @@ class stage_control(App):
         # ---- wire-ups (unchanged from your code) ----
         self.stop_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_stop))
         self.home_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_home))
-        self.start_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_start))
+        self.start_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_fine_align))
         self.scan_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_scan))
         self.x_left_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_x_left))
         self.x_right_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_x_right))
@@ -1381,10 +1381,10 @@ class stage_control(App):
                 _ = asyncio.run(self.stage_manager.move_axis(AxisType.ROTATION_FIBER, init_fa, False))
             self.apply_initial_positions = False  # Apply only once
 
-    def onclick_start(self):
+    def onclick_fine_align(self):
         print("Start Fine Align")
         manual = (self.auto_sweep == 0)
-
+        
         try:
             if manual:
                 # Show dialog
@@ -1403,11 +1403,14 @@ class stage_control(App):
             config.gradient_iters = self.fine_a.get("max_iters", 10) or 10.0
             config.primary_detector = self.fine_a.get("detector", "ch1") or "ch1"
             config.ref_wl = self.fine_a.get("ref_wl", 1550.0) or 1550.0
-
+            config.threshold = self.fine_a.get("threshold", -10.0)
+            config.secondary_wl = self.fine_a.get("secondary_wl", 1540.0)
+            config.secondary_loss = self.fine_a.get("secondary_loss", 50.0)
+            
             # Create aligner
             self.fine_align = FineAlign(
                 config.to_dict(),
-                self.stage_manager, 
+                self.stage_manager,
                 self.nir_manager,
                 progress=self._fa_progress,
                 cancel_event=self._scan_cancel,
@@ -2055,7 +2058,7 @@ class stage_control(App):
             elif key == "stage_home":
                 self.onclick_home()
             elif key == "stage_start":
-                self.onclick_start()
+                self.onclick_fine_align()
             elif key == "stage_scan":
                 self.onclick_scan()
             elif key == "stage_move":

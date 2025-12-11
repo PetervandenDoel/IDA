@@ -2,6 +2,7 @@ import asyncio
 import numpy as np
 from typing import Dict, Any, Optional, Callable, Any
 import time
+import re
 
 from motors.stage_manager import StageManager
 from motors.hal.motors_hal import AxisType
@@ -12,8 +13,6 @@ from utils.logging_helper import setup_logger
 """
 Made by: Cameron Basara, 2025
 Fine alignment module for optical coupling using spiral and gradient search.
-
-Assited by ChatGPT 5 for integration help 
 """
 
 
@@ -45,14 +44,21 @@ class FineAlign:
         self.logger = setup_logger("FineAlign", debug_mode=debug)
 
         # Extract config params
-        self.step_size = config.get("step_size", 2.0)  # microns
-        self.scan_window = config.get("scan_window", 50.0)
-        self.threshold = config.get("threshold", -50.0)
-        self.max_gradient_iters = max(1, config.get("gradient_iters", 50))
+        self.step_size = config.get("step_size", 1.0)  # microns
+        self.scan_window = config.get("scan_window", 10.0)
+        self.threshold = config.get("threshold", -10.0)
+        self.max_gradient_iters = max(1, config.get("gradient_iters", 10))
         self.min_gradient_ss = config.get("min_gradient_ss", 0.2)  # microns
         self.grad_step = (self.step_size - self.min_gradient_ss) / self.max_gradient_iters
         self.primary_detector = config.get("primary_detector", "ch1")
+        self.slots = config.get("slot", [1])
+        if "ch" in self.primary_detector and len(self.slots) > 1:
+            # Edge case, if not using max, we only want 1 slot 
+            num = int(re.findall(r'\d+', self.primary_detector)[0])
+            self.slots = [((num-1) // 2 + 1)]
         self.ref_wl = config.get("ref_wl", 1550.0)
+        self.secondary_wl = config.get("secondary_wl", 1540)
+        self.secondary_loss = config.get("secondary_loss", 50.0)  # dBm 
         self.timeout_s = float(config.get("timeout_s", 180.0))
         self._start_time = 0.0
 
@@ -107,10 +113,19 @@ class FineAlign:
                     self.log("Spiral search failed.", "error")
                 return False
 
-            if self.lowest_loss >= self.threshold:
-                self._report(100.0, "Threshold met after spiral")
-                self.log(f"Target met after spiral: {self.lowest_loss:.2f} dBm", "info")
-                return True
+            if self.lowest_loss >= self.secondary_loss:
+                # dBm thresh not met, proceed with secondary wl
+                self.nir_manager.set_wavelength(self.secondary_wl)
+
+                # Now, recompute spiral
+                aok = await self.spiral_search(self.best_position[0], self.best_position[1])
+                if not aok:
+                    if self._cancelled():
+                        self._report(100.0, "Spiral: canceled")
+                    else:
+                        self._report(100.0, "Spiral: failed")
+                        self.log("Spiral search failed.", "error")
+                    return False
 
             # Return to best before gradient
             await self.stage_manager.move_axis(AxisType.X, self.best_position[0], relative=False,
@@ -168,8 +183,9 @@ class FineAlign:
             num_steps = 1
 
             # initial sample
-            lm, ls = self.nir_manager.read_power()
-            best_loss = self._select_detector_channel(lm, ls)
+            # lm, ls = self.nir_manager.read_power(slot=self.slot)
+            # best_loss = self._select_detector_channel(lm, ls)
+            best_loss = await self.get_power()
             x = await self.stage_manager.get_position(AxisType.X)
             y = await self.stage_manager.get_position(AxisType.Y)
             best_pos = [x.actual, y.actual]
@@ -187,8 +203,9 @@ class FineAlign:
                     if self._cancelled():
                         break
                     await self.stage_manager.move_axis(AxisType.X, step * direction, relative=True, wait_for_completion=True)
-                    lm, ls = self.nir_manager.read_power()
-                    val = self._select_detector_channel(lm, ls)
+                    # lm, ls = self.nir_manager.read_power(slot=self.slot)
+                    # val = self._select_detector_channel(lm, ls)
+                    val = await self.get_power()
 
                     if val > best_loss:
                         best_loss = val
@@ -197,23 +214,23 @@ class FineAlign:
                         best_pos = [x.actual, y.actual]
                         self.lowest_loss = best_loss
                         if best_loss >= self.threshold:
-                            covered += 1
-                            self._report(100.0 * covered / total_moves, f"Spiral: step {covered}/{total_moves}")
-                            break
-
+                            self.log(f"Threshold {self.threshold} met, skipping spiral")
+                            return True
+                        
                     covered += 1
                     self._report(100.0 * covered / total_moves, f"Spiral: step {covered}/{total_moves}")
 
-                if self._cancelled() or best_loss >= self.threshold:
+                if self._cancelled():
                     break
-
+                
                 # Y sweep
                 for _ in range(num_steps):
                     if self._cancelled():
                         break
                     await self.stage_manager.move_axis(AxisType.Y, step * direction, relative=True, wait_for_completion=True)
-                    lm, ls = self.nir_manager.read_power()
-                    val = self._select_detector_channel(lm, ls)
+                    # lm, ls = self.nir_manager.read_power(slot=self.slot)
+                    # val = self._select_detector_channel(lm, ls)
+                    val = await self.get_power()
                     if val > best_loss:
                         best_loss = val
                         x = await self.stage_manager.get_position(AxisType.X)
@@ -221,10 +238,8 @@ class FineAlign:
                         best_pos = [x.actual, y.actual]
                         self.lowest_loss = best_loss
                         if best_loss >= self.threshold:
-                            covered += 1
-                            self._report(100.0 * covered / total_moves, f"Spiral: step {covered}/{total_moves}")
-                            break
-
+                            self.log(f"Threshold ({self.threshold}) met, skipping spiral")
+                            return True
                     covered += 1
                     self._report(100.0 * covered / total_moves, f"Spiral: step {covered}/{total_moves}")
 
@@ -274,8 +289,9 @@ class FineAlign:
                 y = await self.stage_manager.get_position(AxisType.Y)
                 self.best_position = [x.actual, y.actual]
 
-            lm, ls = self.nir_manager.read_power()
-            current = self._select_detector_channel(lm, ls)
+            # lm, ls = self.nir_manager.read_power(slot=self.slot)
+            # current = self._select_detector_channel(lm, ls)
+            current = await self.get_power()
             self.lowest_loss = current
 
             # Step schedule
@@ -289,11 +305,6 @@ class FineAlign:
             tried_min_step = False
 
             while ss >= self.min_gradient_ss:
-                # if self._cancelled() or (time.monotonic() - self._start_time) > self.timeout_s:
-                #     self._report(min(99.0, 100.0 * probes_done / total_probes), "Gradient: canceled/timeout")
-                #     print(f"GRADIENT: CANCELED / TIMEOUT")
-                #     return False
-
                 improved = False
                 best_axis, best_dir, best_val = None, 0, self.lowest_loss
 
@@ -305,8 +316,9 @@ class FineAlign:
                         return False
 
                     await self.stage_manager.move_axis(axis, ss * direction, relative=True, wait_for_completion=True)
-                    lm, ls = self.nir_manager.read_power()
-                    val = self._select_detector_channel(lm, ls)
+                    # lm, ls = self.nir_manager.read_power(slot=self.slot)
+                    # val = self._select_detector_channel(lm, ls)
+                    val = await self.get_power()
 
                     # Immediately move back
                     await self.stage_manager.move_axis(axis, -ss * direction, relative=True, wait_for_completion=True)
@@ -359,17 +371,46 @@ class FineAlign:
             self._report(100.0, f"Gradient: error ({e})")
             print(f"GRADIETN EXCEPTION FOUDN!!! {e}")
             return False
-
-    def _select_detector_channel(self, loss_master: float, loss_slave: float) -> float:
-        """Select detector channel based on config"""
-        if self.primary_detector == "ch1":
-            return loss_master
-        elif self.primary_detector == "ch2":
-            return loss_slave
+    
+    async def get_power(self):
+        """Return the requested power by method"""
+        if "ch" not in self.primary_detector:
+            # Max
+            best = -100
+            for slot in self.slots:
+                m, s = await self.nir_manager.read_power(slot=slot)
+                best = max(best, m, s)
+            return best
         else:
-            # Default to best (highest power)
-            # TODO: add all detected CHs
-            return max(loss_master, loss_slave)
+            num = int(re.findall(r'\d+', self.primary_detector)[0])
+            slot = self.slots[0]  # if a ch is passed, only 1 slot exists
+            lm, ls = await self.nir_manager.read_power(slot=slot)
+            if (num % 2) == 0:
+                # Ch2, Ch4, Ch6, ...
+                # If num is odd, then its the slave
+                return ls
+            else:
+                # Ch1, Ch3, Ch5, ...
+                return lm
+
+    # def _select_detector_channel(self, loss_master: float, loss_slave: float) -> float:
+    #     """Select detector channel based on config"""
+    #     num = re.findall(r'\d+', self.primary_detector)
+    #     if len(num) == 0:
+    #         return max(loss_master, loss_slave)
+    #     if (num % 2) == 0:
+    #         return loss_slave
+    #     else:
+    #         return loss_master
+        
+        # if self.primary_detector == "ch1":
+        #     return loss_master
+        # elif self.primary_detector == "ch2":
+        #     return loss_slave
+        # else:
+        #     # Default to best (highest power)
+        #     # TODO: add all detected CHs
+        #     return max(loss_master, loss_slave)
 
     def stop_alignment(self):
         self.log("Fine alignment stop requested", "info")
