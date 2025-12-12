@@ -125,7 +125,7 @@ class NIR_Measurment_System(App):
 
         main.append(main_tab, "main_tab")
         self.main = main
-        print("Welcome To Probe Stage")
+        # print("Welcome To Probe Stage")
         return self.main
 
 

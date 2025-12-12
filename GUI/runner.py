@@ -132,7 +132,6 @@ def is_target(p: pathlib.Path) -> bool:
         "mainframe_elec_probe_control_gui",
         "sub_add_btn_gui",
         "sub_area_scan_setting_gui",
-        # "sub_connect_config_gui",
         "sub_data_window_setting_gui",
         "sub_fine_align_setting_gui",
         "sub_laser_sweep_setting_gui",
@@ -283,6 +282,10 @@ def _quote(p: pathlib.Path) -> str:
     return f'"{s}"' if any(ch in s for ch in (' ', '(', ')')) else s
 
 def open_log_terminal_windows(log_path: pathlib.Path, tail_lines: int = 200):
+    # First clear the previous terminal
+    with open(log_path, "w") as f:
+        f.write('Welcome to SiEPIC Lab Probe Stage')
+    
     log_q = _quote(log_path)
     ps_cmd = (
         f"$host.ui.RawUI.WindowTitle='log viewer'; "

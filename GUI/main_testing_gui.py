@@ -135,11 +135,6 @@ class testing(App):
 
     # ------------------------------------------------------------------ TABLE RENDERING (SCROLL, NO PAGES)
     def build_table_rows(self):
-        """
-        Display ALL devices referenced in self.filtered_idx in a scrollable table.
-
-        Scrolling is handled by the table container (overflow=True).
-        """
         table = self.table
         data_rows = list(table.children.values())[1:]  # children[0] is the header row
 
@@ -242,7 +237,7 @@ class testing(App):
             left=5, top=5, width=375, height=360, image_path="my_res:TSP/none.png"
         )
 
-        # -------------------------------------------------- SETTING BLOCK
+        # --- SETTING BLOCK --- 
         setting_container = StyledContainer(
             container=testing_container, variable_name="setting_container",
             left=400, top=10, height=475, width=240
@@ -257,8 +252,6 @@ class testing(App):
             container=setting_container, text="Setting", variable_name="setting",
             left=131, top=2.5, width=50, height=25, normal_color="#007BFF", press_color="#0056B3"
         )
-
-        # NOTE: there is no Load button anymore; loading is triggered by testing_load command.
 
         headers = ["Device", "Status"]
         self.col_widths = [100, 40]
@@ -346,7 +339,7 @@ class testing(App):
         self.testing_container = testing_container
         return testing_container
 
-    # ------------------------------------------------------------------ SEQUENCE CONTROL
+    # --- SEQUENCE CONTROL --- 
     def start_sequence(self):
         self.status = ["0"] * len(self.devicename)
         self.pre_num = -1
@@ -418,47 +411,79 @@ class testing(App):
         app.Destroy()
 
     def save_file(self):
-        path = self.project
-        dest_dir = self.save_path_input.get_text().strip()
+        project = self.project
+        dest_root = self.save_path_input.get_text().strip()
 
-        if path == "All":
-            src = os.path.join(os.getcwd(), "UserData", self.cur_user)
-            dest_path = os.path.join(dest_dir, self.cur_user)
-        else:
-            src = os.path.join(os.getcwd(), "UserData", self.cur_user, path)
-            dest_path = os.path.join(dest_dir, self.cur_user, path)
-
-        if not dest_dir:
-            print("X Save path cannot be empty!")
+        if not dest_root:
+            print("Save path cannot be empty!")
             return
 
-        if not os.path.exists(dest_dir):
-            try:
-                os.makedirs(dest_dir, exist_ok=True)
-                print(f"[] Created destination directory: {dest_dir}")
-            except Exception as e:
-                print(f"X Failed to create directory: {e}")
-                return
+        if not project:
+            print("No active project; nothing to export.")
+            return
 
-        if os.path.exists(dest_path):
-            try:
-                shutil.rmtree(dest_path)
-                print(f"! Removed existing directory: {dest_path}")
-            except Exception as e:
-                print(f"X Failed to remove existing directory: {e}")
-                return
+        if project == "All":
+            print("Export for 'All' projects is not supported; please select a single project.")
+            return
+
+        # --- Resolve source roots ---
+        user_root = os.path.join(os.getcwd(), "UserData", self.cur_user)
+        src_project_root = os.path.join(user_root, project)
+
+        if not os.path.isdir(src_project_root):
+            print(f"X Source project path does not exist: {src_project_root}")
+            return
+
+        # --- Destination project root is EXACTLY what user typed ---
+        dest_project_root = dest_root  
 
         try:
-            shutil.copytree(src, dest_path)
-            print(f"! Files saved to: {dest_path}")
+            # Wipe any previous export in that directory
+            if os.path.exists(dest_project_root):
+                shutil.rmtree(dest_project_root)
+                print(f"Removed existing export tree: {dest_project_root}")
+
+            os.makedirs(dest_project_root, exist_ok=True)
+        except Exception as e:
+            print(f"Failed to prepare destination: {e}")
+            return
+
+        # --- Copy only JSON configs ---
+        try:
+            src_project_cfg = os.path.join(src_project_root, "project_config.json")
+            if os.path.isfile(src_project_cfg):
+                dest_project_cfg = os.path.join(dest_project_root, "project_config.json")
+                shutil.copy2(src_project_cfg, dest_project_cfg)
+        except Exception as e:
+            print(f"Failed to copy config JSON files: {e}")
+
+        # --- Mirror Spectrum directory structure ONLY (no files) ---
+        src_spectrum_root = os.path.join(src_project_root, "Spectrum")
+        if os.path.isdir(src_spectrum_root):
+            dest_spectrum_root = os.path.join(dest_project_root, "Spectrum")
+            try:
+                for dirpath, dirnames, _filenames in os.walk(src_spectrum_root):
+                    rel = os.path.relpath(dirpath, src_spectrum_root)
+                    if rel == ".":
+                        target_dir = dest_spectrum_root
+                    else:
+                        target_dir = os.path.join(dest_spectrum_root, rel)
+                    os.makedirs(target_dir, exist_ok=True)
+            except Exception as e:
+                print(f"Failed to mirror Spectrum directory structure: {e}")
+        else:
+            print("No Spectrum directory to mirror; autosweep will create it as needed.")
+
+        try:
             file = File(
                 "shared_memory",
                 "ExportRequest",
-                {"dest_dir": dest_dir}
+                {"dest_dir": dest_project_root}
             )
             file.save()
         except Exception as e:
-            print(f"X Copy failed: {e}")
+            print(f"Failed to write ExportRequest: {e}")
+
 
     def execute_command(self, path=command_path):
         test = 0

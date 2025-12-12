@@ -414,7 +414,6 @@ class Memory():
 
     def writer_pos(self):
         shm, raw = open_shared_stage_position()
-        print(raw)
         sp = StagePosition(shared_struct=raw)
         # write into shared memory
         sp.set_positions(AxisType.X, 123.456)
@@ -701,9 +700,13 @@ class UserConfigManager:
 
 
 class plot():
-    def __init__(self, x=None, y=None, filename=None, fileTime=None, user=None, name=None, project=None, data=None,
-                 file_format=None, file_path="", xticks = None, yticks=None, pos_i=None,
-                 slot_info: Optional[list] = None, destination_dir = {}):
+    def __init__(self, x=None, y=None, filename=None,
+                 fileTime=None, user=None, name=None,
+                 project=None, data=None, file_format=None,
+                 xticks = None, yticks=None, pos_i=None,
+                 slot_info: Optional[list] = None, destination_dir = {},
+                 meta_data: Optional[Dict] = None
+        ):
         if file_format is None:
             self.file_format = {"csv": 1, "mat": 1, "png": 1, "pdf": 1}
         else:
@@ -716,12 +719,12 @@ class plot():
         self.name = name
         self.project = project
         self.data = data
-        self.file_path = file_path
         self.xticks = xticks
         self.yticks = yticks
         self.pos_i = pos_i
         self.slot_info = slot_info
         self.destination_dir = destination_dir
+        self.meta_data = meta_data
 
     def heat_map(self):
         import os
@@ -738,10 +741,7 @@ class plot():
         vmin = float(np.nanmin(data))
         vmax = float(np.nanmax(data))
 
-        # mode = (getattr(self, "pattern", "spiral") or "spiral").lower()
-
         # --- step sizes (um) ---
-        # Prefer explicit steps if present; fall back to xticks/yticks; else 1.0
         def _get_step(default_val):
             try:
                 return float(default_val)
@@ -950,12 +950,9 @@ class plot():
         project = self.project
         if self.destination_dir == {}:
             path = os.path.join(".", "UserData", user, project, "Spectrum", name)
-            file_path = os.path.join(self.file_path, user, project, "Spectrum", name)
         else:
             path = self.destination_dir.get("dest_dir")
-            file_path = path
-
-        print(f'[Debug]: {self.destination_dir} \n {path} \n {file_path}')
+            path = os.path.join(path, "Spectrum", name)
 
         try:
             plots = {"Wavelength [nm]": x_axis}
@@ -980,9 +977,9 @@ class plot():
             os.makedirs(os.path.dirname(output_html), exist_ok=True)
             fig.write_html(output_html)
 
-            output_html2 = os.path.join(file_path, f"{filename}_{fileTime}.html")
-            os.makedirs(os.path.dirname(output_html2), exist_ok=True)
-            fig.write_html(output_html2)
+            # output_html2 = os.path.join(file_path, f"{filename}_{fileTime}.html")
+            # os.makedirs(os.path.dirname(output_html2), exist_ok=True)
+            # fig.write_html(output_html2)
         except Exception as e:
             try:
                 print("Exception generating html plot")
@@ -999,9 +996,9 @@ class plot():
                 os.makedirs(os.path.dirname(output_csv), exist_ok=True)
                 df.to_csv(output_csv, index=False)
 
-                output_csv2 = os.path.join(file_path, f"{filename}_{fileTime}.csv")
-                os.makedirs(os.path.dirname(output_csv2), exist_ok=True)
-                df.to_csv(output_csv2, index=False)
+                # output_csv2 = os.path.join(file_path, f"{filename}_{fileTime}.csv")
+                # os.makedirs(os.path.dirname(output_csv2), exist_ok=True)
+                # df.to_csv(output_csv2, index=False)
             except Exception as e:
                 print("Exception saving csv")
                 print(e)
@@ -1019,14 +1016,15 @@ class plot():
                     "user": np.array(user, dtype=object),
                     "project": np.array(project, dtype=object),
                     "name": np.array(name, dtype=object),
+                    "meta": self.meta_data,
                 }
                 output_mat = os.path.join(path, f"{filename}_{fileTime}.mat")
                 os.makedirs(os.path.dirname(output_mat), exist_ok=True)
                 savemat(output_mat, mat_dict)
 
-                output_mat2 = os.path.join(file_path, f"{filename}_{fileTime}.mat")
-                os.makedirs(os.path.dirname(output_mat2), exist_ok=True)
-                savemat(output_mat2, mat_dict)
+                # output_mat2 = os.path.join(file_path, f"{filename}_{fileTime}.mat")
+                # os.makedirs(os.path.dirname(output_mat2), exist_ok=True)
+                # savemat(output_mat2, mat_dict)
             except Exception as e:
                 print("Exception saving mat")
                 print(e)
@@ -1046,18 +1044,18 @@ class plot():
                 os.makedirs(os.path.dirname(output_pdf), exist_ok=True)
                 plt.savefig(output_pdf, dpi=image_dpi)
 
-                output_pdf2 = os.path.join(file_path, f"{filename}_{fileTime}.pdf")
-                os.makedirs(os.path.dirname(output_pdf2), exist_ok=True)
-                plt.savefig(output_pdf2, dpi=image_dpi)
+                # output_pdf2 = os.path.join(file_path, f"{filename}_{fileTime}.pdf")
+                # os.makedirs(os.path.dirname(output_pdf2), exist_ok=True)
+                # plt.savefig(output_pdf2, dpi=image_dpi)
 
             if self.file_format["png"] == 1:
                 output_png2 = os.path.join(path, f"{filename}_{fileTime}.png")
                 os.makedirs(os.path.dirname(output_png2), exist_ok=True)
                 plt.savefig(output_png2, dpi=300)
 
-                output_png3= os.path.join(file_path, f"{filename}_{fileTime}.png")
-                os.makedirs(os.path.dirname(output_png3), exist_ok=True)
-                plt.savefig(output_png3, dpi=300)
+                # output_png3= os.path.join(file_path, f"{filename}_{fileTime}.png")
+                # os.makedirs(os.path.dirname(output_png3), exist_ok=True)
+                # plt.savefig(output_png3, dpi=300)
 
             output_png = os.path.join(".", "res", "spectral_sweep", f"{filename}_{fileTime}.png")
             os.makedirs(os.path.dirname(output_png), exist_ok=True)
@@ -1117,7 +1115,7 @@ def _run_tkinter_progress(done_val: Value, cancel_evt: Event, progress_config: d
     import tkinter as tk
     from tkinter import ttk
     
-    print("[Progress Dialog] Creating progress dialog...")
+    # print("[Progress Dialog] Creating progress dialog...")
     
     # 🔹 Reset progress so previous run's 100% doesn't flash
     reset_progress_file()
@@ -1196,13 +1194,13 @@ def _run_tkinter_progress(done_val: Value, cancel_evt: Event, progress_config: d
     
     root.after(100, update_progress)
     
-    print("[Progress Dialog] Starting dialog event loop...")
+    # print("[Progress Dialog] Starting dialog event loop...")
     root.mainloop()
-    print("[Progress Dialog] Dialog closed")
+    # print("[Progress Dialog] Dialog closed")
 
 def _run_console_progress(done_val: Value, cancel_evt: Event, progress_config: dict = None):
     """Console-based progress display when PyQt5 is not available"""
-    print("[Console Progress] Starting console progress monitor...")
+    # print("[Console Progress] Starting console progress monitor...")
     start_time = time.time()
     last_progress = -1
     

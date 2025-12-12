@@ -46,7 +46,6 @@ class AutoSweepConfig(App):
     # ---------------- REMI HOOKS ----------------
 
     def main(self):
-        print("[AutoSweepConfig] main() started")
         ui = None
         try:
             ui = self.construct_ui()

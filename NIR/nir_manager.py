@@ -11,7 +11,7 @@ from utils.logging_helper import setup_logger
 Cameron Basara, 2025
 """
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
 
 
 class NIRManager:

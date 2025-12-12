@@ -1,26 +1,13 @@
-"""
-Remi GUI — User/Mode selector with dynamic dropdown + JSON sync
---------------------------------------------------------------
-* Keeps user list in ROOT_DIR
-* Writes currently selected user to JSON_PATH whenever it changes
-* No functional change versus the original script — only formatting / layout tidy-up
-"""
-
 import json, os, shutil, threading, webview
 from typing import List, Union
 from remi import App, start
 from GUI.lib_gui import *
 
-# ──────────────────────────────────────────
 ROOT_DIR = "./UserData"
 JSON_PATH = "database/shared_memory.json"
 
 
 class Starts(App):
-    """Main application class (unchanged behaviour, cleaner layout)."""
-
-    # ──────────────────────────────── INIT & REMI HOOKS
-
     def __init__(self, *args, **kwargs):
         # runtime flags
         self._last_saved_user: str = ""
@@ -64,7 +51,7 @@ class Starts(App):
         threading.Thread(target=target, args=args, daemon=True).start()
 
     def list_user_folders(self) -> Union[str, List[str]]:
-        """Return sub-folders of ROOT_DIR (same logic as original)."""
+        """Return sub-folders of ROOT_DIR."""
         names = [
             d for d in os.listdir(ROOT_DIR)
             if os.path.isdir(os.path.join(ROOT_DIR, d))
@@ -81,7 +68,7 @@ class Starts(App):
         return names
 
     def list_project_folders(self) -> Union[str, List[str]]:
-        """Return sub-folders of ROOT_DIR (same logic as original)."""
+        """Return sub-folders of ROOT_DIR."""
         path = os.path.join(ROOT_DIR, self.user_dd.get_value())
         names = [
             d for d in os.listdir(path)
@@ -160,7 +147,7 @@ class Starts(App):
             left=10, top=15, width=610, height=100,
         )
 
-        # ── event bindings
+        # --- Event bindings ---
         self.add_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_add))
         self.settings_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_settings))
         self.user_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_user_remove))
@@ -231,26 +218,26 @@ class Starts(App):
         folder = self.user_dd.get_value().replace(" ", "")
         path = os.path.join(ROOT_DIR, folder)
         if not os.path.isdir(path):
-            print(f"! No such folder: {folder}")
+            print(f"No such folder: {folder}")
             return
         try:
             shutil.rmtree(path)
-            print(f"🗑️ Removed {folder}")
+            print(f"Removed {folder}")
         except Exception as exc:
-            print(f"X Failed to remove: {exc}")
+            print(f"Failed to remove: {exc}")
 
     def onclick_project_remove(self):
         user = self.user_dd.get_value().replace(" ", "")
         project = self.project_dd.get_value().replace(" ", "")
         path = os.path.join(ROOT_DIR, user, project)
         if not os.path.isdir(path):
-            print(f"! No such project: {project}")
+            print(f"No such project: {project}")
             return
         try:
             shutil.rmtree(path)
-            print(f"🗑️ Removed {project}")
+            print(f"Removed {project}")
         except Exception as exc:
-            print(f"X Failed to remove: {exc}")
+            print(f"Failed to remove: {exc}")
 
     def refresh_user(self):
         self.user_dd.empty()

@@ -362,7 +362,7 @@ class FineAlign:
                     # Small, then exit. 
                     if abs(self.lowest_loss - best_val) <= 0.1:
                         self.log("Gradient descent converged early "
-                        "(delta:{abs(self.lowest_loss - best_val)})",
+                        f"(delta:{abs(self.lowest_loss - best_val)})",
                                   "info")
                         return True
                     self.lowest_loss = best_val

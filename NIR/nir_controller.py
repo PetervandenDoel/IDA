@@ -12,7 +12,6 @@ as well as taking lambda sweeps.
 Cameron Basara, 2025
 """
 
-
 ######################################################################
 # Helpers / Connection
 ######################################################################
@@ -374,7 +373,6 @@ class NIR8164(LaserHAL):
         except:
             pass
         try:
-            # self.write("*CLS")
             self.configure_units()
             self.enable_output(True)
             pass

@@ -819,10 +819,6 @@ class HP816xLambdaScan:
 
     def apply_ranging(self, mapping, args_list, btm_wl, top_wl):
         """
-        Wrapper: decides whether each slot uses manual or auto ranging.
-        For full_mapping pattern found in lambda_scan
-        - If range_dbm is None -> autorange
-        - Otherwise -> manual
         """
         args_dict = {}
         for slot, ref, range in args_list:
@@ -831,10 +827,10 @@ class HP816xLambdaScan:
         for pwm, slot, head in mapping:
             range_dbm = args_dict.get(slot, 0.0)  # Default to 0 dBm
             if range_dbm is None:
-                print(f'Applying Autoranging for slot: {slot}, {pwm},{head}')
+                # print(f'Applying Autoranging for slot: {slot}, {pwm},{head}')
                 self.apply_auto_ranging(pwm, slot, head, (btm_wl, top_wl))
             else:
-                print(f'Applying Manual Ranging for slot: {slot}, {pwm},{head}')
+                # print(f'Applying Manual Ranging for slot: {slot}, {pwm},{head}')
                 self.apply_manual_ranging(pwm, slot, head, range_dbm)
 
     def apply_manual_ranging(self, pwm, slot, head, range_dbm):
@@ -1023,7 +1019,7 @@ class HP816xLambdaScan:
             )
             if result != 0:
                 continue  # invalid index → skip
-            print(f"{pwm} mfn: {mf_number.value} | sn: {slot_number.value} | chn: {channel_number.value}")
+            # print(f"{pwm} mfn: {mf_number.value} | sn: {slot_number.value} | chn: {channel_number.value}")
 
             if slot_number.value == slot and channel_number.value == channel:
                 return pwm

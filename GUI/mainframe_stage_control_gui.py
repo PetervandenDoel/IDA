@@ -83,6 +83,7 @@ class stage_control(App):
         self.slot_info = None
         self.slot_info_flag = False
         self.detector_window_settings = {}
+        self.meta_data = {}
 
         # Misc vars, managers, progress bar and locks
         self.nir_configure = None
@@ -162,6 +163,23 @@ class stage_control(App):
 
                     # Read detector range and reference settings
                     self.detector_window_settings = data.get("DetectorWindowSettings", {})
+
+                    # Meta data for auto sweeps
+                    self.meta_data = {
+                        'user': self.user,
+                        'project': self.project,
+                        'device_name': self.name,
+                        'fine_a': self.fine_a,
+                        'area_s': self.area_s,
+                        'detector_window': self.detector_window_settings,
+                        'slot_info': self.slot_info,
+                        'configuration': self.configuration,
+                        # Add more as you feel necessary
+                        # Used for passing information 
+                        # During automated measurements
+                        # For mata data context
+                    }
+
                 
                 if self.detector_window_settings.get("Detector_Change") == "1":
                     if self.slot_info is not None:
@@ -374,7 +392,6 @@ class stage_control(App):
             
             if len(args_list) == 0:
                 raise Exception("No args found")
-            print(args_list)
             
             wl, detectors = self.nir_manager.sweep(
                 start_nm=self.sweep["start"],
@@ -383,6 +400,7 @@ class stage_control(App):
                 laser_power_dbm=self.sweep["power"],
                 args=args_list
             )
+            
             print("[Stage Control] Laser Sweep completed Successfully")
 
             # Apply detector window settings once again 
@@ -417,16 +435,18 @@ class stage_control(App):
                 if not active_detectors:
                     raise ValueError("Detector list empty after sweep.")
 
-                print(active_detectors)
                 y = np.vstack(active_detectors)
 
+                # Only write to save path on auto measurements
+                dest_cfg = self.use_destination_dir if auto == 1 else {}
+
                 fileTime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-                print('WHY??', self.use_destination_dir)
                 diagram = plot(
-                    x, y, "spectral_sweep", fileTime, self.user, name,
-                    self.project, auto, self.file_format, self.file_path,
-                    self.slot_info,  # For display
-                    self.use_destination_dir  # For autosweeps
+                    x, y, "spectral_sweep", fileTime, 
+                    self.user, name, self.project,
+                    auto, self.file_format, self.slot_info,
+                    destination_dir=dest_cfg,  # For autosweeps
+                    meta_data=self.meta_data
                 )
                 p = Process(target=diagram.generate_plots)
                 p.start()
@@ -434,7 +454,7 @@ class stage_control(App):
 
                 if self.web != "" and auto == 0:
                     file_uri = Path(self.web).resolve().as_uri()
-                    print(file_uri)
+                    # print(file_uri)
                     webview.create_window(
                         'Stage Control',
                         file_uri,
@@ -444,7 +464,6 @@ class stage_control(App):
                     )
 
             except Exception as e:
-                # Cancel / no data / plotting error → just log and continue
                 print(f"[Plot] Skipping plot due to error: {e}")
         
         if auto == 0:
@@ -526,7 +545,6 @@ class stage_control(App):
             if str(type(self.port["stage"])) == "<class 'str'>":
                 import re
                 numb = re.findall(r"\d+", self.port["stage"])[0]
-                print(numb)
                 if self.port["stage"][0] != 'A':
                     # Not in visa format
                     self.configure.visa_addr = f'ASRL{numb}::INSTR'
@@ -717,6 +735,7 @@ class stage_control(App):
 
     def stop_task(self):
         # Called from idle() every loop
+        print('Stop Task...')
         if self._scan_done.value == -1:
             # Reset our internal flags
             self._scan_done.value = 0
@@ -740,12 +759,10 @@ class stage_control(App):
                 except Exception as e:
                     print(f"[StopTask] Error cancelling laser sweep: {e}")
 
-                # IMPORTANT: reset manual Sweep flag so the sweep button can un-gray
                 try:
                     self.sweep["sweep"] = 0
                     file = File("shared_memory", "Sweep", self.sweep)
                     file.save()
-                    print("[StopTask] Reset Sweep flag -> 0")
                 except Exception as e:
                     print(f"[StopTask] Error resetting Sweep flag: {e}")
 
@@ -788,7 +805,7 @@ class stage_control(App):
                 time.sleep(0.3)
             else:
                 print("### Waiting ###")
-                time.sleep(3.0)
+                time.sleep(5.0)
 
     def do_auto_sweep(self):
         device_count = len(self.filter)
@@ -861,9 +878,24 @@ class stage_control(App):
         with self._scan_done.get_lock():
             self._scan_done.value = 1
             self.task_start = 0
-            
-        # For safety, turn off laser after an automated measurement
-        self.use_destination_dir = {}  # Reset destination dir
+
+        # Destroy destination dir var after auto measuremenet is complete
+        self.use_destination_dir = {}
+        try:
+            with open(SHARED_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception:
+            data = {}
+
+        data["ExportRequest"] = {}
+
+        try:
+            with open(SHARED_PATH, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2)
+        except Exception as e:
+            print(f"[AutoSweep] Failed to clear ExportRequest: {e}")
+        
+        
         self.nir_manager.enable_laser(False)
         print("The Auto Sweep Is Finished")
         time.sleep(1)
@@ -1375,11 +1407,8 @@ class stage_control(App):
         print("Home Finished")
 
         # Apply initial position settings
-        
         if self.apply_initial_positions:
             init_fa = self.initial_positions.get("fa", None)
-            print(f'INIT_FA TEST: {init_fa}') 
-            print("Applying FA angle")
             if init_fa is not None:
                 _ = asyncio.run(self.stage_manager.move_axis(AxisType.ROTATION_FIBER, init_fa, False))
             self.apply_initial_positions = False  # Apply only once
@@ -1411,7 +1440,6 @@ class stage_control(App):
             config.secondary_loss = self.fine_a.get("secondary_loss", 50.0)
             if self.slot_info is not None:
                 s_temp = list(set([s[0] for s in self.slot_info]))  # remove dups
-                print(s_temp)
             else:
                 s_temp = [1]  # Assume only primary slot
             config.slots = s_temp
@@ -1617,7 +1645,6 @@ class stage_control(App):
             config.primary_detector = str(self.area_s.get("primary_detector", "ch1") or "ch1")
             if self.slot_info is not None:
                 s_temp = list(set([s[0] for s in self.slot_info]))  # remove dups
-                print(s_temp)
             else:
                 s_temp = [1]  # Assume only primary slot
             config.slots = s_temp
@@ -2121,7 +2148,6 @@ class stage_control(App):
                 self.move_dd.set_value(device)
 
         if stage == 1:
-            print("stage record")
             file = File("command", "command", new_command)
             file.save()
 
