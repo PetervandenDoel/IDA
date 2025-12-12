@@ -100,6 +100,8 @@ class stage_control(App):
         self.task_start = 0
         self._win_lock = threading.Lock()
         self.axis_locked = {"x": False, "y": False, "z": False, "chip": False, "fiber": False}
+        self.use_relative_movement = True  # For absolute movements
+        self._absolute_locked_axes = {"z": False, "chip": False}  # For tracking of abs mvnts
         self.area_sweep = None
         self.fine_align = None
         self.task_laser = 0
@@ -955,6 +957,20 @@ class stage_control(App):
             left=ICON_LEFT, top=38, width=10, height=16, font_size=160, color="#444"
         )
 
+        self.absolute_movement_cb = StyledCheckBox(
+            container=xyz_container,
+            variable_name="absolute_movement_cb",
+            left=POS_LEFT + 165,
+            top=10, width=10, height=10, position="absolute"
+        )
+        StyledLabel(
+            container=xyz_container,
+            text="Absolute movement",
+            variable_name="absolute_movement_label",
+            left=POS_LEFT + 195,
+            top=17, width=180, height=50, font_size=100, color="#222"
+        )
+
         labels = ["X", "Y", "Z", "Chip", "Fiber"]
         left_arrows = ["⮜", "⮟", "Down", "⭮", "⭮"]
         right_arrows = ["⮞", "⮝", "Up", "⭯", "⭯"]
@@ -1003,7 +1019,7 @@ class stage_control(App):
 
             # per-axis buttons / spinbox
             if prefix in ["x", "y"]:
-                max_val = 5000
+                max_val = 30000
             elif prefix == "z":
                 max_val = 1000
             elif prefix == "chip":
@@ -1224,8 +1240,6 @@ class stage_control(App):
         self.x_zero_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_zero, "x"))
         self.y_zero_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_zero, "y"))
         self.z_zero_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_zero, "z"))
-        # self.chip_zero_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_zero, "chip"))
-        # self.fiber_zero_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_zero, "fiber"))
         self.load_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_load))
         self.move_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_move))
         self.limit_setting_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_limit_setting_btn))
@@ -1238,7 +1252,11 @@ class stage_control(App):
         self.z_lock.onchange.do(lambda e, v: self.run_in_thread(self.onchange_axis_lock, "z", v))
         self.chip_lock.onchange.do(lambda e, v: self.run_in_thread(self.onchange_axis_lock, "chip", v))
         self.fiber_lock.onchange.do(lambda e, v: self.run_in_thread(self.onchange_axis_lock, "fiber", v))
-
+        self.absolute_movement_cb.onchange.do(
+            lambda emitter, value: self.run_in_thread(
+                self.onclick_change_absolute_movement, emitter, value
+            )
+        )
         self.move_btn.set_enabled(False)
         self.stage_control_container = stage_control_container
         return stage_control_container
@@ -1654,14 +1672,45 @@ class stage_control(App):
 
         print("Done Scan")
 
+    def onclick_change_absolute_movement(self, emitter=None, value=None):
+        """
+        Change between relative and absolute movement.
+        """
+        is_absolute_mode = bool(value)
+        self.use_relative_movement = not is_absolute_mode
+
+        # Handle locking of Z and CHIP axes
+        for axis in ("z", "chip"):
+            lock_widget = getattr(self, f"{axis}_lock", None)
+
+            if is_absolute_mode:
+                # lock if not already locked
+                if not self.axis_locked.get(axis, False):
+                    self.axis_locked[axis] = True
+                    self._absolute_locked_axes[axis] = True
+                    if lock_widget is not None:
+                        lock_widget.set_value(1)
+                    self.set_axis_enabled(axis, False)
+            else:
+                # only unlock what we locked ourselves
+                if self._absolute_locked_axes.get(axis, False):
+                    self.axis_locked[axis] = False
+                    self._absolute_locked_axes[axis] = False
+                    if lock_widget is not None:
+                        lock_widget.set_value(0)
+                    self.set_axis_enabled(axis, True)
+
+
     def onclick_x_left(self):
         if self.axis_locked["x"]:
             print("[Axis Locked] X move ignored");
             return
         value = float(self.x_input.get_value())
         print(f"X Left {value} um")
+        if not self.use_relative_movement:
+            value = -value  # Fixes (-)abs movement issue
         self.lock_all(1)
-        asyncio.run(self.stage_manager.move_axis(AxisType.X, -value, True))
+        asyncio.run(self.stage_manager.move_axis(AxisType.X, -value, self.use_relative_movement))
         self.lock_all(0)
 
     def onclick_x_right(self):
@@ -1671,7 +1720,7 @@ class stage_control(App):
         value = float(self.x_input.get_value())
         print(f"X Right {value} um")
         self.lock_all(1)
-        asyncio.run(self.stage_manager.move_axis(AxisType.X, value, True))
+        asyncio.run(self.stage_manager.move_axis(AxisType.X, value, self.use_relative_movement))
         self.lock_all(0)
 
     def onclick_y_left(self):
@@ -1681,7 +1730,9 @@ class stage_control(App):
         value = float(self.y_input.get_value())
         print(f"Y Left {value} um")
         self.lock_all(1)
-        asyncio.run(self.stage_manager.move_axis(AxisType.Y, -value, True))
+        if not self.use_relative_movement:
+            value = -value  # Fixes (-)abs movement issue
+        asyncio.run(self.stage_manager.move_axis(AxisType.Y, -value, self.use_relative_movement))
         self.lock_all(0)
 
     def onclick_y_right(self):
@@ -1691,7 +1742,7 @@ class stage_control(App):
         value = float(self.y_input.get_value())
         print(f"Y Right {value} um")
         self.lock_all(1)
-        asyncio.run(self.stage_manager.move_axis(AxisType.Y, value, True))
+        asyncio.run(self.stage_manager.move_axis(AxisType.Y, value, self.use_relative_movement))
         self.lock_all(0)
 
     def onclick_z_left(self):
@@ -1740,8 +1791,10 @@ class stage_control(App):
             return
         value = float(self.fiber_input.get_value())
         print(f"Fiber Turn CW {value} deg")
+        if not self.use_relative_movement:
+            value = -value  # Fixes (-)abs movement issue
         self.lock_all(1)
-        asyncio.run(self.stage_manager.move_axis(AxisType.ROTATION_FIBER, -value, True))
+        asyncio.run(self.stage_manager.move_axis(AxisType.ROTATION_FIBER, -value, self.use_relative_movement))
         self.lock_all(0)
 
     def onclick_fiber_right(self):
@@ -1751,7 +1804,7 @@ class stage_control(App):
         value = float(self.fiber_input.get_value())
         print(f"Fiber Turn CCW {value} deg")
         self.lock_all(1)
-        asyncio.run(self.stage_manager.move_axis(AxisType.ROTATION_FIBER, value, True))
+        asyncio.run(self.stage_manager.move_axis(AxisType.ROTATION_FIBER, value, self.use_relative_movement))
         self.lock_all(0)
 
     def onclick_load(self):
