@@ -735,7 +735,6 @@ class stage_control(App):
 
     def stop_task(self):
         # Called from idle() every loop
-        print('Stop Task...')
         if self._scan_done.value == -1:
             # Reset our internal flags
             self._scan_done.value = 0
