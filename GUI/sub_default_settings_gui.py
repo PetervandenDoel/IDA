@@ -58,13 +58,9 @@ class DefaultSettingsConfig(App):
         self.sweep_end = None
         self.sweep_step = None
 
-        # Widgets - Area Scan Settings
-        self.area_x_size = None
-        self.area_x_step = None
-        self.area_y_size = None
-        self.area_y_step = None
-        self.area_spiral_step = None
-        self.area_pattern_dd = None
+        # Widgets - Area Scan Settings (mirrors Fine Align style)
+        self.area_window_size = None
+        self.area_step_size = None
         self.area_primary_detector_dd = None
         self.area_plot_dd = None
 
@@ -195,18 +191,6 @@ class DefaultSettingsConfig(App):
         except Exception:
             pass
 
-    def _set_spin_safely_by_name(self, widget_name, value):
-        try:
-            widget = getattr(self, widget_name, None)
-            if widget is None:
-                container = getattr(self, "construct_ui", lambda: None)()
-                if hasattr(container, "children") and widget_name in container.children:
-                    widget = container.children[widget_name]
-            if widget is not None and value is not None:
-                widget.set_value(float(value))
-        except Exception:
-            pass
-
     @staticmethod
     def _safe_float(widget, default):
         try:
@@ -268,28 +252,30 @@ class DefaultSettingsConfig(App):
         self._set_spin_safely(self.sweep_end, sweep.get("end", 1580.0))
         self._set_spin_safely(self.sweep_step, sweep.get("step", 0.001))
 
-        # Area
+        # Area (mirrors Fine Align)
         area = config.get("AreaS", {})
-        pattern = str(area.get("pattern", "spiral")).lower()
-        spiral = (pattern == "spiral")
 
-        self._set_spin_safely(self.area_x_size, area.get("x_size", 50.0))
-        self._set_spin_safely(self.area_y_size, area.get("y_size", 50.0))
+        # Window size: prefer explicit window_size else x_size/y_size
+        win = area.get("window_size", None)
+        if win is None:
+            x_sz = area.get("x_size", 50.0)
+            y_sz = area.get("y_size", 50.0)
+            try:
+                win = x_sz if float(x_sz) == float(y_sz) else x_sz
+            except Exception:
+                win = 50.0
+        self._set_spin_safely(self.area_window_size, win)
 
-        if spiral:
-            step_val = area.get("x_step", area.get("y_step", 5.0))
-            self._set_spin_safely(self.area_spiral_step, step_val)
-            self._set_spin_safely(self.area_x_step, step_val)
-            self._set_spin_safely(self.area_y_step, step_val)
-        else:
-            self._set_spin_safely(self.area_x_step, area.get("x_step", 5.0))
-            self._set_spin_safely(self.area_y_step, area.get("y_step", 5.0))
-            self._set_spin_safely(self.area_spiral_step, area.get("x_step", 5.0))
-
-        self._set_dropdown_safely(
-            self.area_pattern_dd,
-            "Spiral" if spiral else "Crosshair",
-        )
+        # Step size: prefer explicit step_size else x_step/y_step
+        step = area.get("step_size", None)
+        if step is None:
+            x_st = area.get("x_step", 5.0)
+            y_st = area.get("y_step", 5.0)
+            try:
+                step = x_st if float(x_st) == float(y_st) else x_st
+            except Exception:
+                step = 5.0
+        self._set_spin_safely(self.area_step_size, step)
 
         pd = str(area.get("primary_detector", "max")).upper()
         if pd not in ("CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8", "MAX"):
@@ -302,10 +288,7 @@ class DefaultSettingsConfig(App):
         plot_val = area.get("plot", "New")
         if isinstance(plot_val, str):
             low = plot_val.lower()
-            if low == "previous":
-                plot_val = "Previous"
-            else:
-                plot_val = "New"
+            plot_val = "Previous" if low == "previous" else "New"
         try:
             self.area_plot_dd.set_value(plot_val)
         except Exception:
@@ -491,75 +474,24 @@ class DefaultSettingsConfig(App):
         )
         y += ROW
 
+        # Window Size (sets BOTH X and Y size)
         self._create_field_3col(
             root, LBL_X, INP_X, UNIT_X, y,
             LBL_W, INP_W, UNIT_W,
-            "X Size", "x_size", "um",
+            "Window Size", "area_window", "um",
             50.0, 1, 1000, 1,
         )
-        self.area_x_size = root.children["x_size_in"]
+        self.area_window_size = root.children["area_window_in"]
         y += ROW
 
+        # Step Size (sets BOTH X and Y step)
         self._create_field_3col(
             root, LBL_X, INP_X, UNIT_X, y,
             LBL_W, INP_W, UNIT_W,
-            "Y Size", "y_size", "um",
-            50.0, 1, 1000, 1,
-        )
-        self.area_y_size = root.children["y_size_in"]
-        y += ROW
-
-        self._create_field_3col(
-            root, LBL_X, INP_X, UNIT_X, y,
-            LBL_W, INP_W, UNIT_W,
-            "X Step", "x_step", "um",
+            "Step Size", "area_step", "um",
             5.0, 0.1, 100, 0.1,
         )
-        self.area_x_step = root.children["x_step_in"]
-        y += ROW
-
-        self._create_field_3col(
-            root, LBL_X, INP_X, UNIT_X, y,
-            LBL_W, INP_W, UNIT_W,
-            "Y Step", "y_step", "um",
-            5.0, 0.1, 100, 0.1,
-        )
-        self.area_y_step = root.children["y_step_in"]
-        y += ROW
-
-        self._create_field_3col(
-            root, LBL_X, INP_X, UNIT_X, y,
-            LBL_W, INP_W, UNIT_W,
-            "Step Size (Spiral)", "spiral_step", "um",
-            5.0, 0.1, 100, 0.1,
-        )
-        self.area_spiral_step = root.children["spiral_step_in"]
-        y += ROW
-
-        StyledLabel(
-            container=root,
-            text="Pattern",
-            variable_name="pattern_lb",
-            left=LBL_X,
-            top=y,
-            width=LBL_W,
-            height=24,
-            font_size=100,
-            flex=True,
-            justify_content="right",
-            color="#222",
-        )
-        self.area_pattern_dd = StyledDropDown(
-            container=root,
-            text=["Spiral", "Crosshair"],
-            variable_name="pattern_dd",
-            left=INP_X,
-            top=y,
-            width=INP_W + UNIT_W,
-            height=24,
-            position="absolute",
-        )
-        self.area_pattern_dd.set_value("Spiral")
+        self.area_step_size = root.children["area_step_in"]
         y += ROW
 
         StyledLabel(
@@ -829,8 +761,6 @@ class DefaultSettingsConfig(App):
         )
         self.fa_ref_wl = root.children["ref_wl_in"]
         y += ROW
-
-        
 
         # Secondary Ref Wvl
         self._create_field_fine_align(
@@ -1746,64 +1676,25 @@ class DefaultSettingsConfig(App):
         except Exception as e:
             print(f"[Default_Settings] Error updating shared_memory.json: {e}")
 
-    def _get_widget_value_by_name(self, widget_name, default_value):
-        try:
-            container = getattr(self, "_ui_container", None)
-            if container and hasattr(container, "children") and widget_name in container.children:
-                return float(container.children[widget_name].get_value())
-            return default_value
-        except Exception:
-            return default_value
-
     def _build_config_from_ui(self):
+        # Area Scan mirrors Fine Align: Window + Step Size
+        area_window = self._safe_float(self.area_window_size, 50.0)
+        area_step = self._safe_float(self.area_step_size, 5.0)
+
         try:
-            pattern_raw = str(self.area_pattern_dd.get_value()) if self.area_pattern_dd else "Spiral"
-            pattern_raw = pattern_raw.strip().lower()
-            spiral = (pattern_raw == "spiral")
-
-            if spiral:
-                try:
-                    step_val = float(self.area_spiral_step.get_value())
-                except Exception:
-                    step_val = 5.0
-                area_x_step = step_val
-                area_y_step = step_val
-            else:
-                try:
-                    area_x_step = float(self.area_x_step.get_value())
-                except Exception:
-                    area_x_step = 5.0
-                try:
-                    area_y_step = float(self.area_y_step.get_value())
-                except Exception:
-                    area_y_step = 5.0
-
-            area_pattern = "spiral" if spiral else "crosshair"
-
-            try:
-                primary_raw = str(self.area_primary_detector_dd.get_value())
-            except Exception:
-                primary_raw = "MAX"
-            primary_norm = primary_raw.strip().upper()
-            if primary_norm not in ("CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8", "MAX"):
-                primary_norm = "MAX"
-            primary_token = primary_norm.lower()
-
-            try:
-                plot_raw = str(self.area_plot_dd.get_value())
-            except Exception:
-                plot_raw = "New"
-            if plot_raw.lower() == "previous":
-                plot_norm = "Previous"
-            else:
-                plot_norm = "New"
-
+            primary_raw = str(self.area_primary_detector_dd.get_value())
         except Exception:
-            area_x_step = 5.0
-            area_y_step = 5.0
-            area_pattern = "spiral"
-            primary_token = "max"
-            plot_norm = "New"
+            primary_raw = "MAX"
+        primary_norm = primary_raw.strip().upper()
+        if primary_norm not in ("CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8", "MAX"):
+            primary_norm = "MAX"
+        primary_token = primary_norm.lower()
+
+        try:
+            plot_raw = str(self.area_plot_dd.get_value())
+        except Exception:
+            plot_raw = "New"
+        plot_norm = "Previous" if plot_raw.lower() == "previous" else "New"
 
         config = {
             "Sweep": {
@@ -1813,11 +1704,18 @@ class DefaultSettingsConfig(App):
                 "step": self._safe_float(self.sweep_step, 0.001),
             },
             "AreaS": {
-                "x_size": self._safe_float(self.area_x_size, 50.0),
-                "x_step": float(area_x_step),
-                "y_size": self._safe_float(self.area_y_size, 50.0),
-                "y_step": float(area_y_step),
-                "pattern": area_pattern,
+                # Always keep X/Y symmetric to mirror Fine Align
+                "x_size": float(area_window),
+                "y_size": float(area_window),
+                "window_size": float(area_window),
+
+                "x_step": float(area_step),
+                "y_step": float(area_step),
+                "step_size": float(area_step),
+
+                # Pattern is fixed now (no dropdown)
+                "pattern": "spiral",
+
                 "primary_detector": primary_token,
                 "plot": plot_norm,
             },
@@ -1837,33 +1735,17 @@ class DefaultSettingsConfig(App):
             },
             "DetectorWindowSettings": {
                 "DetectorAutoRange_Ch1": {},
-                "DetectorRange_Ch1": {
-                    "range_dbm": self._safe_int(self.ch1_range, -10),
-                },
-                "DetectorReference_Ch1": {
-                    "ref_dbm": self._safe_int(self.ch1_ref, -30),
-                },
+                "DetectorRange_Ch1": {"range_dbm": self._safe_int(self.ch1_range, -10)},
+                "DetectorReference_Ch1": {"ref_dbm": self._safe_int(self.ch1_ref, -30)},
                 "DetectorAutoRange_Ch2": {},
-                "DetectorRange_Ch2": {
-                    "range_dbm": self._safe_int(self.ch2_range, -10),
-                },
-                "DetectorReference_Ch2": {
-                    "ref_dbm": self._safe_int(self.ch2_ref, -30),
-                },
+                "DetectorRange_Ch2": {"range_dbm": self._safe_int(self.ch2_range, -10)},
+                "DetectorReference_Ch2": {"ref_dbm": self._safe_int(self.ch2_ref, -30)},
                 "DetectorAutoRange_Ch3": {},
-                "DetectorRange_Ch3": {
-                    "range_dbm": self._safe_int(self.ch3_range, -10),
-                },
-                "DetectorReference_Ch3": {
-                    "ref_dbm": self._safe_int(self.ch3_ref, -30),
-                },
+                "DetectorRange_Ch3": {"range_dbm": self._safe_int(self.ch3_range, -10)},
+                "DetectorReference_Ch3": {"ref_dbm": self._safe_int(self.ch3_ref, -30)},
                 "DetectorAutoRange_Ch4": {},
-                "DetectorRange_Ch4": {
-                    "range_dbm": self._safe_int(self.ch4_range, -10),
-                },
-                "DetectorReference_Ch4": {
-                    "ref_dbm": self._safe_int(self.ch4_ref, -30),
-                },
+                "DetectorRange_Ch4": {"range_dbm": self._safe_int(self.ch4_range, -10)},
+                "DetectorReference_Ch4": {"ref_dbm": self._safe_int(self.ch4_ref, -30)},
                 "Detector_Change": "1",
             },
             "Port": {

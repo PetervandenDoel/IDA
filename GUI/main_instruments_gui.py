@@ -129,54 +129,74 @@ class instruments(App):
             StyledLabel(
                 container=instruments_container, variable_name=f"label_{key}",
                 text={"stage": "Stage:",
-                      "sensor": "Laser / Detector:",
-                      "tec": "TEC:",
-                      "smu": "SMU:",
-                      "motor": "Elec Probe:"}[key],
-                left=0, top=15 + idx * 40, width=150, height=20, font_size=100, color="#444", align="right"
+                    "sensor": "Laser / Detector:",
+                    "tec": "TEC:",
+                    "smu": "SMU:",
+                    "motor": "Elec Probe:"}[key],
+                left=0, top=15 + idx * 40, width=150, height=20,
+                font_size=100, color="#444", align="right"
             )
 
             # DropDown
             setattr(self, f"{key}_dd", StyledDropDown(
                 container=instruments_container,
                 text={"stage": ["MMC100_controller", "Corvus_controller", "Dummy"],
-                      "sensor": ["8164B_NIR", "Dummy_A", "Dummy_B"],
-                      "tec": ["srs_ldc_502", "Dummy_A", "Dummy_B"],
-                      "smu": ["stage_control", "Dummy_A", "Dummy_B"],
-                      "motor": ["BSC203_emotor", "Dummy_A", "Dummy_B"]}[key],
-                variable_name=f"set_{key}", left=160, top=10 + idx * 40, width=180, height=30))
-
-            # Configure Button
-            setattr(self, f"{key}_configure_btn", StyledButton(
-                container=instruments_container, text="Configure", variable_name=f"configure_{key}",
-                left=360, top=10 + idx*40, normal_color="#007BFF", press_color="#0056B3"
+                    "sensor": ["8164B_NIR", "Dummy_A", "Dummy_B"],
+                    "tec": ["srs_ldc_502", "Dummy_A", "Dummy_B"],
+                    "smu": ["stage_control", "Dummy_A", "Dummy_B"],
+                    "motor": ["BSC203_emotor", "Dummy_A", "Dummy_B"]}[key],
+                variable_name=f"set_{key}",
+                left=160, top=10 + idx * 40, width=180, height=30
             ))
 
-            # Connect Button
+            # Connect button (ALWAYS FIRST, ALWAYS SAME POSITION)
             setattr(self, f"{key}_connect_btn", StyledButton(
-                container=instruments_container, text="Connect", variable_name=f"connect_{key}",
-                left=480, top=10 + idx * 40, normal_color="#007BFF", press_color="#0056B3"
+                container=instruments_container,
+                text="Connect",
+                variable_name=f"connect_{key}",
+                left=360, top=10 + idx * 40,
+                normal_color="#007BFF", press_color="#0056B3"
             ))
+
+            # Configure button (ONLY for stage, smu, motor)
+            if key in ("stage", "smu", "motor"):
+                setattr(self, f"{key}_configure_btn", StyledButton(
+                    container=instruments_container,
+                    text="Configure",
+                    variable_name=f"configure_{key}",
+                    left=480, top=10 + idx * 40,
+                    normal_color="#007BFF", press_color="#0056B3"
+                ))
 
         # Terminal
         terminal_container = StyledContainer(
-            container=instruments_container, variable_name="terminal_container",
+            container=instruments_container,
+            variable_name="terminal_container",
             left=0, top=500, height=150, width=650, bg_color=True
         )
 
         self.terminal = Terminal(
-            container=terminal_container, variable_name="terminal_text", left=10, top=15, width=610, height=100
+            container=terminal_container,
+            variable_name="terminal_text",
+            left=10, top=15, width=610, height=100
         )
 
+        # Connect handlers
         self.stage_connect_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_stage_connect_btn))
         self.sensor_connect_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_sensor_connect_btn))
         self.tec_connect_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_tec_connect_btn))
-        self.stage_configure_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_configure_btn))
-        self.sensor_configure_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_configure_btn))
-        self.tec_configure_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_configure_btn))
+
+        # Configure handlers (only if present)
+        if hasattr(self, "stage_configure_btn"):
+            self.stage_configure_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_configure_btn))
+        if hasattr(self, "smu_configure_btn"):
+            self.smu_configure_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_configure_btn))
+        if hasattr(self, "motor_configure_btn"):
+            self.motor_configure_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_configure_btn))
 
         self.instruments_container = instruments_container
         return instruments_container
+
 
     def onclick_stage_connect_btn(self):
         if self.stage_connect_btn.get_text() == "Connect":
@@ -234,7 +254,7 @@ class instruments(App):
         subprocess.Popen(
             [sys.executable, "-u", str(GUI_DIR / "sub_connect_config_gui.py")],
             env=os.environ.copy()
-            )
+        )
 
 def run_remi():
     start(

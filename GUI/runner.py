@@ -284,7 +284,7 @@ def _quote(p: pathlib.Path) -> str:
 def open_log_terminal_windows(log_path: pathlib.Path, tail_lines: int = 200):
     # First clear the previous terminal
     with open(log_path, "w") as f:
-        f.write('Welcome to SiEPIC Lab Probe Stage')
+        f.write('Welcome to SiEPIC Lab Probe Stage\n')
     
     log_q = _quote(log_path)
     ps_cmd = (

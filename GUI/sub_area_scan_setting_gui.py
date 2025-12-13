@@ -23,8 +23,7 @@ class area_scan(App):
         self.area_s = {}
 
         # Widget references (initialized in construct_ui)
-        self.x_size = None
-        self.y_size = None
+        self.window_size = None
         self.step_size = None
         self.primary_detector_dd = None
         self.plot_dd = None
@@ -130,19 +129,21 @@ class area_scan(App):
         )
         y += ROW
 
-        # X Size
+        # ------------------------------------------------------------------
+        # Window Size (replaces X Size + Y Size)
+        # ------------------------------------------------------------------
         StyledLabel(
             container=container,
-            text="X Size",
-            variable_name="x_size_lb",
+            text="Window Size",
+            variable_name="window_size_lb",
             left=LBL_X,
             top=y,
             width=LBL_W,
             height=24
         )
-        self.x_size = StyledSpinBox(
+        self.window_size = StyledSpinBox(
             container=container,
-            variable_name="x_size_in",
+            variable_name="window_size_in",
             left=INP_X,
             top=y,
             width=INP_W,
@@ -154,39 +155,7 @@ class area_scan(App):
         StyledLabel(
             container=container,
             text="µm",
-            variable_name="x_size_unit",
-            left=UNIT_X,
-            top=y,
-            width=UNIT_W,
-            height=24
-        )
-        y += ROW
-
-        # Y Size
-        StyledLabel(
-            container=container,
-            text="Y Size",
-            variable_name="y_size_lb",
-            left=LBL_X,
-            top=y,
-            width=LBL_W,
-            height=24
-        )
-        self.y_size = StyledSpinBox(
-            container=container,
-            variable_name="y_size_in",
-            left=INP_X,
-            top=y,
-            width=INP_W,
-            height=24,
-            value=50,
-            min_value=-1000,
-            max_value=1000
-        )
-        StyledLabel(
-            container=container,
-            text="µm",
-            variable_name="y_size_unit",
+            variable_name="window_size_unit",
             left=UNIT_X,
             top=y,
             width=UNIT_W,
@@ -324,15 +293,22 @@ class area_scan(App):
         except Exception:
             pass
 
-        # -------- Basic fields --------
-        self._set_spin_safely(self.x_size, self.area_s.get("x_size"))
-        self._set_spin_safely(self.y_size, self.area_s.get("y_size"))
+        # -------- Window Size (syncs x_size & y_size) --------
+        # Priority:
+        #   1) AreaS["window_size"]
+        #   2) AreaS["x_size"]
+        #   3) AreaS["y_size"]
+        window_val = self.area_s.get("window_size", None)
+        if window_val is None:
+            window_val = self.area_s.get("x_size", None)
+        if window_val is None:
+            window_val = self.area_s.get("y_size", None)
 
-        # Prefer x_step from saved data if present, otherwise step_size
-        step_val = (
-            self.area_s.get("x_step",
-                            self.area_s.get("step_size", None))
-        )
+        if window_val is not None:
+            self._set_spin_safely(self.window_size, window_val)
+
+        # -------- Step Size --------
+        step_val = self.area_s.get("x_step", self.area_s.get("step_size", None))
         if step_val is not None:
             self._set_spin_safely(self.step_size, step_val)
 
@@ -374,28 +350,28 @@ class area_scan(App):
         y_step_out = step_val
 
         try:
-            x_size_val = float(self.x_size.get_value())
+            window_val = float(self.window_size.get_value())
         except Exception:
-            x_size_val = 0.0
-
-        try:
-            y_size_val = float(self.y_size.get_value())
-        except Exception:
-            y_size_val = 0.0
+            window_val = 0.0
 
         value = {
-            "x_size": x_size_val,
-            "y_size": y_size_val,
+            # New unified field:
+            "window_size": window_val,
+
+            # Backward compatibility:
+            "x_size": window_val,
+            "y_size": window_val,
+
             # For compatibility with existing area-sweep logic:
             "x_step": x_step_out,
             "y_step": y_step_out,
+
             # Explicit step_size field:
             "step_size": step_val,
+
             # Spiral-only pattern:
             "pattern": "spiral",
-            "primary_detector": str(
-                self.primary_detector_dd.get_value()
-            ).lower(),
+            "primary_detector": str(self.primary_detector_dd.get_value()).lower(),
             "plot": self.plot_dd.get_value()
         }
 
@@ -431,15 +407,23 @@ class area_scan(App):
                 record = 1
                 new_command[key] = val
 
+            # NEW: unified command
+            elif key == "as_window_size":
+                try:
+                    self.window_size.set_value(val)
+                except Exception:
+                    pass
+
+            # Back-compat: map x/y size commands to window_size
             elif key == "as_x_size":
                 try:
-                    self.x_size.set_value(val)
+                    self.window_size.set_value(val)
                 except Exception:
                     pass
 
             elif key == "as_y_size":
                 try:
-                    self.y_size.set_value(val)
+                    self.window_size.set_value(val)
                 except Exception:
                     pass
 
@@ -459,7 +443,7 @@ class area_scan(App):
 
             elif key == "as_primary_detector":
                 try:
-                    self.primary_detector_dd.set_value(val.upper())
+                    self.primary_detector_dd.set_value(str(val).upper())
                 except Exception:
                     pass
 
