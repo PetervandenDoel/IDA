@@ -145,7 +145,7 @@ class SrsLdc502(LdcHAL):
             self._log(f"Get config error: {e}", "error")
             return {}
     
-    # === TEC Controller ===
+    # --- TEC Controller ---
     
     def tec_on(self) -> bool:
         """Turn on TEC"""
@@ -399,54 +399,122 @@ class SrsLdc502(LdcHAL):
             })
             return False
      
-    # === LD Controller (Stubs) ===
-    # These are not implemented for the Probe_Stage stage but required by the HAL
-    
-    def ldc_on(self) -> bool:
-        """Turn LDC on - Not implemented for Probe_Stage stage"""
-        self._log("LDC control not implemented for this stage", "error")
-        return False
-    
-    def ldc_off(self) -> bool:
-        """Turn LDC off - Not implemented for Probe_Stage stage"""
-        self._log("LDC control not implemented for this stage", "error")
-        return False
-    
+    # --- LD Controller ---
+    def ldc_on(self) -> None:
+        """Enable LD output (forces current to 0 first)."""
+        if not self._inst:
+            raise RuntimeError("Instrument not connected")
+
+        self._inst.write("SILD 0")
+        sleep(0.1)
+        self._inst.write("LDON 1")
+        sleep(0.2)
+
+    def ldc_off(self) -> None:
+        """Disable LD output (forces current to 0 first)."""
+        if not self._inst:
+            raise RuntimeError("Instrument not connected")
+
+        self._inst.write("SILD 0")
+        sleep(0.1)
+        self._inst.write("LDON 0")
+        sleep(0.2)
+
     def ldc_state(self) -> str:
-        """Check state of LDC - Not implemented for Probe_Stage stage"""
-        return "not_implemented"
-    
-    def set_voltage_limit(self, limit: float) -> bool:
-        """Set voltage limit - Not implemented for Probe_Stage stage"""
-        return False
-    
+        """Return 'on' or 'off'."""
+        self._inst.write("LDON?")
+        sleep(0.05)
+        return "on" if self._inst.read().strip() == "1" else "off"
+
+    # --- Limits ---
+
+    def set_voltage_limit(self, v_lim: float) -> None:
+        self._inst.write(f"SVLM {v_lim}")
+        sleep(0.05)
+
     def get_voltage_limit(self) -> float:
-        """Get voltage limit - Not implemented for Probe_Stage stage"""
-        return 0.0
-    
-    def set_current_limit(self, limit: float) -> bool:
-        """Set current limit - Not implemented for Probe_Stage stage"""
-        return False
-    
+        self._inst.write("SVLM?")
+        sleep(0.05)
+        return float(self._inst.read())
+
+    def set_current_limit(self, i_lim: float) -> None:
+        self._inst.write(f"SILM {i_lim}")
+        sleep(0.05)
+
     def get_current_limit(self) -> float:
-        """Get current limit - Not implemented for Probe_Stage stage"""
-        return 0.0
-    
-    def set_current(self, current: float) -> bool:
-        """Configure current setpoints - Not implemented for Probe_Stage stage"""
-        return False
-    
+        self._inst.write("SILM?")
+        sleep(0.05)
+        return float(self._inst.read())
+
+    # --- Set / Read ---
+
+    def set_current(self, i_set: float) -> None:
+        """Set LD current setpoint (mA)."""
+        self._inst.write(f"SILD {i_set}")
+        sleep(0.05)
+
     def get_current(self) -> float:
-        """Read current - Not implemented for Probe_Stage stage"""
-        return 0.0
-    
+        self._inst.write("RILD?")
+        sleep(0.05)
+        return float(self._inst.read())
+
     def get_voltage(self) -> float:
-        """Read voltage - Not implemented for Probe_Stage stage"""
-        return 0.0
-    
-    def set_current_range(self, toggle: int) -> bool:
-        """Set range to be either High or Low - Not implemented for Probe_Stage stage"""
-        return False
+        self._inst.write("RVLD?")
+        sleep(0.05)
+        return float(self._inst.read())
+
+    def set_current_range(self, high: bool) -> None:
+        self._inst.write("RNGE HIGH" if high else "RNGE LOW")
+        sleep(0.05)
+
+    # --- Current Sweep ---
+
+    def current_sweep(
+        self,
+        start_ma: float,
+        stop_ma: float,
+        step_ma: float,
+        dwell_ms: int,
+        trigger_delay_ms: int = 0,
+    ) -> None:
+        """
+        Hardware current sweep using SRS SCAN command.
+
+        Notes:
+        - start_ma must NOT be 0 (SRS quirk).
+        - Sweep blocks until complete.
+        """
+
+        if not self._inst:
+            raise RuntimeError("Instrument not connected")
+
+        # Enable LD (SRS takes several seconds internally)
+        self.ldc_on()
+        sleep(4.5)
+
+        steps = int((stop_ma - start_ma) / step_ma) + 1
+
+        # Trigger delay (applies to all steps)
+        self._inst.write(f"SYND {trigger_delay_ms}")
+        sleep(0.1)
+
+        # Set initial current one step below start
+        self._inst.write(f"SILD {start_ma - step_ma}")
+        sleep(0.1)
+
+        # SCAN <step>, <count>, <dwell>
+        self._inst.write(f"SCAN {step_ma},{steps},{dwell_ms}")
+        sleep(0.1)
+
+        # Wait until sweep completes
+        while True:
+            self._inst.write("SCAN?")
+            sleep(0.1)
+            if int(self._inst.read()) == 0:
+                break
+
+        self.ldc_off()
+
 
 # Register the fixed driver
 from LDC.hal.LDC_factory import register_driver
