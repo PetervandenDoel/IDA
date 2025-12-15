@@ -5,7 +5,7 @@ from motors.hal.motors_hal import (
 )
 
 import sys
-sys.path.insert(0, r'C:\Users\camer\OneDrive\Desktop\SiEPIC\DreamsLab')
+sys.path.insert(0, r'C:\Users\mlpadmin\Documents\Github\SiEPIC\DreamsLab')
 from dreamslab.drivers.motor import MLPMotor
 
 
@@ -24,19 +24,24 @@ Cameron Basara, 2025
 
 class ScyllaController(MotorHAL):
     """Scylla motor controller implementing relative movement only."""
-    
-    def __init__(self, axis: AxisType, port: str, address: int = 1):
+    # Axis Mapping
+    AXIS_MAP = {
+        AxisType.X: 0,  # Chan 0
+        AxisType.Y: 1,  # Chan 1
+        AxisType.Z: 2
+    }    
+
+    def __init__(self, axis: AxisType, port: str):
         """
         Initialize Scylla controller.
         
         Args:
             axis: Axis type this controller manages
             port: Serial port path (e.g., '/dev/ttyUSB0')
-            address: Controller address on bus
         """
         super().__init__(axis)
+        self.m = None  # Motor connection to call API
         self.port = port
-        self.address = address
         self._serial = None
         self._position = 0.0
         self._state = MotorState.IDLE
@@ -44,11 +49,12 @@ class ScyllaController(MotorHAL):
     # Initialization
     async def connect(self) -> bool:
         """Connect to Scylla controller."""
-        # TODO: Open serial connection
-        # TODO: Initialize controller
-        # TODO: Set initial parameters
-        self._state = MotorState.IDLE
-        return True
+        try:
+            # Init axis using API
+            self.m = MLPMotor(chan=self.AXIS_MAP[self.axis])
+            return True
+        except Exception as e:
+            return False
     
     async def disconnect(self) -> Optional[bool]:
         """Disconnect from controller."""
@@ -71,17 +77,8 @@ class ScyllaController(MotorHAL):
         Returns:
             True if move command accepted
         """
-        # TODO: Send relative move command
-        # TODO: Update internal position tracking
-        self._state = MotorState.MOVING
-        self._emit_event(MotorEventType.MOVE_STARTED)
-        
-        # Placeholder for actual move
-        await asyncio.sleep(0.1)
-        
-        self._position += distance
-        self._state = MotorState.IDLE
-        self._emit_event(MotorEventType.MOVE_COMPLETE)
+        # For now, call MLP API
+        self.m.move(distance=distance)
         return True
     
     async def stop(self) -> bool:
