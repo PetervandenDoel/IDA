@@ -5,8 +5,21 @@ from motors.hal.motors_hal import (
 )
 
 import sys
-sys.path.insert(0, r'C:\Users\mlpadmin\Documents\Github\SiEPIC\DreamsLab')
-from dreamslab.drivers.motor import MLPMotor
+import os
+path = r'C:\Users\mlpadmin\Documents\Github\SiEPIC\DreamsLab'
+sys.path.insert(0, path)
+print(f"Path exists: {os.path.exists(path)}")
+
+# List what's inside
+if os.path.exists(path):
+    print(f"Contents: {os.listdir(path)}")
+    
+    # Check for drivers folder
+    drivers_path = os.path.join(path, 'drivers')
+    if os.path.exists(drivers_path):
+        print(f"Drivers contents: {os.listdir(drivers_path)}")
+
+# from dreamslab.drivers.motor import MLPMotor
 
 
 """
