@@ -1,31 +1,14 @@
 import asyncio
-from typing import Optional
+import time
+from typing import Optional, ClassVar
 from motors.hal.motors_hal import (
     MotorHAL, AxisType, MotorState, Position, MotorConfig, MotorEventType
 )
 
-import sys
-import os
-path = r'C:\Users\mlpadmin\Documents\Github\SiEPIC\DreamsLab'
-sys.path.insert(0, path)
-print(f"Path exists: {os.path.exists(path)}")
-
-# List what's inside
-if os.path.exists(path):
-    print(f"Contents: {os.listdir(path)}")
-    
-    # Check for drivers folder
-    drivers_path = os.path.join(path, 'drivers')
-    if os.path.exists(drivers_path):
-        print(f"Drivers contents: {os.listdir(drivers_path)}")
-
-# from dreamslab.drivers.motor import MLPMotor
-
+from mlpPyAPI.api import connect_to_api
 
 """
-Very limited capabilites, must have access to a
-computer with the Dreamslab repo on it as it 
-contains IP not available for open source usage
+Limited capabilites
 
 Implements MotorHAL for Scylla controller with initialization 
 and relative movement support.
@@ -39,40 +22,72 @@ class ScyllaController(MotorHAL):
     """Scylla motor controller implementing relative movement only."""
     # Axis Mapping
     AXIS_MAP = {
-        AxisType.X: 0,  # Chan 0
-        AxisType.Y: 1,  # Chan 1
-        AxisType.Z: 2
-    }    
+        AxisType.X: 'dx',
+        AxisType.Y: 'dy', 
+        AxisType.Z: 'dz',
+        AxisType.ROTATION_CHIP: 'dzRot',
+        AxisType.ROTATION_FIBER: 'dxRot'
+    }
+    counter: ClassVar[int] = 0
+    api_inst: ClassVar = None
 
-    def __init__(self, axis: AxisType, port: str):
+    def __init__(self, axis: AxisType):
         """
         Initialize Scylla controller.
         
         Args:
             axis: Axis type this controller manages
-            port: Serial port path (e.g., '/dev/ttyUSB0')
         """
         super().__init__(axis)
-        self.m = None  # Motor connection to call API
-        self.port = port
+        self.instrument = None  # Motor connection to call API
         self._serial = None
         self._position = 0.0
         self._state = MotorState.IDLE
+        self._callbacks = []
+    
+    def add_callback(self, callback):
+        """Add event callback"""
+        if callback not in self._callbacks:
+            self._callbacks.append(callback)
     
     # Initialization
     async def connect(self) -> bool:
         """Connect to Scylla controller."""
         try:
             # Init axis using API
-            self.m = MLPMotor(chan=self.AXIS_MAP[self.axis])
+            if self.counter == 0:
+                print('Connecting to API, please ensure Fonotina API is running...')
+                self.api_inst = connect_to_api()
+            self.counter += 1
+            time.sleep(0.3)
+
+            if self.axis in [AxisType.X, AxisType.Y, AxisType.Z,
+                             AxisType.ROTATION_FIBER]:
+                self.instrument = getattr(self.api_inst, 'fiber_stage[0]')
+            else:
+                # Rotations
+                self.instrument = getattr(self.api_inst, 'chip_stage')
+
+            if self.instrument is None:
+                raise
+
+            # Connect to device
+            self.instrument.connect()
+
             return True
         except Exception as e:
             return False
     
     async def disconnect(self) -> Optional[bool]:
         """Disconnect from controller."""
-        # TODO: Close serial connection
-        return True
+        try:
+            self.counter -= 1
+            self.instrument.disconnect()  # May be?
+            if self.counter == 0:
+                self.api_inst = None
+            return True
+        except:
+            return False
     
     # Movement
     async def move_absolute(self, position: float, velocity: Optional[float] = None) -> bool:
@@ -90,8 +105,8 @@ class ScyllaController(MotorHAL):
         Returns:
             True if move command accepted
         """
-        # For now, call MLP API
-        self.m.move(distance=distance)
+        # For now, use MLPMotor implementation
+        self.instrument.move_relative(**{self.AXIS_MAP[self.axis]: distance})
         return True
     
     async def stop(self) -> bool:
@@ -109,7 +124,9 @@ class ScyllaController(MotorHAL):
     # Status
     async def get_position(self) -> Position:
         """Get current position."""
-        # TODO: Query actual position from controller
+
+        print(self.instrument.get_position())
+
         return Position(
             theoretical=self._position,
             actual=self._position,
