@@ -1,10 +1,8 @@
-from NIR.Luna.Luna_instr import Luna
+from NIR.Luna.luna_controller import LunaController
 import pyvisa as visa
 
-rm = visa.ResourceManager()
-# print(rm.list_resources())
 
-lna = Luna()
+luna = LunaController()
 
 iplst = ['137.82.94.91']
 port='1'
