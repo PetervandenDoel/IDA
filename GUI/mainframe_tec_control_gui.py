@@ -112,6 +112,7 @@ class tec_control(App):
                         tec_control._ldc_manager = None
         except Exception as e:
             print(f"Nice exception: {e}")
+        
     def construct_ui(self):
         try: 
             main_container = StyledContainer(
@@ -173,7 +174,7 @@ class tec_control(App):
                 text="⮞",
                 variable_name="temp_right_button",
                 font_size=100,
-                left=222, top=55,
+                left=197, top=55,
                 width=40, height=25
             )
 
@@ -185,7 +186,7 @@ class tec_control(App):
                 max_value=75,
                 value=25,
                 step=0.1,
-                width=65,
+                width=57,
                 height=24
             )
 
@@ -260,7 +261,7 @@ class tec_control(App):
                 container=ld_container,
                 text="I Limit [mA]",
                 variable_name="current_lim_label",
-                left=5, top=110,
+                left=5, top=105,
                 width=90, height=25,
                 font_size=90
             )
@@ -268,7 +269,7 @@ class tec_control(App):
             self.i_limit = StyledSpinBox(
                 container=ld_container,
                 variable_name="i_limit_input",
-                left=100, top=110,
+                left=100, top=105,
                 min_value=0.1,
                 max_value=500.0,
                 value=100.0,
@@ -281,7 +282,7 @@ class tec_control(App):
                 container=ld_container,
                 text="Set",
                 variable_name="set_i_limit_btn",
-                left=170, top=110,
+                left=170, top=105,
                 width=50, height=25,
                 font_size=90
             )
@@ -290,7 +291,7 @@ class tec_control(App):
                 container=ld_container,
                 text="V Limit [V]",
                 variable_name="voltage_lim_label",
-                left=5, top=130,
+                left=5, top=135,
                 width=90, height=25,
                 font_size=90
             )
@@ -298,7 +299,7 @@ class tec_control(App):
             self.v_limit = StyledSpinBox(
                 container=ld_container,
                 variable_name="v_limit_input",
-                left=100, top=130,
+                left=100, top=135,
                 min_value=0.1,
                 max_value=10.0,
                 value=2.5,
@@ -311,7 +312,7 @@ class tec_control(App):
                 container=ld_container,
                 text="Set",
                 variable_name="set_v_limit_btn",
-                left=170, top=130,
+                left=170, top=135,
                 width=50, height=25,
                 font_size=90
             )
@@ -368,7 +369,7 @@ class tec_control(App):
                 left=235, top=45,
                 min_value=0.1, max_value=500,
                 value=20.0, step=0.1,
-                width=65, height=24
+                width=60, height=24
             )
 
             StyledLabel(
@@ -393,7 +394,7 @@ class tec_control(App):
             self.ld_dwell = StyledSpinBox(
                 container=ld_sweep_container,
                 variable_name="ld_dwell",
-                left=255, top=85,
+                left=240, top=85,
                 min_value=10, max_value=10000,
                 value=100, step=10,
                 width=55, height=24
@@ -449,7 +450,9 @@ class tec_control(App):
         except Exception as e:
             print(f"Fine as well: {e}")
             import sys
-            print(f"line: {sys.exc_info()[-1].tb_lineno}")
+            print(f"line: {sys.exc_info()[-1].tb_lineno}")    
+
+
     # === TEC Handlers ===
     
     def onclick_minus_temp(self):
