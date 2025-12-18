@@ -2,8 +2,9 @@ import logging
 from typing import Dict, Any, Callable, List, Optional, Tuple
 from dataclasses import dataclass, asdict
 
-from NIR.nir_controller import NIR8164
+# from NIR.nir_controller import NIR8164
 from NIR.hal.nir_hal import LaserEvent
+from NIR.hal.nir_factory import create_driver
 from NIR.config.nir_config import NIRConfiguration
 from utils.logging_helper import setup_logger
 
@@ -25,13 +26,16 @@ class NIRManager:
         self.logger = setup_logger("NIRManager", "NIR", debug_mode=debug)
 
         # Initialize controller
-        self.controller = NIR8164(
-            gpib_addr=config.gpib_addr,
-            laser_slot=config.laser_slot,
-            detector_slots=config.detector_slots,
-            safety_password=config.safety_password,
-            timeout_ms=config.timeout
-        )
+        cfg = self.config.to_dict()
+        driver_key = cfg['driver_types']
+        self.controller = create_driver(driver_key, **cfg)
+        # self.controller = NIR8164(
+        #     gpib_addr=config.gpib_addr,
+        #     laser_slot=config.laser_slot,
+        #     detector_slots=config.detector_slots,
+        #     safety_password=config.safety_password,
+        #     timeout_ms=config.timeout
+        # )
 
         # Optional slot info helper
         self.slot_info = None
@@ -159,7 +163,10 @@ class NIRManager:
             if not self.controller or not self._connected:
                 return
 
-            self.slot_info = self.controller.get_mainframe_slot_info()
+            if hasattr(self.controller, "get_mainframe_slot_info"):
+                self.slot_info = self.controller.get_mainframe_slot_info()
+            else:
+                return [(1,0)]  # Default to 1 detector
             return self.slot_info
         
         except Exception as e:
@@ -437,7 +444,7 @@ class NIRManager:
             self.controller.cleanup_scan()
             self.controller.set_wavelength(self.config.initial_wavelength_nm)
             self.controller.configure_units()
-
+            
             if results is not None:
                 self._log("Lambda scan completed successfully")
                 return results[0], results[1:]

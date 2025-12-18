@@ -20,7 +20,7 @@ class NIR8164(LaserHAL):
     def __init__(self, gpib_addr: int = 20, laser_slot: int = 1, 
                  detector_slots: List[int] = [1, 2],
                  safety_password: str = "1234", timeout_ms: int = 30000):
-
+        
         self.detector_slots = detector_slots
         self.timeout_ms = timeout_ms
         self.rm: Optional[pyvisa.ResourceManager] = None

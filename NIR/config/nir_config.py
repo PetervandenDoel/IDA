@@ -14,8 +14,9 @@ class NIRConfiguration:
     gpib_addr: int = 20 
     laser_slot: int = 0
     detector_slots: List[int] = field(default_factory=lambda: [1,2])
+    driver_types: str = '8164B_NIR'
     safety_password: str = "1234"
-    timeout: int = 3000 # long for lambda sweep
+    timeout: int = 3000  # long for lambda sweep
     
     # Default settings
     initial_wavelength_nm: float = 1550.0
@@ -37,6 +38,7 @@ class NIRConfiguration:
         return {
             'laser_slot': self.laser_slot,
             'detector_slots': self.detector_slots,
+            'driver_types': self.driver_types,
             'safety_password': self.safety_password,
             'timeout': self.timeout,
             'initial_wavelength_nm': self.initial_wavelength_nm,

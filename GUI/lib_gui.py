@@ -1073,6 +1073,205 @@ class plot():
                 e = None
                 del e
 
+import numpy as np
+import pandas as pd
+from scipy.io import savemat
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
+import matplotlib.pyplot as plt
+
+class plot_luna():
+    """Handles OVA/Luna measurement plotting and saving"""
+    def __init__(self, data_matrix, filename, fileTime, 
+                 user, name, project, auto, file_format, 
+                 destination_dir={}, meta_data=None):
+        if file_format is None:
+            self.file_format = {"csv": 1, "mat": 1, "png": 1, "pdf": 1}
+        else:
+            self.file_format = file_format
+        
+        self.data_matrix = data_matrix  # Full NxM array from output.txt
+        self.filename = filename
+        self.fileTime = fileTime
+        self.user = user
+        self.name = name
+        self.project = project
+        self.auto = auto
+        self.destination_dir = destination_dir
+        self.meta_data = meta_data
+        
+        # Extract columns for plotting (OVA data format)
+        print('Made it here')
+        print(data_matrix)
+        print('Dims')
+        print(len(data_matrix))
+        self.wavelength = data_matrix[0]      # Column 0: Wavelength (nm)
+        self.insertion_loss = data_matrix[1][1]  # Column 2: Insertion Loss (dB)
+        self.group_delay = data_matrix[1][2]     # Column 3: Group Delay (ps)
+        
+        # All column names from Luna OVA output.txt
+        self.column_names = [
+            "X Axis - Wavelength (nm)",
+            "X Axis - Frequency (GHz)",
+            "Insertion Loss (dB)",
+            "Group Delay (ps)",
+            "Chromatic Dispersion (ps/nm)",
+            "Polarization Dependent Loss (dB)",
+            "Polarization Mode Dispersion (ps)",
+            "Linear Phase Deviation (rad)",
+            "Quadratic Phase Deviation (rad)",
+            "JM Element a Amplitude",
+            "JM Element b Amplitude",
+            "JM Element c Amplitude",
+            "JM Element d Amplitude",
+            "JM Element a Phase (rad)",
+            "JM Element b Phase (rad)",
+            "JM Element c Phase (rad)",
+            "JM Element d Phase (rad)",
+            "X Axis - Time (ns)",
+            "Time Domain Amplitude (dB)",
+            "Time Domain Wavelength (nm)",
+            "Max Loss (dB)",
+            "Min Loss (dB)",
+            "Second Order PMD (ps^2)",
+            "Phase Ripple Linear (rad)",
+            "Phase Ripple Quadratic (rad)"
+        ]
+
+    def generate_plots(self):
+        """Create HTML, CSV, MAT, PNG, PDF outputs"""
+        
+        # Determine save path
+        if self.destination_dir == {}:
+            path = os.path.join(".", "UserData", self.user, self.project, "OVA", self.name)
+        else:
+            path = self.destination_dir.get("dest_dir")
+            path = os.path.join(path, "OVA", self.name)
+        
+        os.makedirs(path, exist_ok=True)
+        
+        # ========== HTML (Interactive Plotly with subplots) ==========
+        try:
+            from plotly.subplots import make_subplots
+            import plotly.graph_objects as go
+            
+            fig = make_subplots(
+                rows=2, cols=1,
+                shared_xaxes=True,
+                subplot_titles=("Insertion Loss", "Group Delay"),
+                vertical_spacing=0.12
+            )
+            
+            # Top: Insertion Loss
+            fig.add_trace(
+                go.Scatter(x=self.wavelength, y=self.insertion_loss, 
+                          mode='lines', name='Insertion Loss',
+                          line=dict(color='#1f77b4', width=2)),
+                row=1, col=1
+            )
+            
+            # Bottom: Group Delay
+            fig.add_trace(
+                go.Scatter(x=self.wavelength, y=self.group_delay,
+                          mode='lines', name='Group Delay',
+                          line=dict(color='#ff7f0e', width=2)),
+                row=2, col=1
+            )
+            
+            fig.update_xaxes(title_text="Wavelength (nm)", row=2, col=1)
+            fig.update_yaxes(title_text="Insertion Loss (dB)", row=1, col=1)
+            fig.update_yaxes(title_text="Group Delay (ps)", row=2, col=1)
+            
+            fig.update_layout(height=700, showlegend=False, title_text="OVA Measurement")
+            
+            output_html = os.path.join(path, f"{self.filename}_{self.fileTime}.html")
+            fig.write_html(output_html)
+            print(f"Saved HTML: {output_html}")
+        except Exception as e:
+            print(f"Exception generating HTML plot: {e}")
+        
+        # ========== CSV (ALL columns from data_matrix) ==========
+        if self.file_format.get("csv", 0) == 1:
+            try:
+                # Trim column names to actual number of columns in data
+                col_names = self.column_names[:len(self.data_matrix[1])]
+                
+                df = pd.DataFrame(self.data_matrix, columns=col_names)
+                output_csv = os.path.join(path, f"{self.filename}_{self.fileTime}.csv")
+                df.to_csv(output_csv, index=False)
+                print(f"Saved CSV with all {self.data_matrix.shape[1]} columns: {output_csv}")
+            except Exception as e:
+                print(f"Exception saving CSV: {e}")
+        
+        # ========== MAT (ALL data + metadata) ==========
+        if self.file_format.get("mat", 0) == 1:
+            try:
+                # Trim column names to actual number of columns
+                col_names = self.column_names[:len(self.data_matrix[1])]
+                
+                mat_dict = {
+                    "wavelength_nm": np.asarray(self.wavelength),
+                    "insertion_loss_db": np.asarray(self.insertion_loss),
+                    "group_delay_ps": np.asarray(self.group_delay),
+                    "full_data_matrix": np.asarray(self.data_matrix),  # Save everything!
+                    "column_labels": np.array(col_names, dtype=object),
+                    "filename": np.array(self.filename, dtype=object),
+                    "fileTime": np.array(self.fileTime, dtype=object),
+                    "user": np.array(self.user, dtype=object),
+                    "project": np.array(self.project, dtype=object),
+                    "name": np.array(self.name, dtype=object),
+                    "meta": self.meta_data,
+                }
+                output_mat = os.path.join(path, f"{self.filename}_{self.fileTime}.mat")
+                savemat(output_mat, mat_dict)
+                print(f"Saved MAT with {self.data_matrix.shape[1]} columns: {output_mat}")
+            except Exception as e:
+                print(f"Exception saving MAT: {e}")
+        
+        # ========== PNG/PDF (matplotlib) ==========
+        try:
+            import matplotlib.pyplot as plt
+            
+            fig, axes = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
+            
+            # Top: Insertion Loss
+            axes[0].plot(self.wavelength, self.insertion_loss, linewidth=1.5, color='#1f77b4')
+            axes[0].set_ylabel("Insertion Loss (dB)", fontsize=12)
+            axes[0].set_title("OVA Measurement", fontsize=14, fontweight='bold')
+            axes[0].grid(True, alpha=0.3, linestyle='--')
+            
+            # Bottom: Group Delay
+            axes[1].plot(self.wavelength, self.group_delay, linewidth=1.5, color='#ff7f0e')
+            axes[1].set_xlabel("Wavelength (nm)", fontsize=12)
+            axes[1].set_ylabel("Group Delay (ps)", fontsize=12)
+            axes[1].grid(True, alpha=0.3, linestyle='--')
+            
+            plt.tight_layout()
+            
+            if self.file_format.get("png", 0) == 1:
+                output_png = os.path.join(path, f"{self.filename}_{self.fileTime}.png")
+                plt.savefig(output_png, dpi=300)
+                print(f"Saved PNG: {output_png}")
+                
+                # Also save to ./res for GUI display
+                res_png = os.path.join(".", "res", "ova_sweep", f"{self.filename}_{self.fileTime}.png")
+                os.makedirs(os.path.dirname(res_png), exist_ok=True)
+                plt.savefig(res_png, dpi=300)
+            
+            if self.file_format.get("pdf", 0) == 1:
+                output_pdf = os.path.join(path, f"{self.filename}_{self.fileTime}.pdf")
+                plt.savefig(output_pdf, dpi=300)
+                print(f"Saved PDF: {output_pdf}")
+            
+            plt.close()
+            
+            # Update GUI reference for webview
+            File("shared_memory", "Image", f"ova_sweep/{self.filename}_{self.fileTime}.png",
+                 "Web", output_html).save()
+        
+        except Exception as e:
+            print(f"Exception generating PNG/PDF: {e}")
+
 import sys
 from multiprocessing import Event, Value
 from ctypes import c_int
