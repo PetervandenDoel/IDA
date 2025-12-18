@@ -14,7 +14,7 @@ Cameron Basara, 2025
 logger = logging.getLogger(__name__)
 
 class SrsLdc502(LdcHAL):
-    """Driver for SRS LDC500 series using VISA (GPIB) communication."""
+    """Driver for SRS LDC500 series using VISA (GPIB + Prologix) communication."""
 
     def __init__(
         self,
