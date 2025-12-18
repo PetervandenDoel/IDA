@@ -73,6 +73,7 @@ class tec_control(App):
         if self.configuration["tec"] != "" and self.configuration_count == 0 and self.configuration_check["tec"] == 0:
             self.configure = LDCConfiguration()
             self.configure.visa_address = str(self.port['tec'])
+            self.configure.driver_types = str(self.configuration['tec'])
             self.ldc_manager = LDCManager(self.configure)
             success = self.ldc_manager.initialize()
 

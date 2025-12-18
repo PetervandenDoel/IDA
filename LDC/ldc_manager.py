@@ -91,8 +91,9 @@ class LDCManager:
                 'temp_setpoint': self.config.setpoint,
                 'debug': self.debug
             }
-            
-            self.ldc = create_driver("srs_ldc_502", **params)
+            driver_key = self.config.driver_types
+            print(driver_key)
+            self.ldc = create_driver(driver_key, **params)
             
             # Add event callback to forward events
             self.ldc.add_event_callback(self._handle_ldc_event)

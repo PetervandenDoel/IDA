@@ -51,7 +51,6 @@ class SrsLdc501(LdcHAL):
         try:
             self._inst = self._rm.open_resource(
                 self._visa_addr,
-                baud_rate=9600,
                 timeout=5000,
                 write_termination='\n',
                 read_termination='\n',
