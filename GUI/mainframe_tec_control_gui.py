@@ -82,331 +82,374 @@ class tec_control(App):
         threading.Thread(target=target, args=args, daemon=True).start()
 
     def after_configuration(self):
-        # Safety checks using .get()
-        tec_config = self.configuration.get("tec", "")
-        tec_check = self.configuration_check.get("tec", -1)
-        tec_port = self.port.get("tec")
-        
-        with tec_control._manager_lock:
-            if tec_config != "" and tec_control._ldc_manager is None and tec_check == 0:
-                self.configure = LDCConfiguration()
-                self.configure.visa_address = str(tec_port)
-                self.configure.driver_types = str(tec_config)
-                
-                manager = LDCManager(self.configure)
-                success = manager.initialize()
+        try:
+            # Safety checks using .get()
+            tec_config = self.configuration.get("tec", "")
+            tec_check = self.configuration_check.get("tec", -1)
+            tec_port = self.port.get("tec")
+            
+            with tec_control._manager_lock:
+                if tec_config != "" and tec_control._ldc_manager is None and tec_check == 0:
+                    self.configure = LDCConfiguration()
+                    self.configure.visa_address = str(tec_port)
+                    self.configure.driver_types = str(tec_config)
+                    
+                    manager = LDCManager(self.configure)
+                    success = manager.initialize()
 
-                if success:
-                    tec_control._ldc_manager = manager
-                    self.configuration_check["tec"] = 2
-                    File("shared_memory", "Configuration_check", self.configuration_check).save()
-                    tec_control._ldc_manager.set_temperature(25.0)
-                else:
-                    self.configuration_check["tec"] = 1
-                    File("shared_memory", "Configuration_check", self.configuration_check).save()
+                    if success:
+                        tec_control._ldc_manager = manager
+                        self.configuration_check["tec"] = 2
+                        File("shared_memory", "Configuration_check", self.configuration_check).save()
+                        tec_control._ldc_manager.set_temperature(25.0)
+                    else:
+                        self.configuration_check["tec"] = 1
+                        File("shared_memory", "Configuration_check", self.configuration_check).save()
 
-            elif tec_config == "" and tec_control._ldc_manager is not None:
-                if tec_control._ldc_manager:
-                    tec_control._ldc_manager.shutdown()
-                    tec_control._ldc_manager = None
-
+                elif tec_config == "" and tec_control._ldc_manager is not None:
+                    if tec_control._ldc_manager:
+                        tec_control._ldc_manager.shutdown()
+                        tec_control._ldc_manager = None
+        except Exception as e:
+            print(f"Nice exception: {e}")
     def construct_ui(self):
-        main_container = StyledContainer(
-            container=None,
-            variable_name="main_container",
-            left=0, top=0,
-            height=520,
-            width=300
-        )
+        try: 
+            main_container = StyledContainer(
+                container=None,
+                variable_name="main_container",
+                left=0, top=0,
+                height=520,
+                width=300
+            )
 
-        # === TEC Control Section ===
-        tec_container = StyledContainer(
-            container=main_container,
-            variable_name="tec_container",
-            left=0, top=0,
-            height=100,
-            width=300
-        )
+            # === TEC Control Section ===
+            tec_container = StyledContainer(
+                container=main_container,
+                variable_name="tec_container",
+                left=0, top=0,
+                height=100,
+                width=300
+            )
 
-        self.tec_on_box = StyledCheckBox(
-            container=tec_container,
-            variable_name="tec_on_box",
-            left=20, top=10,
-            width=10, height=10,
-            position="absolute"
-        )
+            self.tec_on_box = StyledCheckBox(
+                container=tec_container,
+                variable_name="tec_on_box",
+                left=20, top=10,
+                width=10, height=10,
+                position="absolute"
+            )
 
-        StyledLabel(
-            container=tec_container,
-            text="TEC On",
-            variable_name="tec_on_label",
-            left=50, top=10,
-            width=60, height=30,
-            font_size=100,
-            justify_content="left"
-        )
+            StyledLabel(
+                container=tec_container,
+                text="TEC On",
+                variable_name="tec_on_label",
+                left=50, top=10,
+                width=60, height=30,
+                font_size=100,
+                justify_content="left"
+            )
 
-        StyledLabel(
-            container=tec_container,
-            text="Temp [C]",
-            variable_name="temp_label",
-            left=0, top=55,
-            width=80, height=25,
-            font_size=100,
-            justify_content="right"
-        )
+            StyledLabel(
+                container=tec_container,
+                text="Temp [C]",
+                variable_name="temp_label",
+                left=0, top=55,
+                width=80, height=25,
+                font_size=100,
+                justify_content="right"
+            )
 
-        self.minus_temp = StyledButton(
-            container=tec_container,
-            text="⮜",
-            variable_name="temp_left_button",
-            font_size=100,
-            left=90, top=55,
-            width=40, height=25
-        )
+            self.minus_temp = StyledButton(
+                container=tec_container,
+                text="⮜",
+                variable_name="temp_left_button",
+                font_size=100,
+                left=90, top=55,
+                width=40, height=25
+            )
 
-        self.plus_temp = StyledButton(
-            container=tec_container,
-            text="⮞",
-            variable_name="temp_right_button",
-            font_size=100,
-            left=222, top=55,
-            width=40, height=25
-        )
+            self.plus_temp = StyledButton(
+                container=tec_container,
+                text="⮞",
+                variable_name="temp_right_button",
+                font_size=100,
+                left=222, top=55,
+                width=40, height=25
+            )
 
-        self.temp_spinbox = StyledSpinBox(
-            container=tec_container,
-            variable_name="temp_input",
-            left=135, top=55,
-            min_value=15,
-            max_value=75,
-            value=25,
-            step=0.1,
-            width=65,
-            height=24
-        )
+            self.temp_spinbox = StyledSpinBox(
+                container=tec_container,
+                variable_name="temp_input",
+                left=135, top=55,
+                min_value=15,
+                max_value=75,
+                value=25,
+                step=0.1,
+                width=65,
+                height=24
+            )
 
-        # === LD Control Section ===
-        ld_container = StyledContainer(
-            container=main_container,
-            variable_name="ld_container",
-            left=0, top=110,
-            height=160,
-            width=300,
-            border=True
-        )
+            # === LD Control Section ===
+            ld_container = StyledContainer(
+                container=main_container,
+                variable_name="ld_container",
+                left=0, top=110,
+                height=160,
+                width=300,
+                border=True
+            )
 
-        StyledLabel(
-            container=ld_container,
-            text="LD Control",
-            left=5, top=5,
-            width=100, height=25,
-            font_size=100
-        )
+            StyledLabel(
+                container=ld_container,
+                text="LD Control",
+                variable_name="ld_control_container",
+                left=5, top=5,
+                width=100, height=25,
+                font_size=100
+            )
 
-        self.ld_on_box = StyledCheckBox(
-            container=ld_container,
-            variable_name="ld_on_box",
-            left=20, top=40,
-            width=10, height=10,
-            position="absolute"
-        )
+            self.ld_on_box = StyledCheckBox(
+                container=ld_container,
+                variable_name="ld_on_box",
+                left=20, top=40,
+                width=10, height=10,
+                position="absolute"
+            )
 
-        StyledLabel(
-            container=ld_container,
-            text="LD On",
-            variable_name="ld_on_label",
-            left=50, top=40,
-            width=60, height=30,
-            font_size=100,
-            justify_content="left"
-        )
+            StyledLabel(
+                container=ld_container,
+                text="LD On",
+                variable_name="ld_on_label",
+                left=50, top=40,
+                width=60, height=30,
+                font_size=100,
+                justify_content="left"
+            )
 
-        StyledLabel(
-            container=ld_container,
-            text="Current [mA]",
-            left=5, top=75,
-            width=90, height=25,
-            font_size=90
-        )
+            StyledLabel(
+                container=ld_container,
+                text="Current [mA]",
+                variable_name="current_label",
+                left=5, top=75,
+                width=90, height=25,
+                font_size=90
+            )
 
-        self.ld_current = StyledSpinBox(
-            container=ld_container,
-            variable_name="ld_current_input",
-            left=100, top=75,
-            min_value=0.0,
-            max_value=500.0,
-            value=0.0,
-            step=0.1,
-            width=65,
-            height=24
-        )
+            self.ld_current = StyledSpinBox(
+                container=ld_container,
+                variable_name="ld_current_input",
+                left=100, top=75,
+                min_value=0.0,
+                max_value=500.0,
+                value=0.0,
+                step=0.1,
+                width=65,
+                height=24
+            )
 
-        self.set_current_btn = StyledButton(
-            container=ld_container,
-            text="Set",
-            left=170, top=75,
-            width=50, height=25,
-            font_size=90
-        )
+            self.set_current_btn = StyledButton(
+                container=ld_container,
+                variable_name="set_current_btn",
+                text="Set",
+                left=170, top=75,
+                width=50, height=25,
+                font_size=90
+            )
 
-        StyledLabel(
-            container=ld_container,
-            text="I Limit [mA]",
-            left=5, top=110,
-            width=90, height=25,
-            font_size=90
-        )
+            StyledLabel(
+                container=ld_container,
+                text="I Limit [mA]",
+                variable_name="current_lim_label",
+                left=5, top=110,
+                width=90, height=25,
+                font_size=90
+            )
 
-        self.i_limit = StyledSpinBox(
-            container=ld_container,
-            variable_name="i_limit_input",
-            left=100, top=110,
-            min_value=0.1,
-            max_value=500.0,
-            value=100.0,
-            step=1.0,
-            width=65,
-            height=24
-        )
+            self.i_limit = StyledSpinBox(
+                container=ld_container,
+                variable_name="i_limit_input",
+                left=100, top=110,
+                min_value=0.1,
+                max_value=500.0,
+                value=100.0,
+                step=1.0,
+                width=65,
+                height=24
+            )
 
-        self.set_i_limit_btn = StyledButton(
-            container=ld_container,
-            text="Set",
-            left=170, top=110,
-            width=50, height=25,
-            font_size=90
-        )
+            self.set_i_limit_btn = StyledButton(
+                container=ld_container,
+                text="Set",
+                variable_name="set_i_limit_btn",
+                left=170, top=110,
+                width=50, height=25,
+                font_size=90
+            )
 
-        StyledLabel(
-            container=ld_container,
-            text="V Limit [V]",
-            left=5, top=130,
-            width=90, height=25,
-            font_size=90
-        )
+            StyledLabel(
+                container=ld_container,
+                text="V Limit [V]",
+                variable_name="voltage_lim_label",
+                left=5, top=130,
+                width=90, height=25,
+                font_size=90
+            )
 
-        self.v_limit = StyledSpinBox(
-            container=ld_container,
-            variable_name="v_limit_input",
-            left=100, top=130,
-            min_value=0.1,
-            max_value=10.0,
-            value=2.5,
-            step=0.1,
-            width=65,
-            height=24
-        )
+            self.v_limit = StyledSpinBox(
+                container=ld_container,
+                variable_name="v_limit_input",
+                left=100, top=130,
+                min_value=0.1,
+                max_value=10.0,
+                value=2.5,
+                step=0.1,
+                width=65,
+                height=24
+            )
 
-        self.set_v_limit_btn = StyledButton(
-            container=ld_container,
-            text="Set",
-            left=170, top=130,
-            width=50, height=25,
-            font_size=90
-        )
+            self.set_v_limit_btn = StyledButton(
+                container=ld_container,
+                text="Set",
+                variable_name="set_v_limit_btn",
+                left=170, top=130,
+                width=50, height=25,
+                font_size=90
+            )
 
-        # === LD Current Sweep Section ===
-        ld_sweep_container = StyledContainer(
-            container=main_container,
-            left=0, top=280,
-            width=300, height=230,
-            border=True
-        )
+            # === LD Current Sweep Section ===
+            ld_sweep_container = StyledContainer(
+                container=main_container,
+                variable_name="ld_sweep_container",
+                left=0, top=280,
+                width=300, height=230,
+                border=True
+            )
 
-        StyledLabel(
-            container=ld_sweep_container,
-            text="LD Current Sweep",
-            left=5, top=5,
-            width=150, height=25,
-            font_size=100
-        )
+            StyledLabel(
+                container=ld_sweep_container,
+                text="LD Current Sweep",
+                variable_name="current_sweep_label",
+                left=5, top=5,
+                width=150, height=25,
+                font_size=100
+            )
 
-        self.ld_sweep_btn = StyledButton(
-            container=ld_sweep_container,
-            text="Sweep",
-            left=215, top=5,
-            width=70, height=25
-        )
+            self.ld_sweep_btn = StyledButton(
+                container=ld_sweep_container,
+                text="Sweep",
+                variable_name="ld_sweep_btn",
+                left=215, top=5,
+                width=70, height=25
+            )
 
-        StyledLabel(ld_sweep_container, "Start [mA]", left=5, top=45, width=85, height=25)
-        self.ld_start = StyledSpinBox(
-            ld_sweep_container,
-            left=95, top=45,
-            min_value=0.1, max_value=500,
-            value=1.0, step=0.1,
-            width=65, height=24
-        )
+            StyledLabel(
+                container=ld_sweep_container,
+                text="Start [mA]",
+                variable_name="start_sweep_label",
+                left=5, top=45, width=85, height=25)
+            
+            self.ld_start = StyledSpinBox(
+                container=ld_sweep_container,
+                variable_name="ld_start",
+                left=95, top=45,
+                min_value=0.1, max_value=500,
+                value=1.0, step=0.1,
+                width=65, height=24
+            )
 
-        StyledLabel(ld_sweep_container, "End [mA]", left=165, top=45, width=70, height=25)
-        self.ld_end = StyledSpinBox(
-            ld_sweep_container,
-            left=235, top=45,
-            min_value=0.1, max_value=500,
-            value=20.0, step=0.1,
-            width=65, height=24
-        )
+            StyledLabel(
+                container=ld_sweep_container,
+                text="End [mA]",
+                variable_name="end_sweep_label",
+                left=165, top=45, width=70, height=25)
+            self.ld_end = StyledSpinBox(
+                container=ld_sweep_container,
+                variable_name="ld_end",
+                left=235, top=45,
+                min_value=0.1, max_value=500,
+                value=20.0, step=0.1,
+                width=65, height=24
+            )
 
-        StyledLabel(ld_sweep_container, "Step [mA]", left=5, top=85, width=85, height=25)
-        self.ld_step = StyledSpinBox(
-            ld_sweep_container,
-            left=95, top=85,
-            min_value=0.01, max_value=50,
-            value=0.5, step=0.01,
-            width=65, height=24
-        )
+            StyledLabel(
+                container=ld_sweep_container,
+                text="Step [mA]",
+                variable_name="sweep_step_label",
+                left=5, top=85, width=85, height=25)
+            self.ld_step = StyledSpinBox(
+                container=ld_sweep_container,
+                variable_name="ld_step",
+                left=95, top=85,
+                min_value=0.01, max_value=50,
+                value=0.5, step=0.01,
+                width=65, height=24
+            )
 
-        StyledLabel(ld_sweep_container, "Dwell [ms]", left=165, top=85, width=85, height=25)
-        self.ld_dwell = StyledSpinBox(
-            ld_sweep_container,
-            left=255, top=85,
-            min_value=10, max_value=10000,
-            value=100, step=10,
-            width=55, height=24
-        )
+            StyledLabel(
+                container=ld_sweep_container,
+                text="Dwell [ms]", 
+                variable_name="sweep_dwell_label",
+                left=165, top=85, width=85, height=25)
+            self.ld_dwell = StyledSpinBox(
+                container=ld_sweep_container,
+                variable_name="ld_dwell",
+                left=255, top=85,
+                min_value=10, max_value=10000,
+                value=100, step=10,
+                width=55, height=24
+            )
 
-        StyledLabel(ld_sweep_container, "Trig Delay [ms]", left=5, top=125, width=110, height=25, font_size=85)
-        self.ld_trig_delay = StyledSpinBox(
-            ld_sweep_container,
-            left=120, top=125,
-            min_value=0, max_value=1000,
-            value=10, step=1,
-            width=55, height=24
-        )
+            StyledLabel(
+                container=ld_sweep_container,
+                text="Trig Delay [ms]",
+                variable_name="sweep_trig_label",
+                left=5, top=125, width=110, height=25, font_size=85)
+            self.ld_trig_delay = StyledSpinBox(
+                container=ld_sweep_container,
+                variable_name="ld_trig_delay",
+                left=120, top=125,
+                min_value=0, max_value=1000,
+                value=10, step=1,
+                width=55, height=24
+            )
 
-        self.ld_range_high = StyledCheckBox(
-            container=ld_sweep_container,
-            variable_name="ld_range_box",
-            left=20, top=165,
-            width=10, height=10,
-            position="absolute"
-        )
+            self.ld_range_high = StyledCheckBox(
+                container=ld_sweep_container,
+                variable_name="ld_range_box",
+                left=20, top=165,
+                width=10, height=10,
+                position="absolute"
+            )
 
-        StyledLabel(
-            container=ld_sweep_container,
-            text="High Range (>100mA)",
-            left=50, top=165,
-            width=180, height=25,
-            font_size=90,
-            justify_content="left"
-        )
+            StyledLabel(
+                container=ld_sweep_container,
+                text="High Range (>100mA)",
+                variable_name="sweep_safety_label",
+                left=50, top=165,
+                width=180, height=25,
+                font_size=90,
+                justify_content="left"
+            )
 
-        # Wire up event handlers
-        self.minus_temp.do_onclick(lambda *_: self.run_in_thread(self.onclick_minus_temp))
-        self.plus_temp.do_onclick(lambda *_: self.run_in_thread(self.onclick_plus_temp))
-        self.temp_spinbox.onchange.do(lambda e, v: self.run_in_thread(self.onchange_temp, e, v))
-        self.tec_on_box.onchange.do(lambda e, v: self.run_in_thread(self.onchange_tec_box, e, v))
-        
-        self.ld_on_box.onchange.do(lambda e, v: self.run_in_thread(self.onchange_ld_box, e, v))
-        self.set_current_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_set_current))
-        self.set_i_limit_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_set_i_limit))
-        self.set_v_limit_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_set_v_limit))
-        
-        self.ld_sweep_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_ld_sweep))
-        self.ld_range_high.onchange.do(lambda e, v: self.run_in_thread(self.onchange_range, e, v))
+            # Wire up event handlers
+            self.minus_temp.do_onclick(lambda *_: self.run_in_thread(self.onclick_minus_temp))
+            self.plus_temp.do_onclick(lambda *_: self.run_in_thread(self.onclick_plus_temp))
+            self.temp_spinbox.onchange.do(lambda e, v: self.run_in_thread(self.onchange_temp, e, v))
+            self.tec_on_box.onchange.do(lambda e, v: self.run_in_thread(self.onchange_tec_box, e, v))
+            
+            self.ld_on_box.onchange.do(lambda e, v: self.run_in_thread(self.onchange_ld_box, e, v))
+            self.set_current_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_set_current))
+            self.set_i_limit_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_set_i_limit))
+            self.set_v_limit_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_set_v_limit))
+            
+            self.ld_sweep_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_ld_sweep))
+            self.ld_range_high.onchange.do(lambda e, v: self.run_in_thread(self.onchange_range, e, v))
 
-        return main_container
-
+            return main_container
+        except Exception as e:
+            print(f"Fine as well: {e}")
+            import sys
+            print(f"line: {sys.exc_info()[-1].tb_lineno}")
     # === TEC Handlers ===
     
     def onclick_minus_temp(self):
@@ -546,6 +589,6 @@ if __name__ == '__main__':
         width=322,
         height=540,
         resizable=True,
-        hidden=True
+        hidden=False
     )
     webview.start()
