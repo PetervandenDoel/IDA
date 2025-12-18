@@ -770,7 +770,10 @@ class stage_control(App):
 
             if self.ch_count == 0:
                 self.ch_count = 1
-                self.run_in_thread(self.update_ch)
+                if self.configuration.get("sensor") == "luna_controller":
+                    pass
+                else:
+                    self.run_in_thread(self.update_ch)
 
             self.stop_task()
 
@@ -834,6 +837,8 @@ class stage_control(App):
                 # Read power is too slow of an operation on the OVA
                 # Due to DUT length calculation
                 # So we have to continue w/o updating calling
+                # ** May Be unnneeded to appendadge **
+                time.sleep(10.0)
                 continue
             if self.task_start == 0 and self.slot_info is not None:
                 prev_slot = None

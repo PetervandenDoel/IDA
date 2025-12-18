@@ -1080,6 +1080,7 @@ from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 
+
 class plot_luna():
     """Handles OVA/Luna measurement plotting and saving"""
     def __init__(self, data_matrix, filename, fileTime, 
@@ -1090,7 +1091,7 @@ class plot_luna():
         else:
             self.file_format = file_format
         
-        self.data_matrix = data_matrix  # Full NxM array from output.txt
+        self.data_matrix = data_matrix  # Tuple: (wavelength_array, list_of_24_measurement_arrays)
         self.filename = filename
         self.fileTime = fileTime
         self.user = user
@@ -1101,18 +1102,20 @@ class plot_luna():
         self.meta_data = meta_data
         
         # Extract columns for plotting (OVA data format)
-        print('Made it here')
-        print(data_matrix)
-        print('Dims')
-        print(len(data_matrix))
-        self.wavelength = data_matrix[0]      # Column 0: Wavelength (nm)
-        self.insertion_loss = data_matrix[1][1]  # Column 2: Insertion Loss (dB)
-        self.group_delay = data_matrix[1][2]     # Column 3: Group Delay (ps)
+        self.wavelength = data_matrix[0]          # Array of 65536 wavelengths
+        self.measurements = data_matrix[1]         # List of 24 measurement arrays
+        
+        # Based on Luna OVA output.txt format, the measurements are:
+        # Index 0: Frequency (GHz)
+        # Index 1: Insertion Loss (dB)
+        # Index 2: Group Delay (ps)   
+        self.insertion_loss = self.measurements[1]  # Index 1
+        self.group_delay = self.measurements[2]     # Index 2
         
         # All column names from Luna OVA output.txt
         self.column_names = [
-            "X Axis - Wavelength (nm)",
-            "X Axis - Frequency (GHz)",
+            "Wavelength (nm)",
+            "Frequency (GHz)",
             "Insertion Loss (dB)",
             "Group Delay (ps)",
             "Chromatic Dispersion (ps/nm)",
@@ -1128,7 +1131,7 @@ class plot_luna():
             "JM Element b Phase (rad)",
             "JM Element c Phase (rad)",
             "JM Element d Phase (rad)",
-            "X Axis - Time (ns)",
+            "Time (ns)",
             "Time Domain Amplitude (dB)",
             "Time Domain Wavelength (nm)",
             "Max Loss (dB)",
@@ -1152,9 +1155,6 @@ class plot_luna():
         
         # ========== HTML (Interactive Plotly with subplots) ==========
         try:
-            from plotly.subplots import make_subplots
-            import plotly.graph_objects as go
-            
             fig = make_subplots(
                 rows=2, cols=1,
                 shared_xaxes=True,
@@ -1189,49 +1189,71 @@ class plot_luna():
             print(f"Saved HTML: {output_html}")
         except Exception as e:
             print(f"Exception generating HTML plot: {e}")
+            import traceback
+            traceback.print_exc()
         
-        # ========== CSV (ALL columns from data_matrix) ==========
+        # ========== CSV (ALL columns) ==========
         if self.file_format.get("csv", 0) == 1:
             try:
-                # Trim column names to actual number of columns in data
-                col_names = self.column_names[:len(self.data_matrix[1])]
+                # Convert wavelength and all 24 measurements to numpy arrays
+                wavelength = np.asarray(self.wavelength)
                 
-                df = pd.DataFrame(self.data_matrix, columns=col_names)
+                # Stack all measurements: first column = wavelength, then all 24 measurements
+                # Shape will be (65536 rows, 25 columns)
+                data_columns = [wavelength]
+                for measurement in self.measurements:
+                    data_columns.append(np.asarray(measurement))
+                
+                full_data = np.column_stack(data_columns)
+                
+                # Create DataFrame with proper column names
+                df = pd.DataFrame(full_data, columns=self.column_names)
                 output_csv = os.path.join(path, f"{self.filename}_{self.fileTime}.csv")
                 df.to_csv(output_csv, index=False)
-                print(f"Saved CSV with all {self.data_matrix.shape[1]} columns: {output_csv}")
+                print(f"Saved CSV with {full_data.shape[1]} columns x {full_data.shape[0]} rows: {output_csv}")
             except Exception as e:
                 print(f"Exception saving CSV: {e}")
+                import traceback
+                traceback.print_exc()
         
         # ========== MAT (ALL data + metadata) ==========
         if self.file_format.get("mat", 0) == 1:
             try:
-                # Trim column names to actual number of columns
-                col_names = self.column_names[:len(self.data_matrix[1])]
-                
+                # Build dictionary for MATLAB
                 mat_dict = {
                     "wavelength_nm": np.asarray(self.wavelength),
                     "insertion_loss_db": np.asarray(self.insertion_loss),
                     "group_delay_ps": np.asarray(self.group_delay),
-                    "full_data_matrix": np.asarray(self.data_matrix),  # Save everything!
-                    "column_labels": np.array(col_names, dtype=object),
-                    "filename": np.array(self.filename, dtype=object),
-                    "fileTime": np.array(self.fileTime, dtype=object),
-                    "user": np.array(self.user, dtype=object),
-                    "project": np.array(self.project, dtype=object),
-                    "name": np.array(self.name, dtype=object),
-                    "meta": self.meta_data,
                 }
+                
+                # Add all 24 measurement arrays with descriptive names
+                for i, (measurement, col_name) in enumerate(zip(self.measurements, self.column_names[1:])):
+                    # Create MATLAB-safe variable names (replace spaces/special chars with underscores)
+                    safe_name = col_name.replace(" ", "_").replace("(", "").replace(")", "").replace("/", "_")
+                    mat_dict[f"meas_{i:02d}_{safe_name}"] = np.asarray(measurement)
+                
+                # Add metadata
+                mat_dict["column_labels"] = np.array(self.column_names, dtype=object)
+                mat_dict["filename"] = self.filename
+                mat_dict["fileTime"] = self.fileTime
+                mat_dict["user"] = self.user
+                mat_dict["project"] = self.project
+                mat_dict["device_name"] = self.name
+                
+                if self.meta_data:
+                    # Convert metadata dict to string for MATLAB compatibility
+                    mat_dict["metadata"] = str(self.meta_data)
+                
                 output_mat = os.path.join(path, f"{self.filename}_{self.fileTime}.mat")
                 savemat(output_mat, mat_dict)
-                print(f"Saved MAT with {self.data_matrix.shape[1]} columns: {output_mat}")
+                print(f"Saved MAT with {len(self.measurements)} measurement arrays: {output_mat}")
             except Exception as e:
                 print(f"Exception saving MAT: {e}")
+                import traceback
+                traceback.print_exc()
         
         # ========== PNG/PDF (matplotlib) ==========
         try:
-            import matplotlib.pyplot as plt
-            
             fig, axes = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
             
             # Top: Insertion Loss
@@ -1266,11 +1288,17 @@ class plot_luna():
             plt.close()
             
             # Update GUI reference for webview
-            File("shared_memory", "Image", f"ova_sweep/{self.filename}_{self.fileTime}.png",
-                 "Web", output_html).save()
+            try:
+                from GUI.lib_gui import File
+                File("shared_memory", "Image", f"ova_sweep/{self.filename}_{self.fileTime}.png",
+                     "Web", output_html).save()
+            except ImportError:
+                pass  # Skip if File class not available
         
         except Exception as e:
             print(f"Exception generating PNG/PDF: {e}")
+            import traceback
+            traceback.print_exc()
 
 import sys
 from multiprocessing import Event, Value
