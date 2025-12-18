@@ -212,7 +212,7 @@ class tec_control(App):
             self.ld_on_box = StyledCheckBox(
                 container=ld_container,
                 variable_name="ld_on_box",
-                left=20, top=40,
+                left=20, top=25,
                 width=10, height=10,
                 position="absolute"
             )
@@ -221,7 +221,7 @@ class tec_control(App):
                 container=ld_container,
                 text="LD On",
                 variable_name="ld_on_label",
-                left=50, top=40,
+                left=50, top=25,
                 width=60, height=30,
                 font_size=100,
                 justify_content="left"
@@ -231,7 +231,7 @@ class tec_control(App):
                 container=ld_container,
                 text="Current [mA]",
                 variable_name="current_label",
-                left=5, top=75,
+                left=5, top=60,
                 width=90, height=25,
                 font_size=90
             )
@@ -239,7 +239,7 @@ class tec_control(App):
             self.ld_current = StyledSpinBox(
                 container=ld_container,
                 variable_name="ld_current_input",
-                left=100, top=75,
+                left=100, top=60,
                 min_value=0.0,
                 max_value=500.0,
                 value=0.0,
@@ -252,7 +252,7 @@ class tec_control(App):
                 container=ld_container,
                 variable_name="set_current_btn",
                 text="Set",
-                left=185, top=75,
+                left=185, top=60,
                 width=50, height=25,
                 font_size=90
             )
@@ -261,7 +261,7 @@ class tec_control(App):
                 container=ld_container,
                 text="I Limit [mA]",
                 variable_name="current_lim_label",
-                left=5, top=105,
+                left=5, top=90,
                 width=90, height=25,
                 font_size=90
             )
@@ -269,7 +269,7 @@ class tec_control(App):
             self.i_limit = StyledSpinBox(
                 container=ld_container,
                 variable_name="i_limit_input",
-                left=100, top=105,
+                left=100, top=90,
                 min_value=0.1,
                 max_value=500.0,
                 value=100.0,
@@ -282,7 +282,7 @@ class tec_control(App):
                 container=ld_container,
                 text="Set",
                 variable_name="set_i_limit_btn",
-                left=185, top=105,
+                left=185, top=90,
                 width=50, height=25,
                 font_size=90
             )
@@ -291,7 +291,7 @@ class tec_control(App):
                 container=ld_container,
                 text="V Limit [V]",
                 variable_name="voltage_lim_label",
-                left=5, top=135,
+                left=5, top=120,
                 width=90, height=25,
                 font_size=90
             )
@@ -299,7 +299,7 @@ class tec_control(App):
             self.v_limit = StyledSpinBox(
                 container=ld_container,
                 variable_name="v_limit_input",
-                left=100, top=135,
+                left=100, top=120,
                 min_value=0.1,
                 max_value=10.0,
                 value=2.5,
@@ -312,11 +312,10 @@ class tec_control(App):
                 container=ld_container,
                 text="Set",
                 variable_name="set_v_limit_btn",
-                left=185, top=135,
+                left=185, top=120,
                 width=50, height=25,
                 font_size=90
             )
-
             # === LD Current Sweep Section ===
             ld_sweep_container = StyledContainer(
                 container=main_container,
