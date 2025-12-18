@@ -94,6 +94,10 @@ class LaserHAL(ABC):
         """Check if instrument is connected"""
         return self._is_connected
     
+    def configure_units(self):
+        """ Configure your units """
+        pass
+    
 ######################################################################
 # Laser functions 
 ######################################################################

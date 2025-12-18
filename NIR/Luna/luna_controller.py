@@ -2,10 +2,14 @@ import subprocess
 import time
 import os
 from typing import Tuple
+from pathlib import Path
 
 import numpy as np
 
 from NIR.hal.nir_hal import LaserHAL, PowerUnit, PowerReading
+
+
+PATH_TO_CONTROLLER = Path(__file__).resolve().parent
 
 
 class LunaController(LaserHAL):
@@ -16,28 +20,30 @@ class LunaController(LaserHAL):
         Luna OVA 5000 Software
         SendCmd.exe (TCP/IP or GPIB)
     """
-
     def __init__(
         self,
         ip: str = '10.2.137.4',
         port: str = '1',
-        sendcmd_path: str = "SendCmd.exe"
+        sendcmd_path: str = r"C:\Users\347\TEST\IDA\NIR\Luna\SendCmd.exe"
     ):
         super().__init__()
-
+        
         # Connection
         self.ip = ip
         self.port = port
         self.sendcmd = sendcmd_path
 
-        # Internal state (nir-compatible)
+        # Internal state 
         self.center_wavelength_nm = None
         self.scan_start_nm = None
         self.scan_stop_nm = None
-        self.scan_step_nm = None
-
+        self.scan_range = None
+        self.read_power_flag = False
         self.output_enabled = False
         self.sweep_state = "IDLE"
+
+        # For sweeps (Luna formatting)
+        self.data_dir = PATH_TO_CONTROLLER
 
     # ==================================================================
     # Internal SendCmd helpers
@@ -76,6 +82,10 @@ class LunaController(LaserHAL):
         self._is_connected = False
         return True
 
+    def configure_units(self):
+        """ Not applicable """
+        return True
+
     # ==================================================================
     # Laser output
     # ==================================================================
@@ -90,6 +100,9 @@ class LunaController(LaserHAL):
         return True
 
     def get_output_state(self) -> bool:
+        raw = self._query(f"SYST:LASE?")
+        raw = raw.split('\r\n')[-1].strip('\x00')
+        self.output_enabled = True if raw == '1' else False
         return self.output_enabled
 
     # ==================================================================
@@ -101,7 +114,7 @@ class LunaController(LaserHAL):
         CONF:CWL <nm>
         Chapter 8.4.2 - OVA-only Configuration Commands
         """
-        self._write(f"CONF:CWL {wavelength}")
+        self._write(f"CONF:CWL {wavelength},0")
         self.center_wavelength_nm = wavelength
         return True
 
@@ -110,7 +123,9 @@ class LunaController(LaserHAL):
         CONF:CWL?
         Chapter 8.4.2
         """
-        val = float(self._query("CONF:CWL?"))
+        raw = self._query("CONF:CWL?")
+        val = raw.split('\r\n')[-1].strip('\x00')
+        val = float(val)
         self.center_wavelength_nm = val
         return val
 
@@ -138,22 +153,36 @@ class LunaController(LaserHAL):
         FETC:MEAS? 0
         Chapter 8.4.3 - OVA-only Data Capture and Retrieval Commands
         """
-        self._write("SCAN")
+        # Cheat a power read
+        self._write('CONF:DUTL')
+        dut = self._query('CONF:DUTL?')
+        dut = dut.split('\r\n')[-1].strip('\x00')
+        if float(dut) < 1.0:
+            # Noise since the cables exceed 1.0 m
+            return None, None
 
+        if not self.read_power_flag:
+            if self.scan_start_nm is not None and self.scan_stop_nm is not None:
+                delta = abs(self.scan_stop_nm - self.scan_start_nm) 
+                self._write(f'CONF:RANG {delta}')
+            else:
+                self._write("CONF:RANG 40.0")  # Rounds to nearest allowable range 
+            self.read_power_flag = True
+
+        # Perform small Scan
+        self._write("SCAN")
         for _ in range(100):
             if "1" in self._query("*OPC?"):
                 break
             time.sleep(0.05)
 
-        raw = self._query("FETC:MEAS? 0").splitlines()
-        values = [float(v) for v in raw if v.strip()]
-        mean_il = float(np.mean(values)) if values else 0.0
-
-        return PowerReading(
-            value=mean_il,
-            unit=PowerUnit.DBM,  # documented as insertion loss
-            wavelength=self.center_wavelength_nm,
-        )
+        # Parse list of scan values, take mean in Lin, then back to dB
+        raw = self._query("FETC:MEAS? 0")
+        raw = raw.split('\r\n')
+        values = [10**(float(v)/10) for v in raw[2:-1]]
+        mean_il = float(np.mean(values)) if values else None
+        mean_il = float(10*np.log10(mean_il))
+        return mean_il, -100.0
 
     def set_power_unit(self, unit: PowerUnit, channel: int = 1) -> bool:
         print("[LUNA] set_power_unit not supported - ignoring")
@@ -184,23 +213,29 @@ class LunaController(LaserHAL):
         CONF:CWL, CONF:RANG
         Chapter 8.4.2
         """
+        # Only supports symmetrical wavelengths about
+        # A center wavelength
         self.scan_start_nm = start_nm
         self.scan_stop_nm = stop_nm
 
-        scan_range = stop_nm - start_nm
-        center = start_nm + scan_range / 2.0
+        self.scan_range = stop_nm - start_nm
+        center = start_nm + self.scan_range / 2.0
 
         self._write(f"CONF:CWL {center}")
-        self._write(f"CONF:RANG {scan_range}")
+        print(self._query("CONF:CWL?"))
+        self._write(f"CONF:RANG {self.scan_range}")
+        print(self._query("CONF:RANG?"))
 
         self.center_wavelength_nm = center
+        self.read_power_flag = False
 
     def set_sweep_step_nm(self, step_nm: float) -> None:
         """
         Luna step size is implicit.
         Stored for interface compatibility only.
         """
-        self.scan_step_nm = step_nm
+        # print('[Luna] Does not support step size')
+        pass
 
     # ==================================================================
     # Sweep execution
@@ -234,7 +269,6 @@ class LunaController(LaserHAL):
         avg_time_s: float = 0.01,
     ) -> bool:
         self.set_sweep_range_nm(start_nm, stop_nm)
-        self.set_sweep_step_nm(step_nm)
         self.enable_output(True)
         self.start_sweep()
         return True
@@ -263,42 +297,63 @@ class LunaController(LaserHAL):
         """
         SYST:SAVS + file reload
         Chapter 8.4.3
-        """
-        fname = os.path.join(self.data_dir, "luna_scan.txt")
-        self._write(f"SYST:SAVS {fname}")
 
+        Returns:
+            data[:,n]
+            n:
+                0 - Wavelength (nm)
+                1 - Frequency  (GHz)
+                2 - Insertion Loss  (dB)
+                3 - Group Delay (ps)
+                4 - Chromatic Dispersion (ps/nm)
+                5 - Polzarization Dependent Loss (dB)
+                6 - Polarization Mode Dispersion (ps)
+                7 - Linear Phase Deviation (rad)
+                8 - Quadratic Phase Deviation (rad)
+
+            Find the rest on page 61. of OVA User Guide
+        """
+        fname = os.path.join(self.data_dir, "output.txt")
+
+        # Trigger the save
+        self._write(f"SYST:SAVS {fname}")
+        
+        # Takes a while to retrieve the data, so wait
+        time.sleep(20)
         data = np.loadtxt(fname, skiprows=9)
 
-        wavelength = data[:, 0]
-        insertion_loss = data[:, 2]
-        phase = data[:, 7]
-
-        return wavelength, insertion_loss, phase
+        # Rearrange data to work wiht NIRManager
+        data_out = [data[:,i] for i in range(data.shape[1])]
+        print(data_out, len(data_out))
+        return data_out
 
     # ==================================================================
-    # Optical sweep (primary public API)
+    # Optical sweep 
     # ==================================================================
 
     def optical_sweep(
         self,
         start_nm: float,
         stop_nm: float,
-        step_nm: float,
-        laser_power_dbm: float,
-        averaging_time_s: float = 0.02,
+        step_nm: float = 0.1,
+        laser_power_dbm: float = 1,
+        num_scan: float = 0.02,
+        args = None
     ):
         """
-        Luna-native optical sweep.
-        :params 
+        Performs optical sweep
         """
+        # Configure DUT len
+        self._write('CONF:DUTL')
+        time.sleep(0.5)
         self.configure_and_start_lambda_sweep(
             start_nm=start_nm,
             stop_nm=stop_nm,
             step_nm=step_nm,
-            laser_power_dbm=laser_power_dbm,
-            avg_time_s=averaging_time_s,
         )
 
         self.execute_lambda_scan()
         return self.retrieve_scan_data()
 
+from NIR.hal.nir_factory import register_driver
+register_driver("luna_controller", LunaController)

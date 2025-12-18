@@ -476,7 +476,7 @@ class StageManager:
     async def _position_monitor_loop(self):
         """Background task to monitor positions and update shared memory"""
         logger.info("Position monitor started")
-        
+        time.sleep(5.0)  # Wait a bit before starting
         while self._is_running:
             try:
                 if not self.motors:

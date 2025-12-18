@@ -316,7 +316,7 @@ class stage_control(App):
         except Exception as e:
             print(f'Detector window error: {e}')
             return False
-             
+
     def laser_sweep(self, name=None):
         print("Sweep Start")
         auto = 0
@@ -335,85 +335,108 @@ class stage_control(App):
             auto = 1
 
         try:
-            def resolve_range_and_ref(detector_range, detector_auto, detector_ref):
-                # --- RANGE ---
-                # Case 1: Auto mode = {}, Manual mode has valid value
-                if detector_auto == {} and detector_range.get("range_dbm") is not None:
-                    ch_range = detector_range["range_dbm"]
-
-                # Case 2: Manual = {}, Auto selected (any non-empty dict)
-                elif detector_range == {} and detector_auto:
-                    ch_range = None  # machine expects None for auto
-
-                # Case 3: default
-                else:
-                    ch_range = None  # default to auto
-
-                # ----- REF -----
-                if detector_ref.get("ref_dbm") is not None:
-                    ch_ref = detector_ref["ref_dbm"]
-                else:
-                    ch_ref = -30  # default
-
-                return ch_range, ch_ref
-            
-            # Get slot info
-            if self.slot_info is None:
-                slot_info = self.nir_manager.get_mainframe_slot_info()
-                self.slot_info = slot_info
-            else:
-                slot_info = self.slot_info
-            
-            if slot_info is None:
-                raise RuntimeError("No slots found in the instrument")
-            
-            # Apply detector window to connected slots
-            args_list = []
-            previous_slot = None
-
-            for slot, _ in slot_info:
-                # Avoid repetition for Master / Slave
-                if slot == previous_slot:
-                    continue
-                previous_slot = slot
-
-                # Get data
-                detector_window_data = getattr(self, 'detector_window_settings', {})
-                auto_range_attr = detector_window_data.get(f'DetectorAutoRange_Ch{slot}', {})
-                manual_range_attr = detector_window_data.get(f'DetectorRange_Ch{slot}', {})
-                ref_attr = detector_window_data.get(f'DetectorReference_Ch{slot}', {})
-                ch_range, ch_ref = resolve_range_and_ref(
-                    manual_range_attr,
-                    auto_range_attr,
-                    ref_attr
-                )
-                args_list.append((slot, ch_ref, ch_range))
+            # ========== LUNA CONTROLLER PATH ==========
+            if self.configuration.get("sensor") == "luna_controller":
+                print("[Stage Control] Using Luna OVA sweep")
                 
+                # Luna returns full data matrix from output.txt
+                data_matrix = self.nir_manager.sweep(
+                    start_nm=self.sweep["start"],
+                    stop_nm=self.sweep["end"],
+                    step_nm=self.sweep["step"],
+                    laser_power_dbm=self.sweep["power"]
+                )
+                
+                # Extract wavelength for compatibility
+                wl = data_matrix[0]
+                detectors = None  # Luna doesn't use detector format
+                luna_data = data_matrix  # Keep full matrix for saving
+                
+                print("[Stage Control] Luna Sweep completed Successfully")
             
-            if len(args_list) == 0:
-                raise Exception("No args found")
-            
-            wl, detectors = self.nir_manager.sweep(
-                start_nm=self.sweep["start"],
-                stop_nm=self.sweep["end"],
-                step_nm=self.sweep["step"],
-                laser_power_dbm=self.sweep["power"],
-                args=args_list
-            )
-            
-            print("[Stage Control] Laser Sweep completed Successfully")
+            # ========== NIR CONTROLLER PATH (ORIGINAL) ==========
+            else:
+                def resolve_range_and_ref(detector_range, detector_auto, detector_ref):
+                    # --- RANGE ---
+                    # Case 1: Auto mode = {}, Manual mode has valid value
+                    if detector_auto == {} and detector_range.get("range_dbm") is not None:
+                        ch_range = detector_range["range_dbm"]
 
-            # Apply detector window settings once again 
-            prev_slot = None
-            for slot, _ in self.slot_info:
-                if slot == prev_slot:
-                    continue
-                prev_slot = slot
-                self.apply_detector_window(slot)
-        
+                    # Case 2: Manual = {}, Auto selected (any non-empty dict)
+                    elif detector_range == {} and detector_auto:
+                        ch_range = None  # machine expects None for auto
+
+                    # Case 3: default
+                    else:
+                        ch_range = None  # default to auto
+
+                    # ----- REF -----
+                    if detector_ref.get("ref_dbm") is not None:
+                        ch_ref = detector_ref["ref_dbm"]
+                    else:
+                        ch_ref = -30  # default
+
+                    return ch_range, ch_ref
+                
+                # Get slot info
+                if self.slot_info is None:
+                    slot_info = self.nir_manager.get_mainframe_slot_info()
+                    self.slot_info = slot_info
+                else:
+                    slot_info = self.slot_info
+                
+                if slot_info is None:
+                    raise RuntimeError("No slots found in the instrument")
+                
+                # Apply detector window to connected slots
+                args_list = []
+                previous_slot = None
+
+                for slot, _ in slot_info:
+                    # Avoid repetition for Master / Slave
+                    if slot == previous_slot:
+                        continue
+                    previous_slot = slot
+
+                    # Get data
+                    detector_window_data = getattr(self, 'detector_window_settings', {})
+                    auto_range_attr = detector_window_data.get(f'DetectorAutoRange_Ch{slot}', {})
+                    manual_range_attr = detector_window_data.get(f'DetectorRange_Ch{slot}', {})
+                    ref_attr = detector_window_data.get(f'DetectorReference_Ch{slot}', {})
+                    ch_range, ch_ref = resolve_range_and_ref(
+                        manual_range_attr,
+                        auto_range_attr,
+                        ref_attr
+                    )
+                    args_list.append((slot, ch_ref, ch_range))
+                    
+                
+                if len(args_list) == 0:
+                    raise Exception("No args found")
+                
+                wl, detectors = self.nir_manager.sweep(
+                    start_nm=self.sweep["start"],
+                    stop_nm=self.sweep["end"],
+                    step_nm=self.sweep["step"],
+                    laser_power_dbm=self.sweep["power"],
+                    args=args_list
+                )
+                
+                luna_data = None  # No Luna data in NIR mode
+                
+                print("[Stage Control] Laser Sweep completed Successfully")
+
+                # Apply detector window settings once again 
+                prev_slot = None
+                for slot, _ in self.slot_info:
+                    if slot == prev_slot:
+                        continue
+                    prev_slot = slot
+                    self.apply_detector_window(slot)
+            
         except Exception as e:
             print(f"[Error] Sweep failed: {e}")
-            wl, detectors = [], [], []
+            wl, detectors, luna_data = [], [], None
         
         # Plotting the data
         x = wl
@@ -425,36 +448,53 @@ class stage_control(App):
             print("[Plot] Sweep flag is 0  cancelled; skipping plot & webview.")
         else:
             try:
-                # If detectors is None, treat as empty
-                if not detectors:
-                    raise ValueError("No detectors data to plot.")
-
-                for d in detectors:
-                    active_detectors.append(d)
-
-                if not active_detectors:
-                    raise ValueError("Detector list empty after sweep.")
-
-                y = np.vstack(active_detectors)
-
-                # Only write to save path on auto measurements
-                dest_cfg = self.use_destination_dir if auto == 1 else {}
-
                 fileTime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-                diagram = plot(
-                    x, y, "spectral_sweep", fileTime, 
-                    self.user, name, self.project,
-                    auto, self.file_format, self.slot_info,
-                    destination_dir=dest_cfg,  # For autosweeps
-                    meta_data=self.meta_data
-                )
+                
+                # Choose plotter based on sensor type
+                if self.configuration.get("sensor") == "luna_controller":
+                    if luna_data is None or len(luna_data) == 0:
+                        raise ValueError("No Luna data to plot.")
+                    
+                    # Only write to save path on auto measurements
+                    dest_cfg = self.use_destination_dir if auto == 1 else {}
+                    
+                    diagram = plot_luna(
+                        luna_data, "ova_sweep", fileTime,
+                        self.user, name, self.project,
+                        auto, self.file_format,
+                        destination_dir=dest_cfg,
+                        meta_data=self.meta_data
+                    )
+                else:
+                    # If detectors is None, treat as empty
+                    if not detectors:
+                        raise ValueError("No detectors data to plot.")
+
+                    for d in detectors:
+                        active_detectors.append(d)
+
+                    if not active_detectors:
+                        raise ValueError("Detector list empty after sweep.")
+
+                    y = np.vstack(active_detectors)
+
+                    # Only write to save path on auto measurements
+                    dest_cfg = self.use_destination_dir if auto == 1 else {}
+
+                    diagram = plot(
+                        x, y, "spectral_sweep", fileTime, 
+                        self.user, name, self.project,
+                        auto, self.file_format, self.slot_info,
+                        destination_dir=dest_cfg,
+                        meta_data=self.meta_data
+                    )
+                
                 p = Process(target=diagram.generate_plots)
                 p.start()
                 p.join()
 
                 if self.web != "" and auto == 0:
                     file_uri = Path(self.web).resolve().as_uri()
-                    # print(file_uri)
                     webview.create_window(
                         'Stage Control',
                         file_uri,
@@ -602,6 +642,7 @@ class stage_control(App):
             "sensor"] == 0:
             # Connect sensor instance
             self.nir_configure = NIRConfiguration()
+            self.nir_configure.driver_types = self.configuration["sensor"]
             self.nir_configure.gpib_addr = self.port["sensor"]
             self.nir_manager = NIRManager(self.nir_configure)
             success_sensor = self.nir_manager.initialize()
@@ -789,6 +830,11 @@ class stage_control(App):
 
     def update_ch(self):
         while True:
+            if self.configuration.get("sensor") == "luna_controller":
+                # Read power is too slow of an operation on the OVA
+                # Due to DUT length calculation
+                # So we have to continue w/o updating calling
+                continue
             if self.task_start == 0 and self.slot_info is not None:
                 prev_slot = None
                 for slot, head in self.slot_info:

@@ -141,7 +141,7 @@ class instruments(App):
             setattr(self, f"{key}_dd", StyledDropDown(
                 container=instruments_container,
                 text={"stage": ["MMC100_controller", "Corvus_controller", "Dummy"],
-                    "sensor": ["8164B_NIR", "Dummy_A", "Dummy_B"],
+                    "sensor": ["8164B_NIR", "luna_controller", "Dummy_B"],
                     "tec": ["srs_ldc_502", "Dummy_A", "Dummy_B"],
                     "smu": ["stage_control", "Dummy_A", "Dummy_B"],
                     "motor": ["BSC203_emotor", "Dummy_A", "Dummy_B"]}[key],
