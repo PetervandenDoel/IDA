@@ -174,7 +174,7 @@ class tec_control(App):
                 text="⮞",
                 variable_name="temp_right_button",
                 font_size=100,
-                left=197, top=55,
+                left=212, top=55,
                 width=40, height=25
             )
 
@@ -252,7 +252,7 @@ class tec_control(App):
                 container=ld_container,
                 variable_name="set_current_btn",
                 text="Set",
-                left=170, top=75,
+                left=185, top=75,
                 width=50, height=25,
                 font_size=90
             )
@@ -282,7 +282,7 @@ class tec_control(App):
                 container=ld_container,
                 text="Set",
                 variable_name="set_i_limit_btn",
-                left=170, top=105,
+                left=185, top=105,
                 width=50, height=25,
                 font_size=90
             )
@@ -312,7 +312,7 @@ class tec_control(App):
                 container=ld_container,
                 text="Set",
                 variable_name="set_v_limit_btn",
-                left=170, top=135,
+                left=185, top=135,
                 width=50, height=25,
                 font_size=90
             )
@@ -352,7 +352,7 @@ class tec_control(App):
             self.ld_start = StyledSpinBox(
                 container=ld_sweep_container,
                 variable_name="ld_start",
-                left=95, top=45,
+                left=70, top=45,
                 min_value=0.1, max_value=500,
                 value=1.0, step=0.1,
                 width=65, height=24
@@ -362,11 +362,11 @@ class tec_control(App):
                 container=ld_sweep_container,
                 text="End [mA]",
                 variable_name="end_sweep_label",
-                left=165, top=45, width=70, height=25)
+                left=155, top=45, width=70, height=25)
             self.ld_end = StyledSpinBox(
                 container=ld_sweep_container,
                 variable_name="ld_end",
-                left=235, top=45,
+                left=215, top=45,
                 min_value=0.1, max_value=500,
                 value=20.0, step=0.1,
                 width=60, height=24
@@ -380,7 +380,7 @@ class tec_control(App):
             self.ld_step = StyledSpinBox(
                 container=ld_sweep_container,
                 variable_name="ld_step",
-                left=95, top=85,
+                left=70, top=85,
                 min_value=0.01, max_value=50,
                 value=0.5, step=0.01,
                 width=65, height=24
@@ -390,11 +390,12 @@ class tec_control(App):
                 container=ld_sweep_container,
                 text="Dwell [ms]", 
                 variable_name="sweep_dwell_label",
-                left=165, top=85, width=85, height=25)
+                left=155, top=85, width=85, height=25)
+            
             self.ld_dwell = StyledSpinBox(
                 container=ld_sweep_container,
                 variable_name="ld_dwell",
-                left=240, top=85,
+                left=220, top=85,
                 min_value=10, max_value=10000,
                 value=100, step=10,
                 width=55, height=24
@@ -405,10 +406,11 @@ class tec_control(App):
                 text="Trig Delay [ms]",
                 variable_name="sweep_trig_label",
                 left=5, top=125, width=110, height=25, font_size=85)
+            
             self.ld_trig_delay = StyledSpinBox(
                 container=ld_sweep_container,
                 variable_name="ld_trig_delay",
-                left=120, top=125,
+                left=90, top=125,
                 min_value=0, max_value=1000,
                 value=10, step=1,
                 width=55, height=24
@@ -592,6 +594,6 @@ if __name__ == '__main__':
         width=322,
         height=540,
         resizable=True,
-        hidden=False
+        hidden=True
     )
     webview.start()
