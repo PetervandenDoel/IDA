@@ -375,6 +375,7 @@ class HP816xLambdaScan:
         """ 
         For External nir controller usage
         Returns slot mapping
+            [(PWMIndex, MF, Slot, Head), (...)]
         """
         # --- Detect PWM channels, and enumerate ---
         # --- This will dynamically allocate PWM chns, heads, slots ---
@@ -382,7 +383,7 @@ class HP816xLambdaScan:
         self.lib.hp816x_getNoOfRegPWMChannels_Q(self.session, byref(n_pwm))
         n_pwm = n_pwm.value
 
-        # list of 3 tuples -> PWMIndex, Slot, Head
+        # list of 4 tuples -> PWMIndex, MF, Slot, Head
         mapping = self.get_pwm_map(n_pwm)
         return mapping
     
@@ -433,8 +434,8 @@ class HP816xLambdaScan:
 
         # --- Extract values (meters) ---
         if status == 0:
-            min_wavelength     = min_wl.value
-            max_wavelength     = max_wl.value
+            min_wavelength     = (min_wl.value + 4.5e-10)*1e9  # + Buffer
+            max_wavelength     = (max_wl.value - 4.5e-10)*1e9  # - Buffer
         else:
             min_wavelength     = 1490.0  # Default for 1550 lasers
             nax_wavelength     = 1640.0  # Default for 1550 lasers
@@ -470,8 +471,8 @@ class HP816xLambdaScan:
 
         segments = max(1, int(np.ceil(n_target / float(eff_points_budget))))
 
-        # --- allocate stitched output arrays ---
-        # keyed by physical detector identity (slot, head)
+        # --- Allocate stitched output arrays ---
+        # keyed by physical detector identity (mf, slot, head)
         out_by_ch = {
             (mf, slot, head): np.full(n_target, np.nan, dtype=np.float64)
             for (pwm, mf, slot, head) in mapping
@@ -622,11 +623,11 @@ class HP816xLambdaScan:
         """
         """
         args_dict = {}
-        for slot, ref, range in args_list:
-            args_dict[slot] = range
+        for slot, mf, _, range in args_list:
+            args_dict[(mf,slot)] = range
 
-        for pwm, _, slot, head in mapping:
-            range_dbm = args_dict.get(slot, 0.0)  # Default to 0 dBm
+        for pwm, mf, slot, head in mapping:
+            range_dbm = args_dict.get((mf,slot), 0.0)  # Default to 0 dBm
             if range_dbm is None:
                 # print(f'Applying Autoranging for slot: {slot}, {pwm},{head}')
                 self.apply_auto_ranging(pwm, slot, head, (btm_wl, top_wl))
@@ -724,7 +725,7 @@ class HP816xLambdaScan:
         self.apply_manual_ranging(pwm, slot, head, range_val)
 
     def get_pwm_map(self, n_pwm):
-        """Return list of tuples (pwmIndex, slot, head)."""
+        """Return list of tuples (pwmIndex, MF, slot, head)."""
         mapping = []
         for pwm in range(n_pwm):
             mf = c_int32()
@@ -740,7 +741,7 @@ class HP816xLambdaScan:
             )
             self.check(st, f"getChannelLocation failed for PWM {pwm}")
 
-            mapping.append((pwm, mf, slot.value, head.value))
+            mapping.append((pwm, mf.value, slot.value, head.value))
         return mapping
     
     def check_both(self, slot, chan):
