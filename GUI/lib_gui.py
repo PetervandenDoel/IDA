@@ -1283,7 +1283,7 @@ class plot_ld_sweep():
     """Handles LD current sweep plotting and saving"""
     
     def __init__(self, scan_data, filename, fileTime, 
-                 user, name, project, destination_dir={}):
+                 user, name, project):
         """
         Args:
             scan_data: List of (current_ma, voltage_v) tuples
@@ -1292,7 +1292,6 @@ class plot_ld_sweep():
             user: Username
             name: Measurement name
             project: Project name
-            destination_dir: Optional custom save directory
         """
         self.scan_data = scan_data
         self.filename = filename
@@ -1300,7 +1299,6 @@ class plot_ld_sweep():
         self.user = user
         self.name = name
         self.project = project
-        self.destination_dir = destination_dir
         
         # Extract data arrays
         self.current_ma = np.array([point[0] for point in scan_data])
@@ -1313,11 +1311,7 @@ class plot_ld_sweep():
         """Create HTML and CSV outputs"""
         
         # Determine save path
-        if self.destination_dir == {}:
-            path = os.path.join(".", "UserData", self.user, self.project, "LD_Sweep", self.name)
-        else:
-            path = self.destination_dir.get("dest_dir")
-            path = os.path.join(path, "LD_Sweep", self.name)
+        path = os.path.join(".", "UserData", self.user, self.project, "LD_Sweep", self.name)
         
         os.makedirs(path, exist_ok=True)
         

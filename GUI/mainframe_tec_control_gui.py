@@ -32,6 +32,8 @@ class tec_control(App):
             "dwell": 100,
             "trigger_delay": 10,
         }
+        self.user = None
+        self.project = None
 
         if "editing_mode" not in kwargs:
             super(tec_control, self).__init__(*args, **{"static_file_path": {"my_res": "./res/"}})
@@ -70,6 +72,9 @@ class tec_control(App):
                     self.configuration = data.get("Configuration", {})
                     self.configuration_check = data.get("Configuration_check", {})
                     self.port = data.get("Port", {})
+                    self.user = data.get("User", "")
+                    self.project = data.get("Project", "")
+                    self.name = data.get("DeviceName", "")
             except Exception as e:
                 print(f"[Warn] read json failed: {e}")
 
@@ -498,35 +503,35 @@ class tec_control(App):
             return
         
         if value:
-            self.ldc_manager.ldc_on()
+            self.ldc_manager.ld_on()
         else:
-            self.ldc_manager.ldc_off()
+            self.ldc_manager.ld_off()
 
     def onclick_set_current(self):
         if not self.ldc_manager:
             return
         current = float(self.ld_current.get_value())
-        self.ldc_manager.set_current(current)
+        self.ldc_manager.set_ld_current(current)
         print(f"LD current set to {current} mA")
 
     def onclick_set_i_limit(self):
         if not self.ldc_manager:
             return
         limit = float(self.i_limit.get_value())
-        self.ldc_manager.set_current_limit(limit)
+        self.ldc_manager.set_ld_current_limit(limit)
         print(f"LD current limit set to {limit} mA")
 
     def onclick_set_v_limit(self):
         if not self.ldc_manager:
             return
         limit = float(self.v_limit.get_value())
-        self.ldc_manager.set_voltage_limit(limit)
+        self.ldc_manager.set_ld_voltage_limit(limit)
         print(f"LD voltage limit set to {limit} V")
 
     def onchange_range(self, emitter, value):
         if not self.ldc_manager:
             return
-        self.ldc_manager.set_current_range(high=bool(value))
+        self.ldc_manager.set_ld_current_range(high=bool(value))
         print(f"LD range set to {'HIGH' if value else 'LOW'}")
 
     def onclick_ld_sweep(self):
@@ -546,7 +551,7 @@ class tec_control(App):
 
         print(f"Starting LD sweep: {start_ma}->{stop_ma} mA, step={step_ma}, dwell={dwell_ms}ms")
         
-        self.ldc_manager.ld_current_sweep(
+        data = self.ldc_manager.ld_current_sweep(
             start_ma=start_ma,
             stop_ma=stop_ma,
             step_ma=step_ma,
@@ -554,6 +559,15 @@ class tec_control(App):
             trigger_delay_ms=trig_delay_ms,
         )
 
+        # lib_gui
+        plot_ld_sweep(
+            scan_data=data,
+            filename='IVSweep',
+            fileTime=datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"),
+            user=self.user,
+            name=self.name,
+            project=self.project
+        )
         print("LD sweep complete")
 
     def execute_command(self, path=command_path):

@@ -92,7 +92,6 @@ class LDCManager:
                 'debug': self.debug
             }
             driver_key = self.config.driver_types
-            print(driver_key)
             self.ldc = create_driver(driver_key, **params)
             
             # Add event callback to forward events
@@ -157,8 +156,9 @@ class LDCManager:
         """Configure device with current settings"""
         try:
             if not self.ldc or not self._connected:
+                print('am I returnig ealry/ why?')
                 return
-            
+            print('I am not returing early, but I am being stubbron')
             # Set sensor type
             self.ldc.set_sensor_type(self.config.sensor_type)
             

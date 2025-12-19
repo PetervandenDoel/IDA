@@ -230,6 +230,17 @@ class instruments(App):
             file = File("shared_memory", "Configuration", self.configuration)
             file.save()
             self.tec_connect_btn.set_text("Connecting")
+            
+            # Display
+            local_ip = '127.0.0.1'
+            webview.create_window(
+                'TEC Control',
+                f'http://{local_ip}:8002',
+                width=322,
+                height=540,
+                resizable=True,
+                hidden=False
+            )
             # self.lock_all(1)
         else:
             self.configuration["tec"] = ""
