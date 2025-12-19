@@ -352,7 +352,10 @@ class HP816xLambdaScan:
                     self.lib.hp816x_errorQueryDetect(session, 1)  # VI_TRUE
                     self.lib.hp816x_registerMainframe(session)
                     self.connected = True
-                time.sleep(1)
+                time.sleep(1)    
+            
+            return True
+        
         except Exception as e:
             logging.error(f"[LSC] Connection error: {e}")
             return False
@@ -767,7 +770,7 @@ class HP816xLambdaScan:
         if self.session:
             self.lib.hp816x_unregisterMainframe(self.session)
             self.lib.hp816x_close(self.session)
-        if len(self.detector_sessions) !=:
+        if len(self.detector_sessions) != 0:
             for sess in self.detector_sessions:
                 self.lib.hp816x_unregisterMainframe(sess)
                 self.lib.hp816x_close(sess)
