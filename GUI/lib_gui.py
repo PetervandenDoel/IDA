@@ -1272,6 +1272,120 @@ class plot_luna():
         except Exception as e:
             print(f"Exception generating PNG/PDF: {e}")
 
+import os
+import pandas as pd
+import numpy as np
+from datetime import datetime
+import plotly.graph_objects as go
+from GUI.lib_gui import File
+
+class plot_ld_sweep():
+    """Handles LD current sweep plotting and saving"""
+    
+    def __init__(self, scan_data, filename, fileTime, 
+                 user, name, project, destination_dir={}):
+        """
+        Args:
+            scan_data: List of (current_ma, voltage_v) tuples
+            filename: Base filename for outputs
+            fileTime: Timestamp string
+            user: Username
+            name: Measurement name
+            project: Project name
+            destination_dir: Optional custom save directory
+        """
+        self.scan_data = scan_data
+        self.filename = filename
+        self.fileTime = fileTime
+        self.user = user
+        self.name = name
+        self.project = project
+        self.destination_dir = destination_dir
+        
+        # Extract data arrays
+        self.current_ma = np.array([point[0] for point in scan_data])
+        self.voltage_v = np.array([point[1] for point in scan_data])
+        
+        # Calculate power (simple P = V * I)
+        self.power_mw = self.current_ma * self.voltage_v
+
+    def generate_plots(self):
+        """Create HTML and CSV outputs"""
+        
+        # Determine save path
+        if self.destination_dir == {}:
+            path = os.path.join(".", "UserData", self.user, self.project, "LD_Sweep", self.name)
+        else:
+            path = self.destination_dir.get("dest_dir")
+            path = os.path.join(path, "LD_Sweep", self.name)
+        
+        os.makedirs(path, exist_ok=True)
+        
+        # ========== CSV ==========
+        try:
+            df = pd.DataFrame({
+                'Current_mA': self.current_ma,
+                'Voltage_V': self.voltage_v,
+                'Power_mW': self.power_mw
+            })
+            output_csv = os.path.join(path, f"{self.filename}_{self.fileTime}.csv")
+            df.to_csv(output_csv, index=False)
+            print(f"Saved CSV: {output_csv}")
+        except Exception as e:
+            print(f"Exception saving CSV: {e}")
+        
+        # ========== HTML (Interactive Plotly) ==========
+        try:
+            from plotly.subplots import make_subplots
+            
+            fig = make_subplots(
+                rows=2, cols=1,
+                shared_xaxes=True,
+                subplot_titles=("LD Voltage vs Current", "LD Power vs Current"),
+                vertical_spacing=0.12
+            )
+            
+            # Top: Voltage
+            fig.add_trace(
+                go.Scatter(x=self.current_ma, y=self.voltage_v, 
+                          mode='lines+markers', name='Voltage',
+                          line=dict(color='#1f77b4', width=2),
+                          marker=dict(size=4)),
+                row=1, col=1
+            )
+            
+            # Bottom: Power
+            fig.add_trace(
+                go.Scatter(x=self.current_ma, y=self.power_mw,
+                          mode='lines+markers', name='Power',
+                          line=dict(color='#ff7f0e', width=2),
+                          marker=dict(size=4)),
+                row=2, col=1
+            )
+            
+            fig.update_xaxes(title_text="Current (mA)", row=2, col=1)
+            fig.update_yaxes(title_text="Voltage (V)", row=1, col=1)
+            fig.update_yaxes(title_text="Power (mW)", row=2, col=1)
+            
+            fig.update_layout(height=700, showlegend=False, 
+                            title_text="LD Current Sweep")
+            
+            output_html = os.path.join(path, f"{self.filename}_{self.fileTime}.html")
+            fig.write_html(output_html)
+            print(f"Saved HTML: {output_html}")
+            
+            # Also save PNG to ./res for GUI display
+            res_png = os.path.join(".", "res", "ld_sweep", f"{self.filename}_{self.fileTime}.png")
+            os.makedirs(os.path.dirname(res_png), exist_ok=True)
+            fig.write_image(res_png, width=1000, height=700)
+            
+            # Update GUI reference
+            File("shared_memory", "Image", f"ld_sweep/{self.filename}_{self.fileTime}.png",
+                 "Web", output_html).save()
+                 
+        except Exception as e:
+            print(f"Exception generating HTML plot: {e}")
+
 import sys
 from multiprocessing import Event, Value
 from ctypes import c_int
