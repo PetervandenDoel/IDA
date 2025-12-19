@@ -278,6 +278,17 @@ class HP816xLambdaScan:
         ]
         self.lib.hp816x_get_PWM_powerUnit_Q.restype = c_int32
 
+        # hp816x_get_TLS_wavelength_Q
+        self.lib.hp816x_get_TLS_wavelength_Q.argtypes = [
+            c_int32,              # ViSession        -> session handle
+            c_int32,              # ViInt32          -> TLS slot index
+            POINTER(c_double),    # ViPReal64 (OUT)  -> minimum wavelength (m)
+            POINTER(c_double),    # ViPReal64 (OUT)  -> default wavelength (m)
+            POINTER(c_double),    # ViPReal64 (OUT)  -> maximum wavelength (m)
+            POINTER(c_double),    # ViPReal64 (OUT)  -> current wavelength (m)
+        ]
+        self.lib.hp816x_get_TLS_wavelength_Q.restype = c_int32  # ViStatus
+
     def _err_msg(self, status):
         if not self.session:
             return f"(no session) status={status}"
@@ -400,9 +411,37 @@ class HP816xLambdaScan:
         # Apply ranging for each slot, head
         mapping = self.get_pwm_map(n_pwm)
         
+        # --- Get laser limits for sweep ---
+        min_wl = c_double()
+        def_wl = c_double()
+        max_wl = c_double()
+        cur_wl = c_double()
+
+        # Get TLS params
+        status = self.lib.hp816x_get_TLS_wavelength_Q(
+            self.session,           # ViSession
+            c_int32(0),             # ViInt32 assume tls in slot 0
+            byref(min_wl),          # ViPReal64 OUT
+            byref(def_wl),          # ViPReal64 OUT
+            byref(max_wl),          # ViPReal64 OUT
+            byref(cur_wl),          # ViPReal64 OUT
+        )
+
+        # --- Check status if you want ---
+        if status != 0:
+            print(f"hp816x_get_TLS_wavelength_Q failed ({status}); defaulting...")
+
+        # --- Extract values (meters) ---
+        if status == 0:
+            min_wavelength     = min_wl.value
+            max_wavelength     = max_wl.value
+        else:
+            min_wavelength     = 1490.0  # Default for 1550 lasers
+            nax_wavelength     = 1640.0  # Default for 1550 lasers
+
         # --- Normalize sweep parameters ---
-        start_nm = max(1490.0, float(start_nm))
-        stop_nm = min(1640.0, float(stop_nm))
+        start_nm = max(min_wavelength, float(start_nm))
+        stop_nm = min(max_wavelength, float(stop_nm))
         if stop_nm <= start_nm:
             raise ValueError("stop_nm must be greater than start_nm")
 
