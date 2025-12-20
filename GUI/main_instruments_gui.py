@@ -162,24 +162,14 @@ class instruments(App):
                 normal_color="#007BFF", press_color="#0056B3"
             ))
 
-            # Configure button (ONLY for stage, smu, motor)
-            if key in ("stage", "smu", "motor"):
-                setattr(self, f"{key}_configure_btn", StyledButton(
-                    container=instruments_container,
-                    text="Configure",
-                    variable_name=f"configure_{key}",
-                    left=480, top=10 + idx * 40,
-                    normal_color="#007BFF", press_color="#0056B3"
-                ))
-            # Special configure button for sensor (NIR)
-            elif key == "sensor":
-                setattr(self, f"{key}_configure_btn", StyledButton(
-                    container=instruments_container,
-                    text="NIR Config",
-                    variable_name=f"configure_{key}",
-                    left=480, top=10 + idx * 40,
-                    normal_color="#28A745", press_color="#1E7E34"
-                ))
+        # Configure button 
+        setattr(self, f"stage_configure_btn", StyledButton(
+            container=instruments_container,
+            text="Configure VISA",
+            variable_name=f"configure_stage",
+            left=480, top=10,
+            normal_color="#007BFF", press_color="#0056B3"))
+               
 
         # NIR Configuration Display
         nir_config_container = StyledContainer(
@@ -248,7 +238,7 @@ class instruments(App):
         terminal_container = StyledContainer(
             container=instruments_container,
             variable_name="terminal_container",
-            left=0, top=350, height=150, width=650, bg_color=True  # Moved down for NIR config
+            left=0, top=500, height=150, width=650, bg_color=True  # Moved down for NIR config
         )
 
         self.terminal = Terminal(
@@ -265,12 +255,6 @@ class instruments(App):
         # Configure handlers (only if present)
         if hasattr(self, "stage_configure_btn"):
             self.stage_configure_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_configure_btn))
-        if hasattr(self, "sensor_configure_btn"):
-            self.sensor_configure_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_nir_configure_btn))
-        if hasattr(self, "smu_configure_btn"):
-            self.smu_configure_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_configure_btn))
-        if hasattr(self, "motor_configure_btn"):
-            self.motor_configure_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_configure_btn))
 
         self.instruments_container = instruments_container
         return instruments_container
@@ -358,11 +342,12 @@ class instruments(App):
     def _update_nir_config_display(self, data):
         """Update NIR configuration display from shared memory data."""
         try:
-            nir_config = data.get("NIR_Port", {})
+            nir_config = data.get("Port", {})
             
             laser_gpib = nir_config.get("laser_gpib", "Not configured")
             detector_gpib = nir_config.get("detector_gpib", None)
-            
+            detector_gpib = detector_gpib[0] if detector_gpib is not None else None
+
             # Update laser GPIB display
             if hasattr(self, 'laser_gpib_display'):
                 self.laser_gpib_display.set_text(str(laser_gpib) if laser_gpib else "Not configured")
