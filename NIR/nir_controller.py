@@ -40,9 +40,8 @@ class NIR8164(LaserHAL):
         self.timeout_ms = timeout_ms
 
         # Connection
-        self.laser_rm: Optional[pyvisa.ResourceManager] = None
+        self.rm: Optional[pyvisa.ResourceManager] = None
         self.laser_inst: Optional[pyvisa.Resource] = None
-        self.detector_rms: list[pyvisa.ResourceManager] = []
         self.detector_insts: list[pyvisa.Resource] = []
         self.detector_slots = detector_slots
         self.laser_slot = laser_slot
@@ -63,12 +62,12 @@ class NIR8164(LaserHAL):
             if not self.is_mf:
                 # Connect as usual
                 self.rm = pyvisa.ResourceManager()
-                self.inst = self.rm.open_resource(
+                self.laser_inst = self.rm.open_resource(
                     self.laser_slot,
                     timeout=self.timeout_ms,
                 )
                 try:
-                    self.inst.clear()
+                    self.laser_inst.clear()
                 except Exception:
                     pass
 
@@ -83,12 +82,12 @@ class NIR8164(LaserHAL):
             else:
                 # Now, open a ressource for each detector
                 self.rm = pyvisa.ResourceManager()
-                self.inst = self.rm.open_resource(
+                self.laser_inst = self.rm.open_resource(
                     self.laser_slot,
                     timeout=self.timeout_ms,
                 )
                 try:
-                    self.inst.clear()
+                    self.laser_inst.clear()
                 except Exception:
                     pass
 
@@ -97,9 +96,8 @@ class NIR8164(LaserHAL):
                     return False
                 
                 for gpib in self.detector_slots:
-                    temp_rm = pyvisa.ResourceManager()
-                    self.detector_rms.append(temp_rm)
-                    temp_inst = temp_rm.open_resource(
+                    print(gpib)
+                    temp_inst = self.rm.open_resource(
                             gpib,
                             timeout=self.timeout_ms,
                         )
@@ -119,34 +117,30 @@ class NIR8164(LaserHAL):
         except Exception:
             return False
         try:
-            if self.inst:
-                self.inst.close()
+            if self.laser_inst:
+                self.laser_inst.close()
             if self.is_mf:
                 for i in self.detector_insts:
                     i.close()
         finally:
-            self.inst = None
-            self.detector_insts = None
+            self.laser_inst = None
+            self.detector_insts = []
         if self.rm:
             try:
                 self.rm.close()
-                if self.is_mf:
-                    for r in self.detector_rms:
-                        r.close()
             finally:
                 self.rm = None
-                self.detector_rms = None
                 return True
 
     def write(self, scpi: str) -> None:
-        self.inst.write(scpi)
+        self.laser_inst.write(scpi)
 
     def write_detector(self, scpi: str, idx: int) -> None:
         self.detector_insts[idx].write(scpi)
 
     def query(self, scpi: str, sleep_s: float = 0.02, retries: int = 1) -> str:
         for attempt in range(retries + 1):
-            resp = self.inst.query(scpi).strip()
+            resp = self.laser_inst.query(scpi).strip()
             if resp or attempt == retries:
                 return resp
             time.sleep(0.03)
@@ -168,9 +162,15 @@ class NIR8164(LaserHAL):
         """
 
         from NIR.sweep import HP816xLambdaScan
-        hp = HP816xLambdaScan()
+        hp = HP816xLambdaScan(
+            self.laser_slot,
+            self.detector_slots
+        )
         try:
-            ok = hp.connect()
+            if self.is_mf:
+                ok = hp.connect_mf()
+            else:
+                ok = hp.connect()
             if not ok:
                 raise RuntimeError("HP816xLambdaScan.connect() failed")
             # [(PWMCh, MF, Slot, Head), ...,])

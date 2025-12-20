@@ -31,7 +31,6 @@ command_path = os.path.join("database", "command.json")
 class connect_config(App):
     def __init__(self, *args, **kwargs):
         self.stage_dd = None
-        self.sensor_dd = None
         self.tec_dd = None
         
         # NIR Configuration widgets
@@ -61,7 +60,6 @@ class connect_config(App):
             need_refresh = (
                 resources != self._last_resources
                 or self.stage_dd is None
-                or self.sensor_dd is None
                 or self.tec_dd is None
                 or self.laser_gpib_dd is None
                 or self.detector_gpib_dd is None
@@ -73,8 +71,6 @@ class connect_config(App):
 
                 if self.stage_dd:
                     self._refresh_dropdown(self.stage_dd, resources)
-                if self.sensor_dd:
-                    pass  # spinbox does not need refresh
                 if self.tec_dd:
                     self._refresh_dropdown(self.tec_dd, resources)
                 if self.laser_gpib_dd:
@@ -90,7 +86,7 @@ class connect_config(App):
     def construct_ui(self):
         container = StyledContainer(
             variable_name="connect_config_setting_container",
-            left=0, top=0, height=280, width=200  # Increased height for NIR controls
+            left=0, top=0, height=240, width=200  # Increased height for NIR controls
         )
 
         # ---- Stage ----
@@ -109,35 +105,20 @@ class connect_config(App):
             position="absolute",
         )
 
-        # ---- Sensor ----
-        StyledLabel(
-            container=container,
-            text="Sensor",
-            variable_name="sensor",
-            left=0, top=45, width=60, height=25,
-            font_size=100, flex=True, justify_content="right", color="#222",
-        )
-        self.sensor_dd = StyledSpinBox(
-            container=container,
-            variable_name="sensor_dd",
-            value=20, max_value=100, min_value=0, step=1,
-            left=70, top=45, width=83, height=25,
-            position="absolute",
-        )
 
         # ---- TEC ----
         StyledLabel(
             container=container,
             text="TEC",
             variable_name="tec",
-            left=0, top=80, width=60, height=25,
+            left=0, top=45, width=60, height=25,
             font_size=100, flex=True, justify_content="right", color="#222",
         )
         self.tec_dd = StyledDropDown(
             container=container,
             variable_name="tec_dd",
             text="N/A",
-            left=70, top=80, width=100, height=25,
+            left=70, top=45, width=100, height=25,
             position="absolute",
         )
 
@@ -146,14 +127,14 @@ class connect_config(App):
             container=container,
             text="Laser",
             variable_name="laser_gpib_label",
-            left=0, top=115, width=60, height=25,
+            left=0, top=80, width=60, height=25,
             font_size=100, flex=True, justify_content="right", color="#222",
         )
         self.laser_gpib_dd = StyledDropDown(
             container=container,
             variable_name="laser_gpib_dd",
             text="N/A",
-            left=70, top=115, width=100, height=25,
+            left=70, top=80, width=100, height=25,
             position="absolute",
         )
 
@@ -162,14 +143,14 @@ class connect_config(App):
             container=container,
             text="Detector",
             variable_name="detector_gpib_label",
-            left=0, top=150, width=60, height=25,
+            left=0, top=115, width=60, height=25,
             font_size=100, flex=True, justify_content="right", color="#222",
         )
         self.detector_gpib_dd = StyledDropDown(
             container=container,
             variable_name="detector_gpib_dd",
             text="None",
-            left=70, top=150, width=100, height=25,
+            left=70, top=115, width=100, height=25,
             position="absolute",
         )
 
@@ -178,7 +159,7 @@ class connect_config(App):
             container=container,
             text="Confirm",
             variable_name="confirm_btn",
-            left=68, top=242, height=25, width=70,  # Moved down for new controls
+            left=68, top=202, height=25, width=70,  # Moved down for new controls
             font_size=90,
         )
 
@@ -259,13 +240,6 @@ class connect_config(App):
             stage_label = self.stage_dd.get_value()
             stage_resource = self._resource_map.get(stage_label, None)
 
-            # Sensor numeric
-            sensor_val = self.sensor_dd.get_value()
-            try:
-                sensor_num = int(sensor_val)
-            except:
-                sensor_num = None
-
             # TEC resource
             tec_label = self.tec_dd.get_value()
             tec_resource = self._resource_map.get(tec_label, None)
@@ -283,20 +257,14 @@ class connect_config(App):
 
             config = {
                 "stage": stage_resource,
-                "sensor": sensor_num,
                 "tec": tec_resource,
-            }
-
-            # NIR configuration
-            nir_config = {
                 "laser_gpib": laser_resource,
-                "detector_gpib": detector_resource,
+                "detector_gpib": [detector_resource],
             }
 
-            file = File("shared_memory", "Port", config, "NIR_Port", nir_config)
+            file = File("shared_memory", "Port", config)
             file.save()
             print("[Connect Config] Saved Port config:", config)
-            print("[Connect Config] Saved NIR Port config:", nir_config)
 
             SHOULD_EXIT = True   # signal destroy callback
 

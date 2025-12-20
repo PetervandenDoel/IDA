@@ -55,7 +55,7 @@ class stage_control(App):
         self.filter = {}
         self.configuration = {}
         self.configuration_check = {}
-        self.port = {}
+        self.port = {}  # For VISA addr
         self.data_window = {}
 
         # State vars
@@ -340,7 +340,7 @@ class stage_control(App):
             auto = 1
 
         try:
-            # ========== LUNA CONTROLLER PATH ==========
+            # --- LUNA CONTROLLER PATH ---
             if self.configuration.get("sensor") == "luna_controller":
                 print("[Stage Control] Using Luna OVA sweep")
                 
@@ -359,30 +359,8 @@ class stage_control(App):
                 
                 print("[Stage Control] Luna Sweep completed Successfully")
             
-            # ========== NIR CONTROLLER PATH (ORIGINAL) ==========
+            # --- NIR CONTROLLER PATH  ---
             else:
-                def resolve_range_and_ref(detector_range, detector_auto, detector_ref):
-                    # --- RANGE ---
-                    # Case 1: Auto mode = {}, Manual mode has valid value
-                    if detector_auto == {} and detector_range.get("range_dbm") is not None:
-                        ch_range = detector_range["range_dbm"]
-
-                    # Case 2: Manual = {}, Auto selected (any non-empty dict)
-                    elif detector_range == {} and detector_auto:
-                        ch_range = None  # machine expects None for auto
-
-                    # Case 3: default
-                    else:
-                        ch_range = None  # default to auto
-
-                    # ----- REF -----
-                    if detector_ref.get("ref_dbm") is not None:
-                        ch_ref = detector_ref["ref_dbm"]
-                    else:
-                        ch_ref = -30  # default
-
-                    return ch_range, ch_ref
-                
                 # Get slot info
                 if self.slot_info is None:
                     slot_info = self.nir_manager.get_mainframe_slot_info()
@@ -395,20 +373,19 @@ class stage_control(App):
                 
                 # Apply detector window to connected slots
                 args_list = []
-                previous_slot = None
 
                 for mf, slot, head in slot_info:
                     # Get data for this MF/slot combination
                     detector_window_data = getattr(self, 'detector_window_settings', {})
                     
-                    # Access new compact structure: mf -> slot -> settings
+                    # Data window structure: mf -> slot -> settings
                     mf_data = detector_window_data.get(f'mf{mf}', {})
                     slot_data = mf_data.get(str(slot), {})
                     
-                    # Extract settings from compact structure
-                    auto_range = slot_data.get('auto_range', True)  # Default to auto
-                    manual_range = slot_data.get('range', -10)      # Default -10 dBm
-                    ref_value = slot_data.get('ref', -30)           # Default -30 dBm
+                    # Extract settings 
+                    auto_range = slot_data.get('auto_range', False) # Default to manual
+                    manual_range = slot_data.get('range', -10.0)      # Default -10 dBm
+                    ref_value = slot_data.get('ref', -30.0)           # Default -30 dBm
                     
                     # Determine final range and ref values
                     if auto_range:
@@ -417,7 +394,7 @@ class stage_control(App):
                         ch_range = manual_range
                     ch_ref = ref_value
                     
-                    # New args format: (slot, mf, ref, range)
+                    # Args format: (slot, mf, ref, range)
                     args_list.append((slot, mf, ch_ref, ch_range))
                     
                 
@@ -649,12 +626,18 @@ class stage_control(App):
             # Connect sensor instance
             self.nir_configure = NIRConfiguration()
             self.nir_configure.driver_types = self.configuration["sensor"]
-            self.nir_configure.gpib_addr = self.port["sensor"]
+            laser = self.port.get("laser_gpib")
+            detector = self.port.get("detector_gpib")
+            if laser == detector or detector is None:
+                self.nir_configure.laser_slot = laser
+                self.nir_configure.detector_slots = []
+            else:
+                self.nir_configure.laser_slot = laser
+                self.nir_configure.detector_slots = detector
+            print(f'LASER: {laser} | DETECTOR: {detector}')
             self.nir_manager = NIRManager(self.nir_configure)
             success_sensor = self.nir_manager.initialize()
             if success_sensor:
-
-                # self.slot_info = self.nir_manager.get_mainframe_slot_info()
                 self.configuration_sensor = 1
                 self.configuration_check["sensor"] = 2
                 file = File(

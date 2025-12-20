@@ -185,7 +185,7 @@ class instruments(App):
         nir_config_container = StyledContainer(
             container=instruments_container,
             variable_name="nir_config_container",
-            left=0, top=220, height=120, width=650, bg_color=True
+            left=0, top=220, height=120, width=650, bg_color=False
         )
         
         StyledLabel(
