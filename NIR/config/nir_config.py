@@ -11,9 +11,8 @@ class NIRConfiguration:
     """Simple configuration for NIR system"""
     
     # Connection settings
-    gpib_addr: int = 20 
-    laser_slot: int = 0
-    detector_slots: List[int] = field(default_factory=lambda: [1,2])
+    laser_slot: str = 'GPIB0::20::INSTR'  # Default
+    detector_slots: List[str] = field(default_factory=lambda: [])
     driver_types: str = '8164B_NIR'
     safety_password: str = "1234"
     timeout: int = 3000  # long for lambda sweep
@@ -31,7 +30,7 @@ class NIRConfiguration:
     @property
     def visa_address(self) -> str:
         """Get VISA address"""
-        return f"GPIB0::{self.gpib_addr}::INSTR"
+        return self.laser_slot
     
     def to_dict(self) -> dict:
         """Convert to dictionary"""

@@ -27,17 +27,10 @@ class NIRManager:
 
         # Initialize controller
         cfg = self.config.to_dict()
-        driver_key = cfg['driver_types']
+        driver_key = cfg.get('driver_types')
         self.controller = create_driver(driver_key, **cfg)
-        # self.controller = NIR8164(
-        #     gpib_addr=config.gpib_addr,
-        #     laser_slot=config.laser_slot,
-        #     detector_slots=config.detector_slots,
-        #     safety_password=config.safety_password,
-        #     timeout_ms=config.timeout
-        # )
-
-        # Optional slot info helper
+                
+        # Slot info helper
         self.slot_info = None
 
     def _log(self, message: str, level: str = "info"):
@@ -157,7 +150,7 @@ class NIRManager:
 
         Specify return data as follows:
 
-        [(slot,head), ...] 
+        [(MF,slot,head), ...] 
         """
         try:
             if not self.controller or not self._connected:
@@ -166,7 +159,7 @@ class NIRManager:
             if hasattr(self.controller, "get_mainframe_slot_info"):
                 self.slot_info = self.controller.get_mainframe_slot_info()
             else:
-                return [(1,0)]  # Default to 1 detector
+                return [(0,1,0),(0,1,1)]  # Default to 1 slot
             return self.slot_info
         
         except Exception as e:
@@ -276,32 +269,30 @@ class NIRManager:
     ######################################################################
     # Detector methods
     ######################################################################
-    def read_power(self, slot: int =1) -> tuple[float, float]:
+    def read_power(self, slot: int = 1, head: int = 0, mf: int = 0) -> tuple[float, float]:
         """Read power from detector channel"""
         try:
             if not self.controller or not self._connected:
                 self._log("Controller not connected", "error")
-                return (-100.0, -100.0)
+                return -80.0
 
-            reading = self.controller.read_power(slot)
-            if reading[0] > 0.0:
-                reading = (-80.0, reading[1])
-            if reading[1] > 0.0:
-                reading = (reading[0], -80.0)
-            return (reading[0], reading[1])
+            reading = self.controller.read_power(slot, head, mf)
+            if reading > 0.0:
+                reading = -80.0
+            return reading
 
         except Exception as e:
             self._log(f"Read power error: {e}", "error")
-            return (-80.0, -80.0)
+            return -80.0
 
-    def set_detector_units(self, slot, units: int = 0) -> bool:
+    def set_detector_units(self, slot, units: int = 0, mf: int = 0) -> bool:
         """Set Detector units"""
         try:
             if not self.controller or not self._connected:
                 self._log("Controller not connected", "error")
                 return False
 
-            self.controller.set_detector_units(slot, units=units)
+            self.controller.set_detector_units(slot, units=units, mf=mf)
             return True
 
         except Exception as e:
@@ -320,14 +311,14 @@ class NIRManager:
             self._log(f"Get detector units error: {e}", "error")
             return False
 
-    def set_power_range(self, range_dbm: float, slot: int = 1) -> bool:
+    def set_power_range(self, range_dbm: float, slot: int = 1, mf: int = 0) -> bool:
         """Set power range"""
         try:
             if not self.controller or not self._connected:
                 self._log("Controller not connected", "error")
                 return False
 
-            ok = self.controller.set_power_range(range_dbm, slot)
+            ok = self.controller.set_power_range(range_dbm, slot, mf)
             if ok:
                 self._log(f"Power range set to {range_dbm}dBm for slot {slot}", "info")
                 return True
@@ -338,14 +329,14 @@ class NIRManager:
             self._log(f"Set detector range error: {e}", "error")
             return False
 
-    def set_power_range_auto(self, slot: int = 1):
+    def set_power_range_auto(self, slot: int = 1, mf: int = 0):
         """Set the devices power ranging to auto"""
         try:
             if not self.controller or not self._connected:
                 self._log("Controller not connected", "error")
                 return False
 
-            ok = self.controller.set_power_range_auto(slot)
+            ok = self.controller.set_power_range_auto(slot, mf)
             if ok:
                 self._log(f"[NIR Manager] Set power range auto: {slot}")
                 return True
@@ -371,14 +362,14 @@ class NIRManager:
             self._log(f"Get detector range error: {e}", "error")
             return False
 
-    def set_power_reference(self, ref_dbm: float, slot: int = 1) -> bool:
+    def set_power_reference(self, ref_dbm: float, slot: int = 1, mf: int = 0) -> bool:
         """Set power reference (noise floor)"""
         try:
             if not self.controller or not self._connected:
                 self._log("Controller not connected", "error")
                 return False
 
-            success = self.controller.set_power_reference(ref_dbm, slot)
+            success = self.controller.set_power_reference(ref_dbm, slot, mf)
             if success:
                 self._log(f"Power reference set to {ref_dbm}dBm for slot {slot}", "info")
             else:
