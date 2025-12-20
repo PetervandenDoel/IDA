@@ -184,8 +184,8 @@ class stage_control(App):
                 if self.detector_window_settings.get("Detector_Change") == "1":
                     if self.slot_info is not None:
                         # If we've enumerated slot info, proceed as is
-                        for slot, _ in self.slot_info:
-                            self.apply_detector_window(slot)
+                        for mf, slot, head in self.slot_info:
+                            self.apply_detector_window(slot, mf)
                     
                         data["DetectorWindowSettings"]["Detector_Change"] = "0"   # reset flag
 
@@ -272,45 +272,50 @@ class stage_control(App):
         self.nir_manager.enable_laser(self.sweep["on"])
         self.sweep_count = 0
     
-    def apply_detector_auto_range(self, channel):
-        success = self.nir_manager.set_power_range_auto(channel)
+    def apply_detector_auto_range(self, channel, mf=0):
+        success = self.nir_manager.set_power_range_auto(channel, mf=mf)
         return success
 
-    def apply_detector_range(self, range_dbm, channel):
-        success = self.nir_manager.set_power_range(range_dbm, channel)
+    def apply_detector_range(self, range_dbm, channel, mf=0):
+        success = self.nir_manager.set_power_range(range_dbm, channel, mf=mf)
         return success
     
-    def apply_detector_reference(self, ref_dbm, channel):
-        success = self.nir_manager.set_power_reference(ref_dbm, channel)
+    def apply_detector_reference(self, ref_dbm, channel, mf=0):
+        success = self.nir_manager.set_power_reference(ref_dbm, channel, mf=mf)
         return success
     
-    def apply_detector_window(self, channel):
+    def apply_detector_window(self, channel, mf=0):
         try:
-            # If auto is empty, and manual is set apply manual ranging
+            # Get detector window data from new compact structure
             detector_window_data = getattr(self, 'detector_window_settings', {})
-            auto_range_attr = detector_window_data.get(f'DetectorAutoRange_Ch{channel}', {})
-            manual_range_attr = detector_window_data.get(f'DetectorRange_Ch{channel}', {})
-            ref_attr = detector_window_data.get(f'DetectorReference_Ch{channel}', {})
+            mf_data = detector_window_data.get(f'mf{mf}', {})
+            slot_data = mf_data.get(str(channel), {})
             
-            if auto_range_attr == {} and manual_range_attr.get("range_dbm") != {}:
-                self.apply_detector_range(
-                    manual_range_attr.get("range_dbm"),
-                    channel=channel
-                )
-            else:
+            # Extract settings from compact structure
+            auto_range = slot_data.get('auto_range', True)    # Default to auto
+            manual_range = slot_data.get('range', -10)        # Default -10 dBm
+            ref_value = slot_data.get('ref', -30)             # Default -30 dBm
+            
+            # Apply range settings
+            if auto_range:
                 self.apply_detector_auto_range(
-                    channel=channel
-                )  # Default to auto / set to auto
-
-            # Reference
-            if ref_attr.get("ref_dbm") is not None:
-                self.apply_detector_reference(
-                    ref_dbm=ref_attr.get("ref_dbm"),
-                    channel=channel
+                    channel=channel,
+                    mf=mf
                 )
             else:
-                # Keep default if not set
-                pass
+                self.apply_detector_range(
+                    manual_range,
+                    channel=channel,
+                    mf=mf
+                )
+
+            # Apply reference setting
+            self.apply_detector_reference(
+                ref_dbm=ref_value,
+                channel=channel,
+                mf=mf
+            )
+            
             return True
         
         except Exception as e:
@@ -392,23 +397,28 @@ class stage_control(App):
                 args_list = []
                 previous_slot = None
 
-                for slot, _ in slot_info:
-                    # Avoid repetition for Master / Slave
-                    if slot == previous_slot:
-                        continue
-                    previous_slot = slot
-
-                    # Get data
+                for mf, slot, head in slot_info:
+                    # Get data for this MF/slot combination
                     detector_window_data = getattr(self, 'detector_window_settings', {})
-                    auto_range_attr = detector_window_data.get(f'DetectorAutoRange_Ch{slot}', {})
-                    manual_range_attr = detector_window_data.get(f'DetectorRange_Ch{slot}', {})
-                    ref_attr = detector_window_data.get(f'DetectorReference_Ch{slot}', {})
-                    ch_range, ch_ref = resolve_range_and_ref(
-                        manual_range_attr,
-                        auto_range_attr,
-                        ref_attr
-                    )
-                    args_list.append((slot, ch_ref, ch_range))
+                    
+                    # Access new compact structure: mf -> slot -> settings
+                    mf_data = detector_window_data.get(f'mf{mf}', {})
+                    slot_data = mf_data.get(str(slot), {})
+                    
+                    # Extract settings from compact structure
+                    auto_range = slot_data.get('auto_range', True)  # Default to auto
+                    manual_range = slot_data.get('range', -10)      # Default -10 dBm
+                    ref_value = slot_data.get('ref', -30)           # Default -30 dBm
+                    
+                    # Determine final range and ref values
+                    if auto_range:
+                        ch_range = None  # None indicates auto ranging
+                    else:
+                        ch_range = manual_range
+                    ch_ref = ref_value
+                    
+                    # New args format: (slot, mf, ref, range)
+                    args_list.append((slot, mf, ch_ref, ch_range))
                     
                 
                 if len(args_list) == 0:
@@ -427,12 +437,8 @@ class stage_control(App):
                 print("[Stage Control] Laser Sweep completed Successfully")
 
                 # Apply detector window settings once again 
-                prev_slot = None
-                for slot, _ in self.slot_info:
-                    if slot == prev_slot:
-                        continue
-                    prev_slot = slot
-                    self.apply_detector_window(slot)
+                for mf, slot, head in self.slot_info:
+                    self.apply_detector_window(slot, mf)
             
         except Exception as e:
             print(f"[Error] Sweep failed: {e}")
@@ -836,17 +842,13 @@ class stage_control(App):
                 # So we have to continue w/o updating calling
                 continue
             if self.task_start == 0 and self.slot_info is not None:
-                prev_slot = None
-                for slot, head in self.slot_info:
-                    if slot == prev_slot:
-                        continue
-                    else:
-                        prev_slot = slot
-                        i = (slot-1)*2 + head  # 0-index
-                        j = i + 1
-                        ch1, ch2 = self.nir_manager.read_power(slot=slot)
-                        self.ch_vals[i].set_text(str(round(ch1,3)))
-                        self.ch_vals[j].set_text(str(round(ch2,3)))
+                for mf, slot, head in self.slot_info:
+                    # Calculate display index for this specific head
+                    i = (slot-1)*2 + head  # 0-index
+                    
+                    # Read individual head power
+                    power = self.nir_manager.read_power(slot=slot, head=head, mf=mf)
+                    self.ch_vals[i].set_text(str(round(power, 3)))
                 time.sleep(0.3)
             else:
                 print("### Waiting ###")
@@ -1484,7 +1486,7 @@ class stage_control(App):
             config.secondary_wl = self.fine_a.get("secondary_wl", 1540.0)
             config.secondary_loss = self.fine_a.get("secondary_loss", 50.0)
             if self.slot_info is not None:
-                s_temp = list(set([s[0] for s in self.slot_info]))  # remove dups
+                s_temp = list(set([s[1] for s in self.slot_info]))  # remove dups - slot is at index 1
             else:
                 s_temp = [1]  # Assume only primary slot
             config.slots = s_temp
@@ -1689,7 +1691,7 @@ class stage_control(App):
             config.y_step = int(self.area_s.get("y_step", "y_step") or "y_step")
             config.primary_detector = str(self.area_s.get("primary_detector", "ch1") or "ch1")
             if self.slot_info is not None:
-                s_temp = list(set([s[0] for s in self.slot_info]))  # remove dups
+                s_temp = list(set([s[1] for s in self.slot_info]))  # remove dups - slot is at index 1
             else:
                 s_temp = [1]  # Assume only primary slot
             config.slots = s_temp

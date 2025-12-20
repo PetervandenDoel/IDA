@@ -959,7 +959,9 @@ class plot():
             plotnames = []
             for element in range(0, len(y_values)):
                 if self.slot_info is not None:
-                    plotname = f'Detector {self.slot_info[element][0]}.{self.slot_info[element][1]+1}'
+                    # Updated for new (mf, slot, head) format
+                    mf, slot, head = self.slot_info[element]
+                    plotname = f'Detector MF{mf}:{slot}.{head+1}'
                 else:
                     plotname = "Detector " + str(element + 1)
                 plots[plotname] = y_values[element]
@@ -967,8 +969,8 @@ class plot():
             fig = px.line(plots, x="Wavelength [nm]", y=plotnames,
                           labels={'value': "Power [dBm]", 'x': "Wavelength [nm]"})
             if self.slot_info is not None:
-                for i, slot, head in enumerate(self.slot_info):
-                    fig.data[i].name = f'{slot}.{head}'
+                for i, (mf, slot, head) in enumerate(self.slot_info):
+                    fig.data[i].name = f'MF{mf}:{slot}.{head}'
             else:
                 for i in range(0, len(y_values)):
                     fig.data[i].name = str(i + 1)

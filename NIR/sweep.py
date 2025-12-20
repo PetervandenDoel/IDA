@@ -394,8 +394,31 @@ class HP816xLambdaScan:
         step_pm: float = 0.5,
         power_dbm: float = 3.0,
         num_scans: int = 0,
-        args: list | None = None
+        args: Optional[list] = None
     ):
+        """
+        Multiframe lambda scan that works for all registered mainframes.
+        This includes singleframe setups and should be used. Determines
+        limits dynamically per laser device.
+        
+        :param start_nm: Start of sweep bandwidth
+        :type start_nm: float
+        :param stop_nm: End of sweep bandwidth
+        :type stop_nm: float
+        :param step_pm: Step size in pm
+        :type step_pm: float
+        :param power_dbm: Power in dBm [3e-7, 13.5]
+        :type power_dbm: float
+        :param num_scans: Num of scans, 0-indexed
+        :type num_scans: int
+        :param args: Detector window params, for ranging, and referencing
+                     Set range=None for Autoranging option, but is Beta and slower
+                     Pass as a list of 4-tuples, e.g.
+                            args = [(slot, mf, ref, range), (...)]
+                        Defaults to 0 dBm manual ranging
+        :type args: Optional[list]
+        """
+
         # --- Safety Checks ---
         if not self.session:
             raise RuntimeError("Not connected to instrument")
@@ -407,7 +430,7 @@ class HP816xLambdaScan:
         n_pwm = n_pwm.value
 
         # --- Determine Detector settings using map ---
-        # list of 3 tuples -> PWMIndex, Slot, Head
+        # list of 3 tuples -> PWMIndex, MF, Slot, Head
         # This will be passed with args into 
         # Apply ranging for each slot, head
         mapping = self.get_pwm_map(n_pwm)

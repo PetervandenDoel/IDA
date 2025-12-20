@@ -9,22 +9,40 @@ from GUI.lib_gui import *
 SHARED_PATH = os.path.join("database", "shared_memory.json")
 
 
-def update_detector_window_setting(name, payload):
-    """Update detector window settings in shared_memory.json."""
+def update_detector_window_setting(mf, slot, setting_type, value):
+    """Update detector window settings in compact structure.
+    
+    Args:
+        mf: mainframe number (0 or 1)
+        slot: slot number (1-4)
+        setting_type: 'range', 'ref', or 'auto_range'
+        value: setting value
+    """
     try:
         with open(SHARED_PATH, "r", encoding="utf-8") as f:
             data = json.load(f)
     except FileNotFoundError:
         data = {}
 
-    dws = data.get("DetectorWindowSettings", {})
-    if not isinstance(dws, dict):
-        dws = {}
-
-    # Overwrite the specific setting
-    dws[name] = payload
+    # Initialize DetectorWindowSettings if needed
+    if "DetectorWindowSettings" not in data:
+        data["DetectorWindowSettings"] = {}
+    
+    dws = data["DetectorWindowSettings"]
+    
+    # Initialize MF section if needed
+    mf_key = f"mf{mf}"
+    if mf_key not in dws:
+        dws[mf_key] = {}
+    
+    # Initialize slot settings if needed
+    slot_str = str(slot)
+    if slot_str not in dws[mf_key]:
+        dws[mf_key][slot_str] = {}
+    
+    # Update the specific setting
+    dws[mf_key][slot_str][setting_type] = value
     dws["Detector_Change"] = "1"
-    data["DetectorWindowSettings"] = dws
 
     with open(SHARED_PATH, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
@@ -310,23 +328,18 @@ class DefaultSettingsConfig(App):
         initial_pos = config.get("InitialPositions", {})
         self._set_spin_safely(self.init_fa, initial_pos.get("fa", 8.0))
 
-        # DetectorWindowSettings
+        # DetectorWindowSettings - Load from compact structure
         detector_settings = config.get("DetectorWindowSettings", {})
-        detector_list = []
-        for i in range(1, 5):
-            detector_list.append(
-                detector_settings.get(f'DetectorRange_Ch{i}', {}).get(
-                    "range_dbm", -10
-                )
-            )
-        self._set_spin_safely(self.ch1_range, detector_list[0])
-        self._set_spin_safely(self.ch1_ref, detector_settings.get("ch1_ref", -30))
-        self._set_spin_safely(self.ch2_range, detector_list[1])
-        self._set_spin_safely(self.ch2_ref, detector_settings.get("ch2_ref", -30))
-        self._set_spin_safely(self.ch3_range, detector_list[2])
-        self._set_spin_safely(self.ch3_ref, detector_settings.get("ch3_ref", -30))
-        self._set_spin_safely(self.ch4_range, detector_list[3])
-        self._set_spin_safely(self.ch4_ref, detector_settings.get("ch4_ref", -30))
+        
+        # Load MF0 settings (assuming defaults to MF0 for now)
+        mf0_data = detector_settings.get("mf0", {})
+        for slot in range(1, 5):
+            slot_data = mf0_data.get(str(slot), {})
+            range_widget = getattr(self, f'ch{slot}_range', None)
+            ref_widget = getattr(self, f'ch{slot}_ref', None)
+            
+            self._set_spin_safely(range_widget, slot_data.get("range", -10))
+            self._set_spin_safely(ref_widget, slot_data.get("ref", -30))
 
         # Port
         port = config.get("Port", {})
@@ -1542,68 +1555,56 @@ class DefaultSettingsConfig(App):
     # DETECTOR EVENT HANDLERS
 
     def onclick_apply_ch1_autorange(self):
-        update_detector_window_setting("DetectorRange_Ch1", {})
-        payload = {"Auto": 1}
-        update_detector_window_setting("DetectorAutoRange_Ch1", payload)
+        update_detector_window_setting(0, 1, "auto_range", True)
+        update_detector_window_setting(0, 1, "range", None)  # Clear manual range
 
     def onclick_apply_ch1_range(self):
-        update_detector_window_setting("DetectorAutoRange_Ch1", {})
         range_val = float(self.ch1_range.get_value())
-        payload = {"range_dbm": range_val}
-        update_detector_window_setting("DetectorRange_Ch1", payload)
+        update_detector_window_setting(0, 1, "range", range_val)
+        update_detector_window_setting(0, 1, "auto_range", False)
 
     def onclick_apply_ch1_ref(self):
         ref_val = float(self.ch1_ref.get_value())
-        payload = {"ref_dbm": ref_val}
-        update_detector_window_setting("DetectorReference_Ch1", payload)
+        update_detector_window_setting(0, 1, "ref", ref_val)
 
     def onclick_apply_ch2_autorange(self):
-        update_detector_window_setting("DetectorRange_Ch2", {})
-        payload = {"Auto": 1}
-        update_detector_window_setting("DetectorAutoRange_Ch2", payload)
+        update_detector_window_setting(0, 2, "auto_range", True)
+        update_detector_window_setting(0, 2, "range", None)  # Clear manual range
 
     def onclick_apply_ch2_range(self):
-        update_detector_window_setting("DetectorAutoRange_Ch2", {})
         range_val = float(self.ch2_range.get_value())
-        payload = {"range_dbm": range_val}
-        update_detector_window_setting("DetectorRange_Ch2", payload)
+        update_detector_window_setting(0, 2, "range", range_val)
+        update_detector_window_setting(0, 2, "auto_range", False)
 
     def onclick_apply_ch2_ref(self):
         ref_val = float(self.ch2_ref.get_value())
-        payload = {"ref_dbm": ref_val}
-        update_detector_window_setting("DetectorReference_Ch2", payload)
+        update_detector_window_setting(0, 2, "ref", ref_val)
 
     def onclick_apply_ch3_autorange(self):
-        update_detector_window_setting("DetectorRange_Ch3", {})
-        payload = {"Auto": 1}
-        update_detector_window_setting("DetectorAutoRange_Ch3", payload)
+        update_detector_window_setting(0, 3, "auto_range", True)
+        update_detector_window_setting(0, 3, "range", None)  # Clear manual range
 
     def onclick_apply_ch3_range(self):
-        update_detector_window_setting("DetectorAutoRange_Ch3", {})
         range_val = float(self.ch3_range.get_value())
-        payload = {"range_dbm": range_val}
-        update_detector_window_setting("DetectorRange_Ch3", payload)
+        update_detector_window_setting(0, 3, "range", range_val)
+        update_detector_window_setting(0, 3, "auto_range", False)
 
     def onclick_apply_ch3_ref(self):
         ref_val = float(self.ch3_ref.get_value())
-        payload = {"ref_dbm": ref_val}
-        update_detector_window_setting("DetectorReference_Ch3", payload)
+        update_detector_window_setting(0, 3, "ref", ref_val)
 
     def onclick_apply_ch4_autorange(self):
-        update_detector_window_setting("DetectorRange_Ch4", {})
-        payload = {"Auto": 1}
-        update_detector_window_setting("DetectorAutoRange_Ch4", payload)
+        update_detector_window_setting(0, 4, "auto_range", True)
+        update_detector_window_setting(0, 4, "range", None)  # Clear manual range
 
     def onclick_apply_ch4_range(self):
-        update_detector_window_setting("DetectorAutoRange_Ch4", {})
         range_val = float(self.ch4_range.get_value())
-        payload = {"range_dbm": range_val}
-        update_detector_window_setting("DetectorRange_Ch4", payload)
+        update_detector_window_setting(0, 4, "range", range_val)
+        update_detector_window_setting(0, 4, "auto_range", False)
 
     def onclick_apply_ch4_ref(self):
         ref_val = float(self.ch4_ref.get_value())
-        payload = {"ref_dbm": ref_val}
-        update_detector_window_setting("DetectorReference_Ch4", payload)
+        update_detector_window_setting(0, 4, "ref", ref_val)
 
     def _create_save_buttons(self, root):
         y_buttons = 570
@@ -1734,18 +1735,28 @@ class DefaultSettingsConfig(App):
                 "fa": self._safe_float(self.init_fa, 8.0),
             },
             "DetectorWindowSettings": {
-                "DetectorAutoRange_Ch1": {},
-                "DetectorRange_Ch1": {"range_dbm": self._safe_int(self.ch1_range, -10)},
-                "DetectorReference_Ch1": {"ref_dbm": self._safe_int(self.ch1_ref, -30)},
-                "DetectorAutoRange_Ch2": {},
-                "DetectorRange_Ch2": {"range_dbm": self._safe_int(self.ch2_range, -10)},
-                "DetectorReference_Ch2": {"ref_dbm": self._safe_int(self.ch2_ref, -30)},
-                "DetectorAutoRange_Ch3": {},
-                "DetectorRange_Ch3": {"range_dbm": self._safe_int(self.ch3_range, -10)},
-                "DetectorReference_Ch3": {"ref_dbm": self._safe_int(self.ch3_ref, -30)},
-                "DetectorAutoRange_Ch4": {},
-                "DetectorRange_Ch4": {"range_dbm": self._safe_int(self.ch4_range, -10)},
-                "DetectorReference_Ch4": {"ref_dbm": self._safe_int(self.ch4_ref, -30)},
+                "mf0": {
+                    "1": {
+                        "range": self._safe_int(self.ch1_range, -10),
+                        "ref": self._safe_int(self.ch1_ref, -30),
+                        "auto_range": False
+                    },
+                    "2": {
+                        "range": self._safe_int(self.ch2_range, -10),
+                        "ref": self._safe_int(self.ch2_ref, -30),
+                        "auto_range": False
+                    },
+                    "3": {
+                        "range": self._safe_int(self.ch3_range, -10),
+                        "ref": self._safe_int(self.ch3_ref, -30),
+                        "auto_range": False
+                    },
+                    "4": {
+                        "range": self._safe_int(self.ch4_range, -10),
+                        "ref": self._safe_int(self.ch4_ref, -30),
+                        "auto_range": False
+                    }
+                },
                 "Detector_Change": "1",
             },
             "Port": {
