@@ -9,24 +9,27 @@ shared_path = os.path.join("database", "shared_memory.json")
 
 
 def update_detector_window_setting(mf, slot, setting_type, value):
+    # Load existing detector window settings
     try:
         with open(shared_path, "r", encoding="utf-8") as f:
             data = json.load(f)
     except FileNotFoundError:
         data = {}
 
-    data.setdefault("DetectorWindowSettings", {})
-    dws = data["DetectorWindowSettings"]
+    # Get existing DetectorWindowSettings or initialize
+    dws = data.get("DetectorWindowSettings", {})
 
     mf_key = f"mf{mf}"
     dws.setdefault(mf_key, {})
     dws[mf_key].setdefault(str(slot), {})
 
+    # Update the specific setting
     dws[mf_key][str(slot)][setting_type] = value
     dws["Detector_Change"] = "1"
 
-    with open(shared_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
+    # Use the File class like other modules for consistency
+    file = File("shared_memory", "DetectorWindowSettings", dws)
+    file.save()
 
 
 class data_window(App):
@@ -154,6 +157,7 @@ class data_window(App):
             )
 
             setattr(self, f"mf{mf}_ch{slot}_range", StyledSpinBox(
+                container=container,
                 variable_name=f"mf{mf}_ch{slot}_range",
                 left=80,
                 top=y + 25,
@@ -161,8 +165,7 @@ class data_window(App):
                 height=24,
                 value=-10,
                 min_value=-70,
-                max_value=10,
-                container=container
+                max_value=10
             ))
 
             StyledLabel(
@@ -176,6 +179,7 @@ class data_window(App):
             )
 
             setattr(self, f"mf{mf}_ch{slot}_ref", StyledSpinBox(
+                container=container,
                 variable_name=f"mf{mf}_ch{slot}_ref",
                 left=80,
                 top=y + 50,
@@ -183,8 +187,7 @@ class data_window(App):
                 height=24,
                 value=-30,
                 min_value=-100,
-                max_value=0,
-                container=container
+                max_value=0
             ))
 
             btn_range = StyledButton(
