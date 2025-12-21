@@ -49,7 +49,8 @@ class data_window(App):
             self._first_command_check = True
             self._first_shared_check = True
 
-            super().__init__(*args, static_file_path={"my_res": "./res/"})
+            if "editing_mode" not in kwargs:
+                super(data_window, self).__init__(*args, **{"static_file_path": {"my_res": "./res/"}})
             print("[DEBUG] data_window.__init__ completed successfully")
         except Exception as e:
             print(f"[ERROR] data_window.__init__ failed: {e}")
@@ -303,11 +304,6 @@ if __name__ == "__main__":
     try:
         print("[DEBUG] Starting data_window app...")
         print("[DEBUG] About to call start() function...")
-        
-        # Test instantiation first
-        print("[DEBUG] Testing class instantiation...")
-        test_app = data_window()
-        print("[DEBUG] Class instantiation successful")
         
         start(
             data_window,
