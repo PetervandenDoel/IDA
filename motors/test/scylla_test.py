@@ -10,10 +10,10 @@ if aok:
     print('Hello')
 else:
     print('Goodbye')
-asyncio.run(sc.get_position())
-asyncio.run(sc.move_relative(10))
+print(asyncio.run(sc.get_position()).actual)
+asyncio.run(sc.move_relative(-5))
 time.sleep(2)
-asyncio.run(sc.get_position())
+print(asyncio.run(sc.get_position()).actual)
 bok = asyncio.run(sc.disconnect())
 if bok:
     print('Goodbye')

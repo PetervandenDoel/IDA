@@ -144,7 +144,7 @@ class instruments(App):
             # DropDown
             setattr(self, f"{key}_dd", StyledDropDown(
                 container=instruments_container,
-                text={"stage": ["MMC100_controller", "Corvus_controller", "Dummy"],
+                text={"stage": ["MMC100_controller", "Corvus_controller", "scylla_controller"],
                     "sensor": ["8164B_NIR", "luna_controller", "Dummy_B"],
                     "tec": ["srs_ldc_502", "srs_ldc_501", "Dummy_B"],
                     "smu": ["stage_control", "Dummy_A", "Dummy_B"],

@@ -14,8 +14,9 @@ cfg = StageConfiguration(
         AxisType.ROTATION_FIBER: "scylla_controller",
     }
 )
-
+axes = list(cfg.driver_types.keys())
 mng = StageManager(config=cfg)
-xok = asyncio.run(mng.initialize_axis(AxisType.X))
-print(xok)
+ok = asyncio.run(mng.initialize_all([AxisType.ROTATION_CHIP]))
+print(ok)
 asyncio.run(mng.disconnect_all())
+

@@ -486,7 +486,9 @@ class StageManager:
                 # Update positions in shared memory
                 for axis, motor in self.motors.items():
                     try:
-                        await motor.clear_all_errors()
+                        if hasattr(motor, "clear_all_errors"):
+                            # MMC-100 Iris stage quirk
+                            await motor.clear_all_errors()
                         pos = await motor.get_position()
                         if pos:
                             self._last_positions[axis] = pos.actual

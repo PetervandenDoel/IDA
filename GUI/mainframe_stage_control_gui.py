@@ -586,7 +586,8 @@ class stage_control(App):
                 [AxisType.X, AxisType.Y, AxisType.Z, AxisType.ROTATION_CHIP, AxisType.ROTATION_FIBER])
             )
             if success_stage:
-                if self.stage_manager.config.driver_types[AxisType.X] == "Corvus_controller":
+                stage_d = self.stage_manager.config.driver_types[AxisType.X]
+                if (stage_d == "Corvus_controller") or (stage_d == "scylla_controller"):
                     self.onclick_home()  # Run "fake" home to get lims
                 
                 # Setup state machine
@@ -1352,7 +1353,8 @@ class stage_control(App):
 
     def onclick_home(self):
         # Non homable case
-        if self.stage_manager.config.driver_types[AxisType.X] == "Corvus_controller":
+        stage_d = self.stage_manager.config.driver_types[AxisType.X] 
+        if (stage_d == "Corvus_controller"):
             pslims = self.stage_manager.config.position_limits
             self.x_limit_lb.set_text(
                 f"lim: {round(pslims[AxisType.X][0], 2)}~{round(pslims[AxisType.X][1], 2)}"
@@ -1364,7 +1366,29 @@ class stage_control(App):
                 f"lim: {round(pslims[AxisType.Z][0], 2)}~{round(pslims[AxisType.Z][1], 2)}"
                 )
             return None
-        
+        elif (stage_d == "scylla_controller"):
+            """
+            # Axis 1 [50000.000, -50000.000] 
+            # Axis 2 [24000.000, -24000.000] 
+            # Axis 3 [12000.000, -12000.000] 
+            # Axis 4 [56.577, -56.577]  fa
+            # Axis 5 [360.000, -360.000] CR   
+            """
+            self.x_limit_lb.set_text(
+                f"lim: {round(-50000.000, 2)}~{round(50000.000, 2)}"
+                )
+            self.y_limit_lb.set_text(
+                f"lim: {round(-24000.000, 2)}~{round(24000.000, 2)}"
+                )
+            self.z_limit_lb.set_text(
+                f"lim: {round(-12000.000, 2)}~{round(12000.000, 2)}"
+                )
+            self.chip_limit_lb.set_text(
+                f"lim: {round(-360.000, 2)}~{round(360.000, 2)}"
+                )
+            self.fiber_limit_lb.set_text(
+                f"lim: {round(-56.577, 2)}~{round(56.577, 2)}"
+                )
         print("Start Home")
         self.busy_dialog()
         self.lock_all(1)
