@@ -64,10 +64,10 @@ class ScyllaController(MotorHAL):
 
             if self.axis in [AxisType.X, AxisType.Y, AxisType.Z,
                              AxisType.ROTATION_FIBER]:
-                self.instrument = getattr(ScyllaController.api_inst, 'fiber_stage[0]')
+                self.instrument = ScyllaController.api_inst.fiber_stage[0]
             else:
-                # Rotations
-                self.instrument = getattr(ScyllaController.api_inst, 'chip_stage')
+                # ROTATION_CHIP only
+                self.instrument = ScyllaController.api_inst.chip_stage
                            
             if self.instrument is None:
                 raise
