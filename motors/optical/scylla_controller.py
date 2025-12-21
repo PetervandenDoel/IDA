@@ -73,11 +73,12 @@ class ScyllaController(MotorHAL):
                 raise
 
             # Connect to device
-            if self.counter == 1 or (self.axis == AxisType.ROTATION_CHIP):
+            if self.counter == 1:
                 self.instrument.connect()
 
             return True
         except Exception as e:
+            print(f'[Connect] Exception: {e}')
             return False
     
     async def disconnect(self) -> Optional[bool]:

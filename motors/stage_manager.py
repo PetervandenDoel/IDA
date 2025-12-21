@@ -27,7 +27,8 @@ class StageManager:
         motors.optical.modern_stage._GLOBAL_COM_PORT = f"COM{port}"
         self.motors: Dict[AxisType, Any] = {}
         self._event_callbacks: List[Callable[[MotorEvent], None]] = []
-        
+        self.driver_key = None
+
         # State tracking
         self._last_positions: Dict[AxisType, float] = {}
         self._homed_axes: Dict[AxisType, bool] = {}
@@ -115,8 +116,8 @@ class StageManager:
                 return False
             
             # Create motor controller
-            driver_key = axis_config['driver_types']
-            motor = create_driver(driver_key, **axis_config)
+            self.driver_key = axis_config['driver_types']
+            motor = create_driver(self.driver_key, **axis_config)
             
             # Add event callback
             motor.add_callback(self._handle_motor_event)
@@ -503,6 +504,8 @@ class StageManager:
                     except Exception as e:
                         logger.debug(f"Position monitor error for {axis.name}: {e}")
                 
+                if self.driver_key == 'scylla_controller':
+                    await asyncio.sleep(1)  # Slower rate for Scylla
                 await asyncio.sleep(0.1)  # 10Hz update rate
                 
             except asyncio.CancelledError:
