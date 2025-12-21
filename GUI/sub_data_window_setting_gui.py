@@ -9,37 +9,53 @@ shared_path = os.path.join("database", "shared_memory.json")
 
 
 def update_detector_window_setting(mf, slot, setting_type, value):
-    # Load existing detector window settings
     try:
-        with open(shared_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        data = {}
+        print(f"[DEBUG] update_detector_window_setting called: mf={mf}, slot={slot}, type={setting_type}, value={value}")
+        # Load existing detector window settings
+        try:
+            with open(shared_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            data = {}
 
-    # Get existing DetectorWindowSettings or initialize
-    dws = data.get("DetectorWindowSettings", {})
+        # Get existing DetectorWindowSettings or initialize
+        dws = data.get("DetectorWindowSettings", {})
 
-    mf_key = f"mf{mf}"
-    dws.setdefault(mf_key, {})
-    dws[mf_key].setdefault(str(slot), {})
+        mf_key = f"mf{mf}"
+        dws.setdefault(mf_key, {})
+        dws[mf_key].setdefault(str(slot), {})
 
-    # Update the specific setting
-    dws[mf_key][str(slot)][setting_type] = value
-    dws["Detector_Change"] = "1"
+        # Update the specific setting
+        dws[mf_key][str(slot)][setting_type] = value
+        dws["Detector_Change"] = "1"
 
-    # Use the File class like other modules for consistency
-    file = File("shared_memory", "DetectorWindowSettings", dws)
-    file.save()
+        # Use the File class like other modules for consistency
+        file = File("shared_memory", "DetectorWindowSettings", dws)
+        file.save()
+        print(f"[DEBUG] update_detector_window_setting completed successfully")
+    except Exception as e:
+        print(f"[ERROR] update_detector_window_setting failed: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
 
 
 class data_window(App):
     def __init__(self, *args, **kwargs):
-        self._cmd_mtime = None
-        self._shared_mtime = None
-        self._first_command_check = True
-        self._first_shared_check = True
+        try:
+            print("[DEBUG] data_window.__init__ started")
+            self._cmd_mtime = None
+            self._shared_mtime = None
+            self._first_command_check = True
+            self._first_shared_check = True
 
-        super().__init__(*args, static_file_path={"my_res": "./res/"})
+            super().__init__(*args, static_file_path={"my_res": "./res/"})
+            print("[DEBUG] data_window.__init__ completed successfully")
+        except Exception as e:
+            print(f"[ERROR] data_window.__init__ failed: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
 
     def idle(self):
         try:
@@ -67,9 +83,18 @@ class data_window(App):
             self._load_from_shared()
 
     def main(self):
-        self.container = self.construct_ui()
-        self._load_from_shared()
-        return self.container
+        try:
+            print("[DEBUG] data_window.main() started")
+            self.container = self.construct_ui()
+            print("[DEBUG] UI construction completed")
+            self._load_from_shared()
+            print("[DEBUG] Data loading completed")
+            return self.container
+        except Exception as e:
+            print(f"[ERROR] data_window.main() failed: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
 
     def run_in_thread(self, fn, *args):
         threading.Thread(target=fn, args=args, daemon=True).start()
@@ -100,18 +125,28 @@ class data_window(App):
                                slot_data.get("ref", -30))
 
     def construct_ui(self):
-        c = StyledContainer(
-            variable_name="data_window_container",
-            left=0,
-            top=0,
-            width=280,
-            height=800
-        )
+        try:
+            print("[DEBUG] construct_ui() started")
+            c = StyledContainer(
+                variable_name="data_window_container",
+                left=0,
+                top=0,
+                width=280,
+                height=800
+            )
+            print("[DEBUG] Main container created")
 
-        self._build_mainframe(c, mf=0, top_offset=5, header_color="#E8F4FD")
-        self._build_mainframe(c, mf=1, top_offset=395, header_color="#FFF3E0")
+            self._build_mainframe(c, mf=0, top_offset=5, header_color="#E8F4FD")
+            print("[DEBUG] Mainframe 0 built")
+            self._build_mainframe(c, mf=1, top_offset=395, header_color="#FFF3E0")
+            print("[DEBUG] Mainframe 1 built")
 
-        return c
+            return c
+        except Exception as e:
+            print(f"[ERROR] construct_ui() failed: {e}")
+            import traceback
+            traceback.print_exc()
+            raise
 
     def _build_mainframe(self, container, mf, top_offset, header_color):
         header = StyledLabel(
@@ -265,11 +300,17 @@ class data_window(App):
 
 
 if __name__ == "__main__":
-    start(
-        data_window,
-        address="0.0.0.0",
-        port=7006,
-        multiple_instance=False,
-        enable_file_cache=False,
-        start_browser=False
-    )
+    try:
+        print("[DEBUG] Starting data_window app...")
+        start(
+            data_window,
+            address="0.0.0.0",
+            port=7006,
+            multiple_instance=False,
+            enable_file_cache=False,
+            start_browser=False
+        )
+    except Exception as e:
+        print(f"[ERROR] Failed to start data_window app: {e}")
+        import traceback
+        traceback.print_exc()
