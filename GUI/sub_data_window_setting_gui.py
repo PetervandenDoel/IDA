@@ -302,6 +302,13 @@ class data_window(App):
 if __name__ == "__main__":
     try:
         print("[DEBUG] Starting data_window app...")
+        print("[DEBUG] About to call start() function...")
+        
+        # Test instantiation first
+        print("[DEBUG] Testing class instantiation...")
+        test_app = data_window()
+        print("[DEBUG] Class instantiation successful")
+        
         start(
             data_window,
             address="0.0.0.0",
@@ -310,6 +317,7 @@ if __name__ == "__main__":
             enable_file_cache=False,
             start_browser=False
         )
+        print("[DEBUG] start() function returned")
     except Exception as e:
         print(f"[ERROR] Failed to start data_window app: {e}")
         import traceback
