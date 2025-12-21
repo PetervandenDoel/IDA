@@ -10,7 +10,6 @@ shared_path = os.path.join("database", "shared_memory.json")
 
 def update_detector_window_setting(mf, slot, setting_type, value):
     try:
-        print(f"[DEBUG] update_detector_window_setting called: mf={mf}, slot={slot}, type={setting_type}, value={value}")
         # Load existing detector window settings
         try:
             with open(shared_path, "r", encoding="utf-8") as f:
@@ -32,9 +31,7 @@ def update_detector_window_setting(mf, slot, setting_type, value):
         # Use the File class like other modules for consistency
         file = File("shared_memory", "DetectorWindowSettings", dws)
         file.save()
-        print(f"[DEBUG] update_detector_window_setting completed successfully")
     except Exception as e:
-        print(f"[ERROR] update_detector_window_setting failed: {e}")
         import traceback
         traceback.print_exc()
         raise
@@ -43,7 +40,6 @@ def update_detector_window_setting(mf, slot, setting_type, value):
 class data_window(App):
     def __init__(self, *args, **kwargs):
         try:
-            print("[DEBUG] data_window.__init__ started")
             self._cmd_mtime = None
             self._shared_mtime = None
             self._first_command_check = True
@@ -51,9 +47,7 @@ class data_window(App):
 
             if "editing_mode" not in kwargs:
                 super(data_window, self).__init__(*args, **{"static_file_path": {"my_res": "./res/"}})
-            print("[DEBUG] data_window.__init__ completed successfully")
         except Exception as e:
-            print(f"[ERROR] data_window.__init__ failed: {e}")
             import traceback
             traceback.print_exc()
             raise
@@ -85,14 +79,10 @@ class data_window(App):
 
     def main(self):
         try:
-            print("[DEBUG] data_window.main() started")
             self.container = self.construct_ui()
-            print("[DEBUG] UI construction completed")
             self._load_from_shared()
-            print("[DEBUG] Data loading completed")
             return self.container
         except Exception as e:
-            print(f"[ERROR] data_window.main() failed: {e}")
             import traceback
             traceback.print_exc()
             raise
@@ -127,7 +117,6 @@ class data_window(App):
 
     def construct_ui(self):
         try:
-            print("[DEBUG] construct_ui() started")
             c = StyledContainer(
                 variable_name="data_window_container",
                 left=0,
@@ -135,16 +124,12 @@ class data_window(App):
                 width=280,
                 height=800
             )
-            print("[DEBUG] Main container created")
 
             self._build_mainframe(c, mf=0, top_offset=5, header_color="#E8F4FD")
-            print("[DEBUG] Mainframe 0 built")
             self._build_mainframe(c, mf=1, top_offset=395, header_color="#FFF3E0")
-            print("[DEBUG] Mainframe 1 built")
 
             return c
         except Exception as e:
-            print(f"[ERROR] construct_ui() failed: {e}")
             import traceback
             traceback.print_exc()
             raise
@@ -302,9 +287,6 @@ class data_window(App):
 
 if __name__ == "__main__":
     try:
-        print("[DEBUG] Starting data_window app...")
-        print("[DEBUG] About to call start() function...")
-        
         start(
             data_window,
             address="0.0.0.0",
@@ -313,8 +295,6 @@ if __name__ == "__main__":
             enable_file_cache=False,
             start_browser=False
         )
-        print("[DEBUG] start() function returned")
     except Exception as e:
-        print(f"[ERROR] Failed to start data_window app: {e}")
         import traceback
         traceback.print_exc()

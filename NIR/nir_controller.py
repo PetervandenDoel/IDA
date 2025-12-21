@@ -47,7 +47,7 @@ class NIR8164(LaserHAL):
         self.laser_slot = laser_slot
         self.slot_info = []
         self._is_connected = False
-        self.is_mf = True if len(detector_slots) > 0 else False
+        self.is_mf = True if (len(detector_slots) > 0 and isinstance(detector_slots[0], str)) else False
 
         # lambda-scan state
         self.start_wavelength = None
