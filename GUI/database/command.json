@@ -1,7 +1,5 @@
 {
   "command": {
-    "tec_on": 1,
-    "tec_tem": 25.0,
-    "tec_off": 1
+    "devices_load": 1
   }
 }

@@ -564,9 +564,10 @@ class stage_control(App):
         File("shared_memory", "ScanPos", sp).save()
     
     def after_configuration(self):
+        # Connect stage control instance
         if self.configuration["stage"] != "" and self.configuration_stage == 0 and self.configuration_check[
             "stage"] == 0:
-            # Connect stage control instance
+            # Initialize automeasurement params
             self.gds = lib_coordinates.coordinates(("./res/" + FILENAME), read_file=False,
                                                    name="./database/coordinates.json")
             self.number = self.gds.listdeviceparam("number")
@@ -576,25 +577,15 @@ class stage_control(App):
             self.type = self.gds.listdeviceparam("type")
             self.devices = [f"{name} ({num})" for name, num in zip(self.gds.listdeviceparam("devicename"), self.number)]
             self.memory = Memory()
+
+            # Initialize Stage configuration, startup stage manager
             self.configure = StageConfiguration()
             self.configure.driver_types[AxisType.X] = self.configuration["stage"]
             self.configure.driver_types[AxisType.Y] = self.configuration["stage"]
             self.configure.driver_types[AxisType.Z] = self.configuration["stage"]
             self.configure.driver_types[AxisType.ROTATION_CHIP] = self.configuration["stage"]
             self.configure.driver_types[AxisType.ROTATION_FIBER] = self.configuration["stage"]
-            if str(type(self.port["stage"])) == "<class 'str'>":
-                import re
-                numb = re.findall(r"\d+", self.port["stage"])[0]
-                if self.port["stage"][0] != 'A':
-                    # Not in visa format
-                    self.configure.visa_addr = f'ASRL{numb}::INSTR'
-                else:
-                    self.configure.visa_addr = self.port["stage"]
-            else:
-                # Type is already a number
-                numb = self.port["stage"]
-                pass
-            self.stage_manager = StageManager(self.configure, create_shm=True, port=numb)
+            self.stage_manager = StageManager(self.configure, create_shm=True)
             asyncio.run_coroutine_threadsafe(
                 self.stage_manager.startup(),
                 main_loop
