@@ -31,8 +31,12 @@ command_path = os.path.join("database", "command.json")
 class connect_config(App):
     def __init__(self, *args, **kwargs):
         self.stage_dd = None
-        self.sensor_dd = None
         self.tec_dd = None
+        
+        # NIR Configuration widgets
+        self.laser_gpib_dd = None
+        self.detector_gpib_dd = None  # Optional - None means single mainframe
+        
         self.confirm_btn = None
 
         self._last_resources = []
@@ -56,8 +60,9 @@ class connect_config(App):
             need_refresh = (
                 resources != self._last_resources
                 or self.stage_dd is None
-                or self.sensor_dd is None
                 or self.tec_dd is None
+                or self.laser_gpib_dd is None
+                or self.detector_gpib_dd is None
             )
 
             if need_refresh:
@@ -66,10 +71,12 @@ class connect_config(App):
 
                 if self.stage_dd:
                     self._refresh_dropdown(self.stage_dd, resources)
-                if self.sensor_dd:
-                    pass  # spinbox does not need refresh
                 if self.tec_dd:
                     self._refresh_dropdown(self.tec_dd, resources)
+                if self.laser_gpib_dd:
+                    self._refresh_dropdown(self.laser_gpib_dd, resources)
+                if self.detector_gpib_dd:
+                    self._refresh_detector_dropdown(self.detector_gpib_dd, resources)
 
         except Exception as e:
             print("[Connect Config][idle] Error:", e)
@@ -79,7 +86,7 @@ class connect_config(App):
     def construct_ui(self):
         container = StyledContainer(
             variable_name="connect_config_setting_container",
-            left=0, top=0, height=180, width=200
+            left=0, top=0, height=240, width=200  # Increased height for NIR controls
         )
 
         # ---- Stage ----
@@ -98,35 +105,52 @@ class connect_config(App):
             position="absolute",
         )
 
-        # ---- Sensor ----
-        StyledLabel(
-            container=container,
-            text="Sensor",
-            variable_name="sensor",
-            left=0, top=45, width=60, height=25,
-            font_size=100, flex=True, justify_content="right", color="#222",
-        )
-        self.sensor_dd = StyledSpinBox(
-            container=container,
-            variable_name="sensor_dd",
-            value=20, max_value=100, min_value=0, step=1,
-            left=70, top=45, width=83, height=25,
-            position="absolute",
-        )
 
         # ---- TEC ----
         StyledLabel(
             container=container,
             text="TEC",
             variable_name="tec",
-            left=0, top=80, width=60, height=25,
+            left=0, top=45, width=60, height=25,
             font_size=100, flex=True, justify_content="right", color="#222",
         )
         self.tec_dd = StyledDropDown(
             container=container,
             variable_name="tec_dd",
             text="N/A",
+            left=70, top=45, width=100, height=25,
+            position="absolute",
+        )
+
+        # ---- Laser GPIB ----
+        StyledLabel(
+            container=container,
+            text="Laser",
+            variable_name="laser_gpib_label",
+            left=0, top=80, width=60, height=25,
+            font_size=100, flex=True, justify_content="right", color="#222",
+        )
+        self.laser_gpib_dd = StyledDropDown(
+            container=container,
+            variable_name="laser_gpib_dd",
+            text="N/A",
             left=70, top=80, width=100, height=25,
+            position="absolute",
+        )
+
+        # ---- Detector GPIB (Optional) ----
+        StyledLabel(
+            container=container,
+            text="Detector",
+            variable_name="detector_gpib_label",
+            left=0, top=115, width=60, height=25,
+            font_size=100, flex=True, justify_content="right", color="#222",
+        )
+        self.detector_gpib_dd = StyledDropDown(
+            container=container,
+            variable_name="detector_gpib_dd",
+            text="None",
+            left=70, top=115, width=100, height=25,
             position="absolute",
         )
 
@@ -135,7 +159,7 @@ class connect_config(App):
             container=container,
             text="Confirm",
             variable_name="confirm_btn",
-            left=68, top=142, height=25, width=70,
+            left=68, top=202, height=25, width=70,  # Moved down for new controls
             font_size=90,
         )
 
@@ -191,6 +215,21 @@ class connect_config(App):
             dropdown.append(item)
         dropdown.set_value(items[0])
 
+    def _refresh_detector_dropdown(self, dropdown, items):
+        """Special refresh for detector dropdown that includes 'None' option."""
+        if dropdown is None:
+            return
+
+        dropdown.empty()
+        dropdown.append("None")  # Option for single mainframe mode
+        
+        if items:
+            for item in items:
+                if item != "N/A":  # Don't duplicate N/A
+                    dropdown.append(item)
+        
+        dropdown.set_value("None")  # Default to single mainframe
+
     # ------------------ Confirm logic ------------------
 
     def onclick_confirm(self):
@@ -201,21 +240,26 @@ class connect_config(App):
             stage_label = self.stage_dd.get_value()
             stage_resource = self._resource_map.get(stage_label, None)
 
-            # Sensor numeric
-            sensor_val = self.sensor_dd.get_value()
-            try:
-                sensor_num = int(sensor_val)
-            except:
-                sensor_num = None
-
             # TEC resource
             tec_label = self.tec_dd.get_value()
             tec_resource = self._resource_map.get(tec_label, None)
 
+            # Laser GPIB resource
+            laser_label = self.laser_gpib_dd.get_value()
+            laser_resource = self._resource_map.get(laser_label, None)
+
+            # Detector GPIB resource (optional)
+            detector_label = self.detector_gpib_dd.get_value()
+            if detector_label == "None":
+                detector_resource = None
+            else:
+                detector_resource = self._resource_map.get(detector_label, None)
+
             config = {
                 "stage": stage_resource,
-                "sensor": sensor_num,
                 "tec": tec_resource,
+                "laser_gpib": laser_resource,
+                "detector_gpib": [detector_resource],
             }
 
             file = File("shared_memory", "Port", config)
@@ -285,10 +329,10 @@ if __name__ == "__main__":
     # --- Create main PyWebView window ---
     local_ip = "127.0.0.1"
     MAIN_WINDOW = webview.create_window(
-        "Stage Control",
+        "Connection Config",
         f"http://{local_ip}:7005",
         width=217,
-        height=224,
+        height=324,  # Increased height for NIR controls
         resizable=True,
         on_top=True,
     )

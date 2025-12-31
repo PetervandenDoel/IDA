@@ -137,7 +137,7 @@ class LaserHAL(ABC):
 ######################################################################
 
     @abstractmethod
-    def read_power(self, channel: int = 1) -> PowerReading:
+    def read_power(self, channel: int = 1, mf: int = 0) -> float:
         """Read optical power from detector channel"""
         pass
     
@@ -152,7 +152,7 @@ class LaserHAL(ABC):
         pass
     
     @abstractmethod
-    def set_power_range(self, range_dbm: float, channel: int = 1) -> bool:
+    def set_power_range(self, range_dbm: float, channel: int = 1, mf: int = 0) -> bool:
         """Set fixed power measurement range for detector channel"""
         pass
     
@@ -162,7 +162,7 @@ class LaserHAL(ABC):
         pass
     
     @abstractmethod
-    def enable_autorange(self, enable: bool = True, channel: int = 1) -> bool:
+    def enable_autorange(self, enable: bool = True, channel: int = 1, mf: int = 0) -> bool:
         """Enable automatic range switching for detector channel"""
         pass
     
@@ -204,18 +204,6 @@ class LaserHAL(ABC):
 ######################################################################
 # Lambda scan functions
 ######################################################################
-
-    def configure_and_start_lambda_sweep(
-        self, start_nm: float, stop_nm: float, step_nm: float,
-        laser_power_dbm: float = -10, avg_time_s: float = 0.01
-    ) -> bool:
-       pass
-
-    def execute_lambda_scan(self, timeout_s: float = 300) -> bool:
-        pass
-
-    def retrieve_scan_data(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        pass
 
     def optical_sweep(
         self, start_nm: float, stop_nm: float, step_nm: float,

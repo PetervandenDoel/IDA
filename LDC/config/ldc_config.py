@@ -6,14 +6,10 @@ from LDC.ldc_controller import SrsLdc502
 @dataclass
 class LDCConfiguration:
     """
-    Configuration for SRS LDC502 controller at Probe_Stage. Does not support LD control
-   
-    TODO:
-        For other stages, the additional configuration needs to be done to support LD control
-        constants.
+    Configuration for SRS LDC502 controller
     """
    
-    visa_address: str = 'ASRL5::INSTR' # my laptop for now
+    visa_address: str = 'ASRL5::INSTR' 
     sensor_type: str = "1"           # temperature sensor channel
     pid_coeffs: List[float] = field(
         default_factory=lambda: [-1.669519, 0.2317650, 1.078678] # [P, I, D]
@@ -27,8 +23,6 @@ class LDCConfiguration:
             "srs_ldc_502": SrsLdc502 
         }
     )      
-    driver_key = "srs_ldc_502"                             
-    driver_cls = SrsLdc502
     
     def to_dict(self) -> Dict[str, Any]:
         """

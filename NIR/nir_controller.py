@@ -17,16 +17,37 @@ Cameron Basara, 2025
 ######################################################################
 
 class NIR8164(LaserHAL):
-    def __init__(self, gpib_addr: int = 20, laser_slot: int = 1, 
-                 detector_slots: List[int] = [1, 2],
+    def __init__(self,
+                 laser_slot: str = 'GPIB0::20::INSTR',
+                 detector_slots: list = [],
                  safety_password: str = "1234", timeout_ms: int = 30000):
+        """
+        Controller instance for single / mf 816x machines
         
-        self.detector_slots = detector_slots
+        :param laser_slot: primary and laser mf slot
+                           if single, then this will 
+                           handle everything
+        :type laser_slot: str
+        :param detector_slots: Additional detector 
+                               mainframe detectors
+        :type detector_slots: Optional[list]
+        :param safety_password: pwk
+        :type safety_password: str
+        :param timeout_ms: visa timeout
+        :type timeout_ms: int
+        """
+
         self.timeout_ms = timeout_ms
+
+        # Connection
         self.rm: Optional[pyvisa.ResourceManager] = None
-        self.inst: Optional[pyvisa.Resource] = None
+        self.laser_inst: Optional[pyvisa.Resource] = None
+        self.detector_insts: list[pyvisa.Resource] = []
+        self.detector_slots = detector_slots
+        self.laser_slot = laser_slot
+        self.slot_info = []
         self._is_connected = False
-        self.addr = f'GPIB0::{gpib_addr}::INSTR'
+        self.is_mf = True if (len(detector_slots) > 0 and isinstance(detector_slots[0], str)) else False
 
         # lambda-scan state
         self.start_wavelength = None
@@ -35,28 +56,58 @@ class NIR8164(LaserHAL):
         self.num_points = None
         self.laser_power = None
         self.sweep_module = False
-        self.slot_info = []
 
     def connect(self) -> bool:
         try:
-            self.rm = pyvisa.ResourceManager()
-            self.inst = self.rm.open_resource(
-                self.addr,
-                timeout=self.timeout_ms,
-            )
-            try:
-                self.inst.clear()
-            except Exception:
-                pass
+            if not self.is_mf:
+                # Connect as usual
+                self.rm = pyvisa.ResourceManager()
+                self.laser_inst = self.rm.open_resource(
+                    self.laser_slot,
+                    timeout=self.timeout_ms,
+                )
+                try:
+                    self.laser_inst.clear()
+                except Exception:
+                    pass
 
-            idn = self.query('*IDN?')
-            if not idn:
-                return False
+                idn = self.query('*IDN?')
+                if not idn:
+                    return False
 
-            self._is_connected = True
-            self.get_mainframe_slot_info()
-            self.configure_units()
-            return True
+                self._is_connected = True
+                self.get_mainframe_slot_info()
+                self.configure_units()
+                return True
+            else:
+                # Now, open a ressource for each detector
+                self.rm = pyvisa.ResourceManager()
+                self.laser_inst = self.rm.open_resource(
+                    self.laser_slot,
+                    timeout=self.timeout_ms,
+                )
+                try:
+                    self.laser_inst.clear()
+                except Exception:
+                    pass
+
+                idn = self.query('*IDN?')
+                if not idn:
+                    return False
+                
+                for gpib in self.detector_slots:
+                    print(gpib)
+                    temp_inst = self.rm.open_resource(
+                            gpib,
+                            timeout=self.timeout_ms,
+                        )
+                    self.detector_insts.append(temp_inst)
+                    try:
+                        temp_inst.clear()
+                    except Exception:
+                        pass
+                    # Do not query IDN
+                return True     
         except Exception as e:
             raise ConnectionError(f"{e}")
 
@@ -66,10 +117,14 @@ class NIR8164(LaserHAL):
         except Exception:
             return False
         try:
-            if self.inst:
-                self.inst.close()
+            if self.laser_inst:
+                self.laser_inst.close()
+            if self.is_mf:
+                for i in self.detector_insts:
+                    i.close()
         finally:
-            self.inst = None
+            self.laser_inst = None
+            self.detector_insts = []
         if self.rm:
             try:
                 self.rm.close()
@@ -78,35 +133,51 @@ class NIR8164(LaserHAL):
                 return True
 
     def write(self, scpi: str) -> None:
-        self.inst.write(scpi)
+        self.laser_inst.write(scpi)
+
+    def write_detector(self, scpi: str, idx: int) -> None:
+        self.detector_insts[idx].write(scpi)
 
     def query(self, scpi: str, sleep_s: float = 0.02, retries: int = 1) -> str:
         for attempt in range(retries + 1):
-            resp = self.inst.query(scpi).strip()
+            resp = self.laser_inst.query(scpi).strip()
             if resp or attempt == retries:
                 return resp
             time.sleep(0.03)
     
+    def query_detector(self, scpi: str, idx: int) -> str:
+        for attempt in range(2):
+            resp = self.detector_insts[idx].query(scpi).strip()
+            if resp or attempt == 1:
+                return resp
+            time.sleep(0.03)
+
     def get_mainframe_slot_info(self):
         """
         Call mainframe to get a list of tuples containing
 
-        [(slot,head), ...]        
+        [(MF,slot,head), ...]        
         
         Where SCPI calls will use Slot, Head
         """
 
         from NIR.sweep import HP816xLambdaScan
-        hp = HP816xLambdaScan()
+        hp = HP816xLambdaScan(
+            self.laser_slot,
+            self.detector_slots
+        )
         try:
-            ok = hp.connect()
+            if self.is_mf:
+                ok = hp.connect_mf()
+            else:
+                ok = hp.connect()
             if not ok:
                 raise RuntimeError("HP816xLambdaScan.connect() failed")
-            # [(PWMCh, Slot, Head), ...,])
+            # [(PWMCh, MF, Slot, Head), ...,])
             self.slot_info = []
             mapping = hp.enumarate_slots()
-            for _, slot, head in mapping:
-                self.slot_info.append((slot,head)) 
+            for _, mf, slot, head in mapping:
+                self.slot_info.append((mf, slot, head))
         finally:
             try:
                 hp.disconnect()
@@ -128,13 +199,21 @@ class NIR8164(LaserHAL):
             self.write(f"SOUR0:POW:UNIT 0")
 
             # PWM config
-            for slot, head in self.slot_info:
+            for mf, slot, head in self.slot_info:
+                if mf > 0:
+                    self.write_detector(
+                        f"SENS{slot}:CHAN{head+1}:POW:UNIT 0",
+                        mf-1  # MF will be +1 due to laser
+                    )
+                    continue
                 self.write(f"SENS{slot}:CHAN{head+1}:POW:UNIT 0")
             
             return True
         except Exception as e:
             return False
 
+    # Rest of the laser functions only pertain to main laser module
+    # So behaviour is same as usual
     def set_wavelength(self, nm: float) -> bool:
         """Set wl in nm"""
         try:
@@ -185,16 +264,33 @@ class NIR8164(LaserHAL):
 
     ######################################################################
     # Detector functions
+    # Behaviour now has to be seperated by detectors vs. Laser
+    # Some were skipped because they are not really used
+    # Or only for development, niche or debugging
     ######################################################################
 
-    def set_detector_units(self, slot, units: int = 0) -> None:
+    def set_detector_units(self, slot, units: int = 0, mf: int = 0) -> None:
         """
         Set Detector units
             unit[int]: 0 dBm, 1 W
         """
         try:
-            self.write(f"SENS{slot}:CHAN1:POW:UNIT {units}")
-            self.write(f"SENS{slot}:CHAN2:POW:UNIT {units}")
+            if mf == 0:
+                self.write(f"SENS{slot}:CHAN1:POW:UNIT {units}")
+                self.write(f"SENS{slot}:CHAN2:POW:UNIT {units}")
+            else:
+                self.write_detector(
+                    f"SENS{slot}:CHAN1:POW:UNIT {units}",
+                    mf-1
+                )
+                try:
+                    self.write_detector(
+                        f"SENS{slot}:CHAN2:POW:UNIT {units}",
+                        mf-1
+                    )
+                except:
+                    # Some detectors will no have this functionality
+                    pass
             return True
         except:
             return False
@@ -208,44 +304,75 @@ class NIR8164(LaserHAL):
         except:
             return False
 
-    def read_power(self, slot) -> Optional[Tuple[float, float]]:
+    def read_power(self, slot, head, mf: int = 0) -> Optional[Tuple[float]]:
         """
         Read power from each chan with unit configured
         """
         try:
-            p1 = self.query(f"FETC{slot}:CHAN1:POW?")
-            p2 = self.query(f"FETC{slot}:CHAN2:POW?")
-            return float(p1), float(p2)
+            if mf == 0:
+                p = self.query(f"FETC{slot}:CHAN{head}:POW?")
+                return float(p)
+            else:
+                p = self.query_detector(
+                    f"FETC{slot}:CHAN{head}:POW?",
+                    mf-1
+                )
+                return float(p)
         except:
             return False
 
-    def enable_autorange(self, enable: bool = True, slot: int = 1) -> bool:
+    def enable_autorange(self, enable: bool = True, slot: int = 1, mf: int = 0) -> bool:
         """Enable/disable autorange """
         try:
-            self.write(f"SENSe{slot}:CHAN1:POWer:RANGe:AUTO {1 if enable else 0}")
-            return True
+            if mf == 0:
+                self.write(f"SENSe{slot}:CHAN1:POWer:RANGe:AUTO {1 if enable else 0}")
+                return True
+            else:
+                self.write_detector(
+                    f"SENSe{slot}:CHAN1:POWer:RANGe:AUTO {1 if enable else 0}",
+                    mf-1
+                )
+                return True
         except Exception as e:
             return False
 
-    def set_power_range(self, range_dbm: float, slot: int = 1) -> bool:
+    def set_power_range(self, range_dbm: float, slot: int = 1, mf: int = 0) -> bool:
         """Set power range for both slots"""
         try:
-            # Disable autorange first
-            self.write(f"SENSe{slot}:CHAN1:POWer:RANGe:AUTO 0")
-            # Set range
-            self.write(f"SENS{slot}:CHAN1:POW:RANG " + str(range_dbm))
-            time.sleep(0.05)
-            self.write(f"SENS{slot}:CHAN2:POW:RANG " + str(range_dbm))
-            return True
+            if mf == 0:
+                # Disable autorange first
+                self.write(f"SENSe{slot}:CHAN1:POWer:RANGe:AUTO 0")
+                # Set range
+                self.write(f"SENS{slot}:CHAN1:POW:RANG " + str(range_dbm))
+                time.sleep(0.05)
+                self.write(f"SENS{slot}:CHAN2:POW:RANG " + str(range_dbm))
+                return True
+            else:
+                # Disable autorange first
+                self.write_detector(f"SENSe{slot}:CHAN1:POWer:RANGe:AUTO 0",
+                                    mf-1)
+                # Set range
+                self.write_detector(f"SENS{slot}:CHAN1:POW:RANG " + str(range_dbm),
+                                    mf-1)
+                time.sleep(0.05)
+                self.write_detector(f"SENS{slot}:CHAN2:POW:RANG " + str(range_dbm),
+                                    mf-1)
+                return True
         except Exception as e:
             return False
 
-    def set_power_range_auto(self, slot: int = 1) -> bool:
+    def set_power_range_auto(self, slot: int = 1, mf: int = 0) -> bool:
         """Set power range for master / slave of channel"""
         try:
-            # Enable auto ranging
-            self.write(f"SENSe{slot}:CHAN1:POWer:RANGe:AUTO 1")
-            return True
+            if mf == 0:
+                # Enable auto ranging
+                self.write(f"SENSe{slot}:CHAN1:POWer:RANGe:AUTO 1")
+                return True
+            else:
+                # Enable auto ranging
+                self.write_detector(f"SENSe{slot}:CHAN1:POWer:RANGe:AUTO 1",
+                                    mf-1)
+                return True
         except Exception as e:
             return False
 
@@ -259,14 +386,24 @@ class NIR8164(LaserHAL):
         except Exception as e:
             return False
 
-    def set_power_reference(self, ref_dbm: float, slot: int = 1) -> bool:
+    def set_power_reference(self, ref_dbm: float, slot: int = 1, mf: int = 0) -> bool:
         """Set power reference (noise floor) for detector slot"""
         try:
-            # Set reference level for the specified slot
-            self.write(f"SENS{slot}:CHAN1:POW:REF TOREF,{ref_dbm}DBM")
-            self.write(f"SENS{slot}:CHAN2:POW:REF TOREF,{ref_dbm}DBM")
-            time.sleep(0.05)
-            return True
+            if mf == 0:
+                # Set reference level for the specified slot
+                self.write(f"SENS{slot}:CHAN1:POW:REF TOREF,{ref_dbm}DBM")
+                self.write(f"SENS{slot}:CHAN2:POW:REF TOREF,{ref_dbm}DBM")
+                time.sleep(0.05)
+                return True
+            else:
+                # Set reference level for the specified slot
+                self.write_detector(f"SENS{slot}:CHAN1:POW:REF TOREF,{ref_dbm}DBM",
+                                    mf-1)
+                self.write_detector(f"SENS{slot}:CHAN2:POW:REF TOREF,{ref_dbm}DBM",
+                                    mf-1)
+                time.sleep(0.05)
+                return True
+ 
         except Exception as e:
             return False
 
@@ -282,6 +419,8 @@ class NIR8164(LaserHAL):
 
     ######################################################################
     # Sweep functions
+    # For mf purposes, this was a bit of a legacy adaptation 
+    # And isn't really used. Consider refactoring this out
     ######################################################################
 
     def set_sweep_range_nm(self, start_nm: float, stop_nm: float) -> None:
@@ -323,10 +462,16 @@ class NIR8164(LaserHAL):
             self._preflight_cleanup()
         except Exception:
             pass
-        hp = HP816xLambdaScan()
+        hp = HP816xLambdaScan(
+            self.laser_slot,
+            self.detector_slots
+        )
         self.sweep_module = hp
         try:
-            ok = hp.connect()
+            if not self.is_mf:
+                ok = hp.connect()
+            else:
+                ok = hp.connect_mf()
             if not ok:
                 raise RuntimeError("HP816xLambdaScan.connect() failed")
             res = hp.lambda_scan(
@@ -348,8 +493,8 @@ class NIR8164(LaserHAL):
         wl = np.asarray(res.get('wavelengths_nm', []), dtype=np.float64)
         power_dict = res.get('power_dbm_by_detector')
         chs = []
-        for slot, head in self.slot_info:
-                chs.append(power_dict[(slot,head)])
+        for mf, slot, head in self.slot_info:
+                chs.append(power_dict[(mf,slot,head)])
         return wl, chs
 
     def sweep_cancel(self):
@@ -381,8 +526,8 @@ class NIR8164(LaserHAL):
 
     def cleanup_scan(self) -> None:
         try:
-            for slot, _ in self.slot_info:
-                self.write("SENS{slot}:CHAN1:FUNC:STAT LOGG,STOP")
+            for _, slot, _ in self.slot_info:
+                self.write(f"SENS{slot}:CHAN1:FUNC:STAT LOGG,STOP")
         except Exception:
             pass
         try:

@@ -101,7 +101,7 @@ class NIR_Measurment_System(App):
         main_tab.variable_name = "main_tab"
 
         tab_cfg = [
-            ("Start", 9100),
+            ("Start", 9109),
             ("Instruments", 9101),
             ("Registration", 9102),
             ("Devices", 9103),

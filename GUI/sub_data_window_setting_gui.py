@@ -1,6 +1,5 @@
 from GUI.lib_gui import *
 from remi import start, App
-import datetime
 import json
 import os
 import threading
@@ -9,55 +8,51 @@ command_path = os.path.join("database", "command.json")
 shared_path = os.path.join("database", "shared_memory.json")
 
 
-def update_detector_window_setting(name, payload):
+def update_detector_window_setting(mf, slot, setting_type, value):
     try:
-        with open(shared_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        data = {}
+        # Load existing detector window settings
+        try:
+            with open(shared_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            data = {}
 
-    dws = data.get("DetectorWindowSettings", {})
-    if not isinstance(dws, dict):
-        dws = {}
+        # Get existing DetectorWindowSettings or initialize
+        dws = data.get("DetectorWindowSettings", {})
 
-    # Overwrite the specific setting
-    dws[name] = payload
-    dws["Detector_Change"] = "1"
-    data["DetectorWindowSettings"] = dws
+        mf_key = f"mf{mf}"
+        dws.setdefault(mf_key, {})
+        dws[mf_key].setdefault(str(slot), {})
 
-    with open(shared_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2)
+        # Update the specific setting
+        dws[mf_key][str(slot)][setting_type] = value
+        dws["Detector_Change"] = "1"
+
+        # Use the File class like other modules for consistency
+        file = File("shared_memory", "DetectorWindowSettings", dws)
+        file.save()
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise
 
 
 class data_window(App):
     def __init__(self, *args, **kwargs):
-        # Track modification times of command.json and shared_memory.json
-        self._cmd_mtime = None
-        self._shared_mtime = None
-        self._first_command_check = True
-        self._first_shared_check = True
-
-        if "editing_mode" not in kwargs:
-            super(data_window, self).__init__(*args, **{"static_file_path": {"my_res": "./res/"}})
-
-    # ------------------------------------------------------
-    # Helpers
-    # ------------------------------------------------------
-    @staticmethod
-    def _set_spin_safely(widget, value):
-        """Safely set a SpinBox value if value is not None."""
-        if widget is None or value is None:
-            return
         try:
-            widget.set_value(float(value))
-        except Exception:
-            try:
-                widget.set_value(value)
-            except Exception:
-                pass
+            self._cmd_mtime = None
+            self._shared_mtime = None
+            self._first_command_check = True
+            self._first_shared_check = True
+
+            if "editing_mode" not in kwargs:
+                super(data_window, self).__init__(*args, **{"static_file_path": {"my_res": "./res/"}})
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            raise
 
     def idle(self):
-        # ---------------- command.json watcher ----------------
         try:
             cmd_mtime = os.path.getmtime(command_path)
         except FileNotFoundError:
@@ -70,7 +65,6 @@ class data_window(App):
             self._cmd_mtime = cmd_mtime
             self.execute_command()
 
-        # ---------------- shared_memory.json watcher ----------------
         try:
             shared_mtime = os.path.getmtime(shared_path)
         except FileNotFoundError:
@@ -84,22 +78,27 @@ class data_window(App):
             self._load_from_shared()
 
     def main(self):
-        ui = self.construct_ui()
-        # Load initial values from shared_memory.json (DetectorWindowSettings)
-        self._load_from_shared()
-        return ui
+        try:
+            self.container = self.construct_ui()
+            self._load_from_shared()
+            return self.container
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            raise
 
-    def run_in_thread(self, target, *args):
-        threading.Thread(target=target, args=args, daemon=True).start()
+    def run_in_thread(self, fn, *args):
+        threading.Thread(target=fn, args=args, daemon=True).start()
 
-    # ------------------------------------------------------
-    # Load from shared_memory.json → DetectorWindowSettings
-    # ------------------------------------------------------
+    def _set_spin(self, widget, value):
+        if widget is None or value is None:
+            return
+        try:
+            widget.set_value(float(value))
+        except Exception:
+            pass
+
     def _load_from_shared(self):
-        """
-        Read DetectorWindowSettings from shared_memory.json and
-        update the CH1–CH4 range/ref spin boxes.
-        """
         try:
             with open(shared_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
@@ -107,516 +106,195 @@ class data_window(App):
             return
 
         dws = data.get("DetectorWindowSettings", {})
-        if not isinstance(dws, dict):
-            return
+        for mf in (0, 1):
+            mf_data = dws.get(f"mf{mf}", {})
+            for slot in range(1, 5):
+                slot_data = mf_data.get(str(slot), {})
+                self._set_spin(getattr(self, f"mf{mf}_ch{slot}_range", None),
+                               slot_data.get("range", -10))
+                self._set_spin(getattr(self, f"mf{mf}_ch{slot}_ref", None),
+                               slot_data.get("ref", -30))
 
-        # CH1
-        ch1_range = dws.get("DetectorRange_Ch1", {})
-        ch1_ref = dws.get("DetectorReference_Ch1", {})
-        self._set_spin_safely(self.ch1_range, ch1_range.get("range_dbm"))
-        self._set_spin_safely(self.ch1_ref, ch1_ref.get("ref_dbm"))
-
-        # CH2
-        ch2_range = dws.get("DetectorRange_Ch2", {})
-        ch2_ref = dws.get("DetectorReference_Ch2", {})
-        self._set_spin_safely(self.ch2_range, ch2_range.get("range_dbm"))
-        self._set_spin_safely(self.ch2_ref, ch2_ref.get("ref_dbm"))
-
-        # CH3
-        ch3_range = dws.get("DetectorRange_Ch3", {})
-        ch3_ref = dws.get("DetectorReference_Ch3", {})
-        self._set_spin_safely(self.ch3_range, ch3_range.get("range_dbm"))
-        self._set_spin_safely(self.ch3_ref, ch3_ref.get("ref_dbm"))
-
-        # CH4
-        ch4_range = dws.get("DetectorRange_Ch4", {})
-        ch4_ref = dws.get("DetectorReference_Ch4", {})
-        self._set_spin_safely(self.ch4_range, ch4_range.get("range_dbm"))
-        self._set_spin_safely(self.ch4_ref, ch4_ref.get("ref_dbm"))
-
-    # ------------------------------------------------------
-    # UI construction
-    # ------------------------------------------------------
     def construct_ui(self):
-        data_window_container = StyledContainer(
-            variable_name="data_window_container", left=0, top=0, height=520, width=280
+        try:
+            c = StyledContainer(
+                variable_name="data_window_container",
+                left=0,
+                top=0,
+                width=280,
+                height=800
+            )
+
+            self._build_mainframe(c, mf=0, top_offset=5, header_color="#E8F4FD")
+            self._build_mainframe(c, mf=1, top_offset=395, header_color="#FFF3E0")
+
+            return c
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            raise
+
+    def _build_mainframe(self, container, mf, top_offset, header_color):
+        header = StyledLabel(
+            text=f"MAINFRAME {mf}",
+            variable_name=f"mf{mf}_header",
+            left=10,
+            top=top_offset,
+            width=260,
+            height=25,
+            font_size=120,
+            flex=True,
+            justify_content="center",
+            bold=True,
+            container=container
         )
+        header.style["background-color"] = header_color
+        header.style["color"] = "#000"
 
-        # =============== Channel 1 ===============                                                                                 
-        StyledLabel(
-            container=data_window_container, text="Slot 1",
-            variable_name="ch1_label", left=10, top=15,
-            width=100, height=25, font_size=110, flex=True,
-            justify_content="left", color="#222", bold=True
-        )
+        base = top_offset + 25
+        for slot in range(1, 5):
+            y = base + (slot - 1) * 90
 
-        # Row spacing: 30 px
-        StyledLabel(
-            container=data_window_container, text="Range",
-            variable_name="ch1_range_lb", left=10, top=50,
-            width=60, height=25, font_size=100, flex=True,
-            justify_content="right", color="#222"
-        )
+            StyledLabel(
+                text=f"Slot {slot}",
+                variable_name=f"mf{mf}_slot{slot}_label",
+                left=10,
+                top=y,
+                width=100,
+                height=25,
+                font_size=110,
+                bold=True,
+                container=container
+            )
 
-        self.ch1_range = StyledSpinBox(
-            container=data_window_container, variable_name="ch1_range_in",
-            left=80, top=50, value=-10, width=60, height=24,
-            min_value=-70, max_value=10, step=1, position="absolute"
-        )
+            StyledLabel(
+                text="Range",
+                variable_name=f"mf{mf}_slot{slot}_range_lb",
+                left=10,
+                top=y + 25,
+                width=60,
+                height=25,
+                container=container
+            )
 
-        StyledLabel(
-            container=data_window_container, text="dBm",
-            variable_name="ch1_range_unit", left=160, top=50,
-            width=30, height=25, font_size=100, flex=True,
-            justify_content="left", color="#222"
-        )
+            setattr(self, f"mf{mf}_ch{slot}_range", StyledSpinBox(
+                container=container,
+                variable_name=f"mf{mf}_ch{slot}_range",
+                left=80,
+                top=y + 25,
+                width=60,
+                height=24,
+                value=-10,
+                min_value=-70,
+                max_value=10
+            ))
 
-        StyledLabel(
-            container=data_window_container, text="Ref",
-            variable_name="ch1_ref_lb", left=10, top=80,
-            width=60, height=25, font_size=100, flex=True,
-            justify_content="right", color="#222"
-        )
+            StyledLabel(
+                text="Ref",
+                variable_name=f"mf{mf}_slot{slot}_ref_lb",
+                left=10,
+                top=y + 50,
+                width=60,
+                height=25,
+                container=container
+            )
 
-        self.ch1_ref = StyledSpinBox(
-            container=data_window_container, variable_name="ch1_ref_in",
-            left=80, top=80, value=-30, width=60, height=24,
-            min_value=-100, max_value=0, step=1, position="absolute"
-        )
+            setattr(self, f"mf{mf}_ch{slot}_ref", StyledSpinBox(
+                container=container,
+                variable_name=f"mf{mf}_ch{slot}_ref",
+                left=80,
+                top=y + 50,
+                width=60,
+                height=24,
+                value=-30,
+                min_value=-100,
+                max_value=0
+            ))
 
-        StyledLabel(
-            container=data_window_container, text="dBm",
-            variable_name="ch1_ref_unit", left=160, top=80,
-            width=30, height=25, font_size=100, flex=True,
-            justify_content="left", color="#222"
-        )
+            btn_range = StyledButton(
+                text="Range",
+                variable_name=f"mf{mf}_apply_range_{slot}",
+                left=190,
+                top=y + 25,
+                width=60,
+                height=24,
+                container=container
+            )
 
-        # Buttons shifted accordingly
-        self.apply_range_btn = StyledButton(
-            container=data_window_container, text="Apply Range",
-            variable_name="apply_range_btn", left=190, top=50,
-            height=24, width=80, font_size=85,
-            normal_color="#007BFF", press_color="#0056B3"
-        )
+            btn_ref = StyledButton(
+                text="Ref",
+                variable_name=f"mf{mf}_apply_ref_{slot}",
+                left=190,
+                top=y + 50,
+                width=60,
+                height=24,
+                container=container
+            )
 
-        self.apply_ref_btn = StyledButton(
-            container=data_window_container, text="Apply Ref",
-            variable_name="apply_ref_btn", left=190, top=80,
-            height=24, width=80, font_size=85,
-            normal_color="#007BFF", press_color="#0056B3"
-        )
+            btn_auto = StyledButton(
+                text="Auto",
+                variable_name=f"mf{mf}_apply_auto_{slot}",
+                left=190,
+                top=y + 75,
+                width=60,
+                height=20,
+                normal_color="#28A745",
+                press_color="#1E7E34",
+                container=container
+            )
 
-        self.apply_auto_btn1 = StyledButton(
-            container=data_window_container, text="Auto Range CH1",
-            variable_name="apply_auto_btn1", left=190, top=110,
-            width=80, height=24, font_size=85,
-            normal_color="#007BFF", press_color="#0056B3"
-        )
+            btn_auto.do_onclick(lambda s=slot, m=mf: self.run_in_thread(self._apply_auto, m, s))
+            btn_range.do_onclick(lambda s=slot, m=mf: self.run_in_thread(self._apply_range, m, s))
+            btn_ref.do_onclick(lambda s=slot, m=mf: self.run_in_thread(self._apply_ref, m, s))
 
-        # =============== Channel 2 ===============
-        StyledLabel(
-            container=data_window_container, text="Slot 2",
-            variable_name="ch2_label", left=10, top=140,
-            width=100, height=25, font_size=110, flex=True,
-            justify_content="left", color="#222", bold=True
-        )
+    def _apply_auto(self, mf, slot):
+        update_detector_window_setting(mf, slot, "auto_range", True)
+        update_detector_window_setting(mf, slot, "range", None)
 
-        StyledLabel(
-            container=data_window_container, text="Range",
-            variable_name="ch2_range_lb", left=10, top=170,
-            width=60, height=25, font_size=100, flex=True,
-            justify_content="right", color="#222"
-        )
+    def _apply_range(self, mf, slot):
+        val = float(getattr(self, f"mf{mf}_ch{slot}_range").get_value())
+        update_detector_window_setting(mf, slot, "range", val)
+        update_detector_window_setting(mf, slot, "auto_range", False)
 
-        self.ch2_range = StyledSpinBox(
-            container=data_window_container, variable_name="ch2_range_in",
-            left=80, top=170, value=-10, width=60, height=24,
-            min_value=-70, max_value=10, step=1, position="absolute"
-        )
-
-        StyledLabel(
-            container=data_window_container, text="dBm",
-            variable_name="ch2_range_unit", left=160, top=170,
-            width=30, height=25, font_size=100, flex=True,
-            justify_content="left", color="#222"
-        )
-
-        StyledLabel(
-            container=data_window_container, text="Ref",
-            variable_name="ch2_ref_lb", left=10, top=200,
-            width=60, height=25, font_size=100, flex=True,
-            justify_content="right", color="#222"
-        )
-
-        self.ch2_ref = StyledSpinBox(
-            container=data_window_container, variable_name="ch2_ref_in",
-            left=80, top=200, value=-30, width=60, height=24,
-            min_value=-100, max_value=0, step=1, position="absolute"
-        )
-
-        StyledLabel(
-            container=data_window_container, text="dBm",
-            variable_name="ch2_ref_unit", left=160, top=200,
-            width=30, height=25, font_size=100, flex=True,
-            justify_content="left", color="#222"
-        )
-
-        self.apply_range_btn2 = StyledButton(
-            container=data_window_container, text="Apply Range",
-            variable_name="apply_range_btn2", left=190, top=170,
-            height=24, width=80, font_size=85,
-            normal_color="#007BFF", press_color="#0056B3"
-        )
-
-        self.apply_ref_btn2 = StyledButton(
-            container=data_window_container, text="Apply Ref",
-            variable_name="apply_ref_btn2", left=190, top=200,
-            height=24, width=80, font_size=85,
-            normal_color="#007BFF", press_color="#0056B3"
-        )
-
-        self.apply_auto_btn2 = StyledButton(
-            container=data_window_container, text="Auto Range CH2",
-            variable_name="apply_auto_btn2", left=190, top=230,
-            width=80, height=24, font_size=85,
-            normal_color="#007BFF", press_color="#0056B3"
-        )
-
-        # =============== Channel 3 ===============
-        StyledLabel(
-            container=data_window_container, text="Slot 3",
-            variable_name="ch3_label", left=10, top=265,
-            width=100, height=25, font_size=110, flex=True,
-            justify_content="left", color="#222", bold=True
-        )
-
-        StyledLabel(
-            container=data_window_container, text="Range",
-            variable_name="ch3_range_lb", left=10, top=295,
-            width=60, height=25, font_size=100, flex=True,
-            justify_content="right", color="#222"
-        )
-
-        self.ch3_range = StyledSpinBox(
-            container=data_window_container, variable_name="ch3_range_in",
-            left=80, top=295, value=-10, width=60, height=24,
-            min_value=-70, max_value=10, step=1, position="absolute"
-        )
-
-        StyledLabel(
-            container=data_window_container, text="dBm",
-            variable_name="ch3_range_unit", left=160, top=295,
-            width=30, height=25, font_size=100, flex=True,
-            justify_content="left", color="#222"
-        )
-
-        StyledLabel(
-            container=data_window_container, text="Ref",
-            variable_name="ch3_ref_lb", left=10, top=325,
-            width=60, height=25, font_size=100, flex=True,
-            justify_content="right", color="#222"
-        )
-
-        self.ch3_ref = StyledSpinBox(
-            container=data_window_container, variable_name="ch3_ref_in",
-            left=80, top=325, value=-30, width=60, height=24,
-            min_value=-100, max_value=0, step=1, position="absolute"
-        )
-
-        StyledLabel(
-            container=data_window_container, text="dBm",
-            variable_name="ch3_ref_unit", left=160, top=325,
-            width=30, height=25, font_size=100, flex=True,
-            justify_content="left", color="#222"
-        )
-
-        self.apply_range_btn3 = StyledButton(
-            container=data_window_container, text="Apply Range",
-            variable_name="apply_range_btn3", left=190, top=295,
-            height=24, width=80, font_size=85,
-            normal_color="#007BFF", press_color="#0056B3"
-        )
-
-        self.apply_ref_btn3 = StyledButton(
-            container=data_window_container, text="Apply Ref",
-            variable_name="apply_ref_btn3", left=190, top=325,
-            height=24, width=80, font_size=85,
-            normal_color="#007BFF", press_color="#0056B3"
-        )
-
-        self.apply_auto_btn3 = StyledButton(
-            container=data_window_container, text="Auto Range CH3",
-            variable_name="apply_auto_btn3", left=190, top=355,
-            width=80, height=24, font_size=85,
-            normal_color="#007BFF", press_color="#0056B3"
-        )
-
-        # =============== Channel 4 ===============
-        StyledLabel(
-            container=data_window_container, text="Slot 4",
-            variable_name="ch4_label", left=10, top=390,
-            width=100, height=25, font_size=110, flex=True,
-            justify_content="left", color="#222", bold=True
-        )
-
-        StyledLabel(
-            container=data_window_container, text="Range",
-            variable_name="ch4_range_lb", left=10, top=420,
-            width=60, height=25, font_size=100, flex=True,
-            justify_content="right", color="#222"
-        )
-
-        self.ch4_range = StyledSpinBox(
-            container=data_window_container, variable_name="ch4_range_in",
-            left=80, top=420, value=-10, width=60, height=24,
-            min_value=-70, max_value=10, step=1, position="absolute"
-        )
-
-        StyledLabel(
-            container=data_window_container, text="dBm",
-            variable_name="ch4_range_unit", left=160, top=420,
-            width=30, height=25, font_size=100, flex=True,
-            justify_content="left", color="#222"
-        )
-
-        StyledLabel(
-            container=data_window_container, text="Ref",
-            variable_name="ch4_ref_lb", left=10, top=450,
-            width=60, height=25, font_size=100, flex=True,
-            justify_content="right", color="#222"
-        )
-
-        self.ch4_ref = StyledSpinBox(
-            container=data_window_container, variable_name="ch4_ref_in",
-            left=80, top=450, value=-30, width=60, height=24,
-            min_value=-100, max_value=0, step=1, position="absolute"
-        )
-
-        StyledLabel(
-            container=data_window_container, text="dBm",
-            variable_name="ch4_ref_unit", left=160, top=450,
-            width=30, height=25, font_size=100, flex=True,
-            justify_content="left", color="#222"
-        )
-
-        self.apply_range_btn4 = StyledButton(
-            container=data_window_container, text="Apply Range",
-            variable_name="apply_range_btn4", left=190, top=420,
-            height=24, width=80, font_size=85,
-            normal_color="#007BFF", press_color="#0056B3"
-        )
-
-        self.apply_ref_btn4 = StyledButton(
-            container=data_window_container, text="Apply Ref",
-            variable_name="apply_ref_btn4", left=190, top=450,
-            height=24, width=80, font_size=85,
-            normal_color="#007BFF", press_color="#0056B3"
-        )
-
-        self.apply_auto_btn4 = StyledButton(
-            container=data_window_container, text="Auto Range CH4",
-            variable_name="apply_auto_btn4", left=190, top=480,
-            width=80, height=24, font_size=85,
-            normal_color="#007BFF", press_color="#0056B3"
-        )
-
-        # Wire up events
-        self.apply_auto_btn1.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch1_autorange))
-        self.apply_auto_btn2.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch2_autorange))
-        self.apply_auto_btn3.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch3_autorange))
-        self.apply_auto_btn4.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch4_autorange))
-
-        self.apply_range_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch1_range))
-        self.apply_ref_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch1_ref))
-
-        self.apply_range_btn2.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch2_range))
-        self.apply_ref_btn2.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch2_ref))
-
-        self.apply_range_btn3.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch3_range))
-        self.apply_ref_btn3.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch3_ref))
-
-        self.apply_range_btn4.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch4_range))
-        self.apply_ref_btn4.do_onclick(lambda *_: self.run_in_thread(self.onclick_apply_ch4_ref))
-
-        self.data_window_container = data_window_container
-        return data_window_container
-
-    # ================= CH1 =================
-    def onclick_apply_ch1_autorange(self):
-        # Clear manual range, set auto range
-        update_detector_window_setting("DetectorRange_Ch1", {})
-        payload = {
-            "Auto": 1
-        }
-        update_detector_window_setting("DetectorAutoRange_Ch1", payload)
-
-    def onclick_apply_ch1_range(self):
-        # Clear auto range, set manual range
-        update_detector_window_setting("DetectorAutoRange_Ch1", {})
-        range_val = float(self.ch1_range.get_value())
-        payload = {
-            "range_dbm": range_val
-        }
-        update_detector_window_setting("DetectorRange_Ch1", payload)
-
-    def onclick_apply_ch1_ref(self):
-        ref_val = float(self.ch1_ref.get_value())
-        payload = {
-            "ref_dbm": ref_val
-        }
-        update_detector_window_setting("DetectorReference_Ch1", payload)
-
-    # ================= CH2 =================
-    def onclick_apply_ch2_autorange(self):
-        update_detector_window_setting("DetectorRange_Ch2", {})
-        payload = {
-            "Auto": 1
-        }
-        update_detector_window_setting("DetectorAutoRange_Ch2", payload)
-
-    def onclick_apply_ch2_range(self):
-        update_detector_window_setting("DetectorAutoRange_Ch2", {})
-        range_val = float(self.ch2_range.get_value())
-        payload = {
-            "range_dbm": range_val
-        }
-        update_detector_window_setting("DetectorRange_Ch2", payload)
-
-    def onclick_apply_ch2_ref(self):
-        ref_val = float(self.ch2_ref.get_value())
-        payload = {
-            "ref_dbm": ref_val
-        }
-        update_detector_window_setting("DetectorReference_Ch2", payload)
-
-    # ================= CH3 =================
-    def onclick_apply_ch3_autorange(self):
-        update_detector_window_setting("DetectorRange_Ch3", {})
-        payload = {
-            "Auto": 1
-        }
-        update_detector_window_setting("DetectorAutoRange_Ch3", payload)
-
-    def onclick_apply_ch3_range(self):
-        update_detector_window_setting("DetectorAutoRange_Ch3", {})
-        range_val = float(self.ch3_range.get_value())
-        payload = {
-            "range_dbm": range_val
-        }
-        update_detector_window_setting("DetectorRange_Ch3", payload)
-
-    def onclick_apply_ch3_ref(self):
-        ref_val = float(self.ch3_ref.get_value())
-        payload = {
-            "ref_dbm": ref_val
-        }
-        update_detector_window_setting("DetectorReference_Ch3", payload)
-
-    # ================= CH4 =================
-    def onclick_apply_ch4_autorange(self):
-        update_detector_window_setting("DetectorRange_Ch4", {})
-        payload = {
-            "Auto": 1
-        }
-        update_detector_window_setting("DetectorAutoRange_Ch4", payload)
-
-    def onclick_apply_ch4_range(self):
-        update_detector_window_setting("DetectorAutoRange_Ch4", {})
-        range_val = float(self.ch4_range.get_value())
-        payload = {
-            "range_dbm": range_val
-        }
-        update_detector_window_setting("DetectorRange_Ch4", payload)
-
-    def onclick_apply_ch4_ref(self):
-        ref_val = float(self.ch4_ref.get_value())
-        payload = {
-            "ref_dbm": ref_val
-        }
-        update_detector_window_setting("DetectorReference_Ch4", payload)
+    def _apply_ref(self, mf, slot):
+        val = float(getattr(self, f"mf{mf}_ch{slot}_ref").get_value())
+        update_detector_window_setting(mf, slot, "ref", val)
 
     def execute_command(self, path=command_path):
-        dw = 0
-        record = 0
-        new_command = {}
-
         try:
             with open(path, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                command = data.get("command", {})
-        except Exception as e:
-            print(f"[Error] Failed to load command: {e}")
+        except Exception:
             return
 
-        for key, val in command.items():
-            if key.startswith("data_window") and record == 0:
-                dw = 1
-            elif key.startswith("stage_control") or record == 1:
-                record = 1
-                new_command[key] = val
-            elif key.startswith("tec_control") or record == 1:
-                record = 1
-                new_command[key] = val
-            elif key.startswith("sensor_control") or record == 1:
-                record = 1
-                new_command[key] = val
-            elif key.startswith("as_set") or record == 1:
-                record = 1
-                new_command[key] = val
-            elif key.startswith("lim_set") or record == 1:
-                record = 1
-                new_command[key] = val
-            elif key.startswith("fa_set") or record == 1:
-                record = 1
-                new_command[key] = val
-            elif key.startswith("sweep_set") or record == 1:
-                record = 1
-                new_command[key] = val
-            elif key.startswith("devices_control") or record == 1:
-                record = 1
-                new_command[key] = val
-            elif key.startswith("testing_control") or record == 1:
-                record = 1
-                new_command[key] = val
+        command = data.get("command", {})
+        new_command = {}
+        record = False
+        hit = False
 
-            elif key == "data_ch1_range":
-                self.ch1_range.set_value(val)
-            elif key == "data_ch1_ref":
-                self.ch1_ref.set_value(val)
-            elif key == "data_ch2_range":
-                self.ch2_range.set_value(val)
-            elif key == "data_ch2_ref":
-                self.ch2_ref.set_value(val)
-            elif key == "data_ch3_range":
-                self.ch3_range.set_value(val)
-            elif key == "data_ch3_ref":
-                self.ch3_ref.set_value(val)
-            elif key == "data_ch4_range":
-                self.ch4_range.set_value(val)
-            elif key == "data_ch4_ref":
-                self.ch4_ref.set_value(val)
+        for k, v in command.items():
+            if k.startswith("data_window") and not record:
+                hit = True
+            elif k.startswith(("stage_control", "tec_control", "sensor_control",
+                                "as_set", "lim_set", "fa_set", "sweep_set",
+                                "devices_control", "testing_control")):
+                record = True
+                new_command[k] = v
 
-        if dw == 1:
-            print("data window record")
-            file = File("command", "command", new_command)
-            file.save()
+        if hit:
+            File("command", "command", new_command).save()
 
 
 if __name__ == "__main__":
-    configuration = {
-        "config_project_name": "data_window",
-        "config_address": "0.0.0.0",
-        "config_port": 7006,
-        "config_multiple_instance": False,
-        "config_enable_file_cache": False,
-        "config_start_browser": False,
-        "config_resourcepath": "./res/"
-    }
-    start(
-        data_window,
-        address=configuration["config_address"],
-        port=configuration["config_port"],
-        multiple_instance=configuration["config_multiple_instance"],
-        enable_file_cache=configuration["config_enable_file_cache"],
-        start_browser=configuration["config_start_browser"]
-    )
+    try:
+        start(
+            data_window,
+            address="0.0.0.0",
+            port=7006,
+            multiple_instance=False,
+            enable_file_cache=False,
+            start_browser=False
+        )
+    except Exception as e:
+        import traceback
+        traceback.print_exc()

@@ -55,46 +55,53 @@ class ScyllaController(MotorHAL):
         """Connect to Scylla controller."""
         try:
             # Init axis using API
-            if self.counter == 0:
+            if ScyllaController.counter == 0:
                 print('Connecting to API, please ensure Fonotina API is running...')
-                self.api_inst = connect_to_api()
-            self.counter += 1
+                ScyllaController.api_inst = connect_to_api()
+
+            ScyllaController.counter += 1
             time.sleep(0.3)
 
             if self.axis in [AxisType.X, AxisType.Y, AxisType.Z,
                              AxisType.ROTATION_FIBER]:
-                self.instrument = getattr(self.api_inst, 'fiber_stage[0]')
+                self.instrument = ScyllaController.api_inst.fiber_stage[0]
             else:
-                # Rotations
-                self.instrument = getattr(self.api_inst, 'chip_stage')
-
+                # ROTATION_CHIP only
+                self.instrument = ScyllaController.api_inst.chip_stage
+                           
             if self.instrument is None:
                 raise
 
             # Connect to device
-            self.instrument.connect()
+            if self.counter == 1:
+                self.instrument.connect()
 
             return True
         except Exception as e:
+            print(f'[Connect] Exception: {e}')
             return False
     
     async def disconnect(self) -> Optional[bool]:
         """Disconnect from controller."""
         try:
-            self.counter -= 1
+            ScyllaController.counter -= 1
             self.instrument.disconnect()  # May be?
-            if self.counter == 0:
+            if ScyllaController.counter == 0:
                 self.api_inst = None
             return True
         except:
             return False
     
     # Movement
-    async def move_absolute(self, position: float, velocity: Optional[float] = None) -> bool:
+    async def move_absolute(self, position: float, velocity: Optional[float] = None,
+                            wait_for_completion: bool = True) -> bool:
         """Not implemented - Scylla uses relative moves only."""
         raise NotImplementedError("Scylla controller only supports relative moves")
     
-    async def move_relative(self, distance: float, velocity: Optional[float] = None) -> bool:
+    async def move_relative(self, 
+                            distance: float,
+                            velocity: Optional[float] = None,
+                            wait_for_completion: bool = True) -> bool:
         """
         Execute relative move.
         
@@ -106,12 +113,15 @@ class ScyllaController(MotorHAL):
             True if move command accepted
         """
         # For now, use MLPMotor implementation
+        if self.axis in [AxisType.X, AxisType.Y]:
+            distance *= -1  # Flipped on gui
         self.instrument.move_relative(**{self.AXIS_MAP[self.axis]: distance})
         return True
     
     async def stop(self) -> bool:
         """Stop current movement."""
         # TODO: Send stop command
+        print(f'[Scylla Controller] Cautious: NotImplementedYet')
         self._state = MotorState.STOPPED
         self._emit_event(MotorEventType.MOVE_STOPPED)
         return True
@@ -124,8 +134,14 @@ class ScyllaController(MotorHAL):
     # Status
     async def get_position(self) -> Position:
         """Get current position."""
-
-        print(self.instrument.get_position())
+        pos_map = {
+            AxisType.X: 0,
+            AxisType.Y: 1,
+            AxisType.Z: 2,
+            AxisType.ROTATION_FIBER: 3,
+            AxisType.ROTATION_CHIP: 5,
+        }
+        self._position = self.instrument.get_position()[pos_map[self.axis]]
 
         return Position(
             theoretical=self._position,

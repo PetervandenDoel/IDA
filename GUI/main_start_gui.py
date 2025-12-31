@@ -251,7 +251,7 @@ def run_remi():
     start(
         Starts,
         address="0.0.0.0",
-        port=9100,
+        port=9109,
         start_browser=False,
         multiple_instance=False,
         enable_file_cache=False,
@@ -275,7 +275,7 @@ if __name__ == "__main__":
     local_ip = '127.0.0.1'
     webview.create_window(
         "Main Window",
-        f"http://{local_ip}:9100",
+        f"http://{local_ip}:9109",
         width=0,
         height=0,
         resizable=True,

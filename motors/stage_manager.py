@@ -23,7 +23,8 @@ class StageManager:
         self.config = config
         self.motors: Dict[AxisType, Any] = {}
         self._event_callbacks: List[Callable[[MotorEvent], None]] = []
-        
+        self.driver_key = None
+
         # State tracking
         self._last_positions: Dict[AxisType, float] = {}
         self._homed_axes: Dict[AxisType, bool] = {}
@@ -111,8 +112,8 @@ class StageManager:
                 return False
             
             # Create motor controller
-            driver_key = axis_config['driver_types']
-            motor = create_driver(driver_key, **axis_config)
+            self.driver_key = axis_config['driver_types']
+            motor = create_driver(self.driver_key, **axis_config)
             
             # Add event callback
             motor.add_callback(self._handle_motor_event)
@@ -482,7 +483,9 @@ class StageManager:
                 # Update positions in shared memory
                 for axis, motor in self.motors.items():
                     try:
-                        await motor.clear_all_errors()
+                        if hasattr(motor, "clear_all_errors"):
+                            # MMC-100 Iris stage quirk
+                            await motor.clear_all_errors()
                         pos = await motor.get_position()
                         if pos:
                             self._last_positions[axis] = pos.actual
@@ -497,6 +500,8 @@ class StageManager:
                     except Exception as e:
                         logger.debug(f"Position monitor error for {axis.name}: {e}")
                 
+                if self.driver_key == 'scylla_controller':
+                    await asyncio.sleep(1)  # Slower rate for Scylla
                 await asyncio.sleep(0.1)  # 10Hz update rate
                 
             except asyncio.CancelledError:
