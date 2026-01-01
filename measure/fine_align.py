@@ -50,12 +50,52 @@ class FineAlign:
         self.max_gradient_iters = max(1, config.get("gradient_iters", 10))
         self.min_gradient_ss = config.get("min_gradient_ss", 0.2)  # microns
         self.grad_step = (self.step_size - self.min_gradient_ss) / self.max_gradient_iters
+        # self.primary_detector = config.get("primary_detector", "Max")
+        # self.slots = config.get("slot", [[0, 1, 0]])  # mf, slot, head
+        # if "ch" in self.primary_detector and len(self.slots) > 1:
+        #     # Edge case, if not using max, we only want 1 slot 
+        #     num = int(re.findall(r'\d+', self.primary_detector)[0])
+        #     # Assume mf = 0 for now
+        #     if (num%2) == 0:
+        #         # if even, then slot is the same
+        #         slot_i = num // 2 + 1
+        #         head_i = 0
+        #     else:
+        #         # if odd, then slot-=1
+        #         slot_i = num // 2
+        #         head_i = 1 
+        #     self.slots = [[0, slot_i, head_i]]
         self.primary_detector = config.get("primary_detector", "Max")
-        self.slots = config.get("slot", [1])
-        if "ch" in self.primary_detector and len(self.slots) > 1:
-            # Edge case, if not using max, we only want 1 slot 
-            num = int(re.findall(r'\d+', self.primary_detector)[0])
-            self.slots = [((num-1) // 2 + 1)]
+        raw_slots = config.get("slot", [[0, 1, 0]])  # mf, slot, head
+
+        if isinstance(raw_slots, int):
+            slots = [[0, raw_slots, 0]]
+        elif isinstance(raw_slots, (list, tuple)):
+            if len(raw_slots) == 3 and all(isinstance(x, int) for x in raw_slots):
+                slots = [list(raw_slots)]
+            elif all(isinstance(row, (list, tuple)) and len(row) == 3 for row in raw_slots):
+                slots = [list(row) for row in raw_slots]
+            else:
+                raise ValueError(f'config["slot"] must be [mf,slot,head] or [[mf,slot,head],...]; got {raw_slots!r}')
+        else:
+            raise TypeError(f'config["slot"] must be int/list/tuple; got {type(raw_slots).__name__}')
+
+        self.slots = slots
+
+        if "ch" in self.primary_detector.lower():
+            m = re.findall(r"\d+", self.primary_detector)
+            if not m:
+                raise ValueError(f'primary_detector looks like "chX" but no number found: {self.primary_detector!r}')
+            num = int(m[0])
+            if (num % 2) == 0:
+                slot_i = num // 2 + 1
+                head_i = 0
+            else:
+                slot_i = num // 2
+                head_i = 1
+
+            self.slots = [[0, slot_i, head_i]]
+
         self.ref_wl = config.get("ref_wl", 1550.0)
         self.secondary_wl = config.get("secondary_wl", 1540)
         self.secondary_loss = config.get("secondary_loss", -50.0)  # dBm 
@@ -386,7 +426,6 @@ class FineAlign:
         except Exception as e:
             self.log(f"Gradient search error: {e}", "error")
             self._report(100.0, f"Gradient: error ({e})")
-            print(f"GRADIETN EXCEPTION FOUDN!!! {e}")
             return False
     
     def get_power(self):
@@ -394,40 +433,14 @@ class FineAlign:
         if "ch" not in self.primary_detector:
             # Max
             best = -100
-            for slot in self.slots:
-                m, s = self.nir_manager.read_power(slot=slot)
-                best = max(best, m, s)
+            for mf,slot,head in self.slots:
+                m = self.nir_manager.read_power(slot=slot, head=head, mf=mf)
+                best = max(best, m)
             return best
         else:
-            num = int(re.findall(r'\d+', self.primary_detector)[0])
-            slot = self.slots[0]  # if a ch is passed, only 1 slot exists
-            lm, ls = self.nir_manager.read_power(slot=slot)
-            if (num % 2) == 0:
-                # Ch2, Ch4, Ch6, ...
-                # If num is odd, then its the slave
-                return ls
-            else:
-                # Ch1, Ch3, Ch5, ...
-                return lm
-
-    # def _select_detector_channel(self, loss_master: float, loss_slave: float) -> float:
-    #     """Select detector channel based on config"""
-    #     num = re.findall(r'\d+', self.primary_detector)
-    #     if len(num) == 0:
-    #         return max(loss_master, loss_slave)
-    #     if (num % 2) == 0:
-    #         return loss_slave
-    #     else:
-    #         return loss_master
-        
-        # if self.primary_detector == "ch1":
-        #     return loss_master
-        # elif self.primary_detector == "ch2":
-        #     return loss_slave
-        # else:
-        #     # Default to best (highest power)
-        #     # TODO: add all detected CHs
-        #     return max(loss_master, loss_slave)
+            mf, slot, head = self.slots[0]
+            loss = self.nir_manager.read_power(slot=slot, head=head, mf=mf)
+            return loss
 
     def stop_alignment(self):
         self.log("Fine alignment stop requested", "info")

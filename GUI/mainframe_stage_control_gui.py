@@ -1489,9 +1489,9 @@ class stage_control(App):
             config.secondary_wl = self.fine_a.get("secondary_wl", 1540.0)
             config.secondary_loss = self.fine_a.get("secondary_loss", 50.0)
             if self.slot_info is not None:
-                s_temp = list(set([s[1] for s in self.slot_info]))  # remove dups - slot is at index 1
+                s_temp = self.slot_info
             else:
-                s_temp = [1]  # Assume only primary slot
+                s_temp = [[0, 1, 0]]  # Assume only primary slot
             config.slots = s_temp
 
             # Create aligner
@@ -1694,9 +1694,9 @@ class stage_control(App):
             config.y_step = int(self.area_s.get("y_step", "y_step") or "y_step")
             config.primary_detector = str(self.area_s.get("primary_detector", "ch1") or "ch1")
             if self.slot_info is not None:
-                s_temp = list(set([s[1] for s in self.slot_info]))  # remove dups - slot is at index 1
+                s_temp = self.slot_info
             else:
-                s_temp = [1]  # Assume only primary slot
+                s_temp = [[0, 1, 0]]  # Assume only primary slot
             config.slots = s_temp
 
             self.area_sweep = AreaSweep(

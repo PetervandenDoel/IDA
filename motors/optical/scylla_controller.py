@@ -5,7 +5,10 @@ from motors.hal.motors_hal import (
     MotorHAL, AxisType, MotorState, Position, MotorConfig, MotorEventType
 )
 
-from mlpPyAPI.api import connect_to_api
+# Unhash if at Scylla, import using relative
+# imports to the mlpPyAPI.api external package
+# located within the Dreamlabs env
+# from mlpPyAPI.api import connect_to_api
 
 """
 Limited capabilites

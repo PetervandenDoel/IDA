@@ -41,8 +41,13 @@ class AreaSweep:
         if isinstance(self.primary_detector, str) and "ch" in self.primary_detector:
             # compute slot for that channel
             num = int(re.findall(r'\d+', self.primary_detector)[0])
-            slot = ((num - 1) // 2) + 1
-            self.slots = [slot]
+            if (num%2) == 0:
+                slot_i = num // 2 + 1
+                head_i = 0
+            else:
+                slot_i = num // 2
+                head_i = 1
+            self.slots = [[0, slot_i, head_i]]
         self.spiral = None
         self._stop_requested = False
         self._cancel_event = cancel_event  
@@ -322,32 +327,14 @@ class AreaSweep:
         if "ch" not in self.primary_detector:
             # Max
             best = -100
-            for slot in self.slots:
-                m, s = self.nir_manager.read_power(slot=slot)
-                best = max(best, m, s)
+            for mf, slot, head in self.slots:
+                loss = self.nir_manager.read_power(slot=slot, head=head, mf=mf)
+                best = max(best, loss)
             return best
         else:
-            num = int(re.findall(r'\d+', self.primary_detector)[0])
-            slot = self.slots[0]  # if a ch is passed, only 1 slot exists
-            lm, ls = self.nir_manager.read_power(slot=slot)
-            if (num % 2) == 0:
-                # Ch2, Ch4, Ch6, ...
-                # If num is odd, then its the slave
-                return ls
-            else:
-                # Ch1, Ch3, Ch5, ...
-                return lm
-            
-    # def _select_detector_channel(self, loss_master: float, loss_slave: float) -> float:
-    #     """Select detector channel based on config"""
-    #     if self.primary_detector == "ch1":
-    #         return loss_master
-    #     elif self.primary_detector == "ch2":
-    #         return loss_slave
-    #     else:
-    #         # Default to best (highest power)
-    #         # TODO: add all detected CHs
-    #         return max(loss_master, loss_slave)
+            mf, slot, head = self.slots[0]
+            loss = self.nir_manager.read_power(slot=slot, head=head, mf=mf)
+            return loss
 
     def stop_sweep(self):
         """Public stop hook used by GUI Cancel (legacy internal stop)"""
