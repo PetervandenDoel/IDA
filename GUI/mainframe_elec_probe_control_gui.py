@@ -45,6 +45,36 @@ class elecprobe(App):
                     data = json.load(f)
             except Exception as e:
                 print(f"[Warn] read json failed: {e}")
+        
+        # Update SMU display if connected
+        self._update_smu_display()
+    
+    def _update_smu_display(self):
+        """Update SMU measurement display"""
+        if not self.smu_connected:
+            return
+        
+        try:
+            # Get measurements for all channels at once
+            voltages = self.smu_manager.get_voltage()
+            currents = self.smu_manager.get_current()
+            resistances = self.smu_manager.get_resistance()
+            
+            if voltages and currents and resistances:
+                # Update Channel A display
+                if 'A' in voltages and 'A' in currents and 'A' in resistances:
+                    self.chl_a_v.set_text(f"{voltages['A']:.4f}")
+                    self.chl_a_i.set_text(f"{currents['A']*1e6:.4f}")  # Convert to µA
+                    self.chl_a_o.set_text(f"{resistances['A']/1000:.4f}")  # Convert to KΩ
+                
+                # Update Channel B display
+                if 'B' in voltages and 'B' in currents and 'B' in resistances:
+                    self.chl_b_v.set_text(f"{voltages['B']:.4f}")
+                    self.chl_b_i.set_text(f"{currents['B']*1e6:.4f}")  # Convert to µA
+                    self.chl_b_o.set_text(f"{resistances['B']/1000:.4f}")  # Convert to KΩ
+        except Exception as e:
+            # Silently ignore errors to avoid spamming console during normal operation
+            pass
     
     def _init_smu(self):
         """Initialize SMU Manager (singleton pattern)"""
@@ -83,6 +113,14 @@ class elecprobe(App):
             if success:
                 self.smu_connected = True
                 print("[SMU] ✓ SMU connected successfully")
+                
+                # Set default source mode to voltage for both channels
+                try:
+                    self.smu_manager.set_source_mode("voltage", "A")
+                    self.smu_manager.set_source_mode("voltage", "B")
+                    print("[SMU] Default source mode set to VOLTAGE for both channels")
+                except Exception as e:
+                    print(f"[SMU] Warning: Could not set default source mode: {e}")
             else:
                 self.smu_connected = False
                 print("[SMU] ✗ SMU connection failed")
@@ -319,19 +357,22 @@ class elecprobe(App):
         )
 
         self.set_output = StyledDropDown(
-            container=smu_control_container, variable_name="set_output", text=["A", "B"],
+            container=smu_control_container, variable_name="set_output", text=["A", "B", "All"],
             left=105, top=15, width=80, height=25
         )
 
-        self.set_output_on = StyledButton(
-            container=smu_control_container, variable_name="set_output_on", text="ON",
+        # Mode dropdown (V or I)
+        self.set_mode = StyledDropDown(
+            container=smu_control_container, variable_name="set_mode", text=["V", "I"],
             left=195, top=15, width=50, height=25
         )
 
-        self.set_output_off = StyledButton(
-            container=smu_control_container, variable_name="set_output_off", text="OFF",
+        # Toggle button (starts as "On", toggles between "On" and "Off")
+        self.set_output_toggle = StyledButton(
+            container=smu_control_container, variable_name="set_output_toggle", text="On",
             left=250, top=15, width=50, height=25
         )
+        self._output_state = False  # Track output state (False = Off, True = On)
 
         labels = [
             "Set Voltage (V)",
@@ -348,7 +389,7 @@ class elecprobe(App):
         for i, (label, name) in enumerate(zip(labels, names)):
             top_pos = base_top + i * spacing
 
-            StyledLabel(
+            label_widget = StyledLabel(
                 container=smu_control_container,
                 text=label,
                 variable_name=f"set_lb_{i}",
@@ -356,6 +397,7 @@ class elecprobe(App):
                 font_size=110, color="#222", position="absolute",
                 flex=True, justify_content="left"
             )
+            setattr(self, f"set_{name}_lb", label_widget)
 
             setattr(self, f"set_{name}_sb",
                 StyledSpinBox(
@@ -432,9 +474,12 @@ class elecprobe(App):
                 left=BTN_R_LEFT, top=top, width=50, height=ROW_H, normal_color="#007BFF", press_color="#0056B3"
             ))
 
+        # Initialize controls to voltage mode (default) without resetting params yet
+        self._update_controls_for_mode("V", reset_params=False)
+        
         # Bind SMU button events
-        self.set_output_on.do_onclick(lambda *_: self.run_in_thread(self.onclick_output_on))
-        self.set_output_off.do_onclick(lambda *_: self.run_in_thread(self.onclick_output_off))
+        self.set_output_toggle.do_onclick(lambda *_: self.run_in_thread(self.onclick_output_toggle))
+        self.set_mode.onchange.do(lambda widget, value: self.run_in_thread(self.on_mode_change, value))
         
         # Bind SET buttons for each parameter
         self.set_voltage_bt.do_onclick(lambda *_: self.run_in_thread(self.onclick_set_voltage))
@@ -447,6 +492,106 @@ class elecprobe(App):
         return elecprobe_container
     
     # === SMU Control Event Handlers ===
+    
+    def _get_channels(self):
+        """Get list of channels based on dropdown selection"""
+        selection = self.set_output.get_value()
+        if selection == "All":
+            return ["A", "B"]
+        else:
+            return [selection]
+    
+    def _update_controls_for_mode(self, mode, reset_params=True):
+        """Enable/disable controls based on source mode"""
+        print(f"[DEBUG] _update_controls_for_mode called: mode={mode}, reset_params={reset_params}")
+        
+        if mode == "V":
+            # Voltage mode: enable voltage controls, disable current controls
+            self.set_voltage_lb.set_enabled(True)
+            self.set_voltage_sb.set_enabled(True)
+            self.set_voltage_bt.set_enabled(True)
+            self.set_i_limit_lb.set_enabled(True)
+            self.set_i_limit_sb.set_enabled(True)
+            self.set_i_limit_bt.set_enabled(True)
+            
+            self.set_current_lb.set_enabled(False)
+            self.set_current_sb.set_enabled(False)
+            self.set_current_bt.set_enabled(False)
+            self.set_v_limit_lb.set_enabled(False)
+            self.set_v_limit_sb.set_enabled(False)
+            self.set_v_limit_bt.set_enabled(False)
+                    
+        elif mode == "I":
+            # Current mode: enable current controls, disable voltage controls
+            self.set_current_lb.set_enabled(True)
+            self.set_current_sb.set_enabled(True)
+            self.set_current_bt.set_enabled(True)
+            self.set_v_limit_lb.set_enabled(True)
+            self.set_v_limit_sb.set_enabled(True)
+            self.set_v_limit_bt.set_enabled(True)
+            
+            self.set_voltage_lb.set_enabled(False)
+            self.set_voltage_sb.set_enabled(False)
+            self.set_voltage_bt.set_enabled(False)
+            self.set_i_limit_lb.set_enabled(False)
+            self.set_i_limit_sb.set_enabled(False)
+            self.set_i_limit_bt.set_enabled(False)
+    
+    def on_mode_change(self, new_mode):
+        """Handle mode dropdown change - update UI controls only"""
+        # Update UI controls based on mode (no parameter reset, no source mode change)
+        self._update_controls_for_mode(new_mode, reset_params=False)
+        
+        print(f"[SMU] UI switched to {new_mode} mode")
+    
+    def onclick_output_toggle(self):
+        """Toggle SMU output ON/OFF"""
+        if not self.smu_connected:
+            # Try to connect first
+            success = self.connect_smu()
+            if not success:
+                print("[SMU] Cannot toggle output: Not connected")
+                return
+        
+        try:
+            channels = self._get_channels()
+            mode = self.set_mode.get_value()  # Get selected mode (V or I)
+            button_text = self.set_output_toggle.get_text()
+            
+            if button_text == "On":
+                # Button shows "On", so turn output ON
+                # First set the source mode based on dropdown selection
+                for channel in channels:
+                    if mode == "V":
+                        self.smu_manager.set_source_mode("voltage", channel)
+                    elif mode == "I":
+                        self.smu_manager.set_source_mode("current", channel)
+                
+                # Update controls to match mode (don't reset params here, just enable/disable)
+                self._update_controls_for_mode(mode, reset_params=False)
+                
+                for channel in channels:
+                    success = self.smu_manager.output_on(channel)
+                    if success:
+                        print(f"[SMU] Channel {channel} output ON (mode: {mode})")
+                    else:
+                        print(f"[SMU] Failed to turn on channel {channel}")
+                
+                self._output_state = True
+                self.set_output_toggle.set_text("Off")
+            else:
+                # Button shows "Off", so turn output OFF
+                for channel in channels:
+                    success = self.smu_manager.output_off(channel)
+                    if success:
+                        print(f"[SMU] Channel {channel} output OFF")
+                    else:
+                        print(f"[SMU] Failed to turn off channel {channel}")
+                
+                self._output_state = False
+                self.set_output_toggle.set_text("On")
+        except Exception as e:
+            print(f"[SMU] Output toggle error: {e}")
     
     def onclick_output_on(self):
         """Turn on SMU output"""
@@ -486,85 +631,104 @@ class elecprobe(App):
     def onclick_set_voltage(self):
         """Set voltage for selected channel"""
         if not self.smu_connected:
-            print("[SMU] Not connected")
-            return
+            success = self.connect_smu()
+            if not success:
+                print("[SMU] Cannot set voltage: Not connected")
+                return
         
         try:
-            channel = self.set_output.get_value()
+            channels = self._get_channels()
             voltage = float(self.set_voltage_sb.get_value())
-            success = self.smu_manager.set_voltage(voltage, channel)
-            if success:
-                print(f"[SMU] Channel {channel} voltage set to {voltage} V")
-            else:
-                print(f"[SMU] Failed to set voltage")
+            for channel in channels:
+                # Set source mode to voltage before setting voltage
+                self.smu_manager.set_source_mode("voltage", channel)
+                success = self.smu_manager.set_voltage(voltage, channel)
+                if success:
+                    print(f"[SMU] Channel {channel} voltage set to {voltage} V")
+                else:
+                    print(f"[SMU] Failed to set voltage for channel {channel}")
         except Exception as e:
             print(f"[SMU] Set voltage error: {e}")
     
     def onclick_set_current(self):
         """Set current for selected channel"""
         if not self.smu_connected:
-            print("[SMU] Not connected")
-            return
+            success = self.connect_smu()
+            if not success:
+                print("[SMU] Cannot set current: Not connected")
+                return
         
         try:
-            channel = self.set_output.get_value()
+            channels = self._get_channels()
             current = float(self.set_current_sb.get_value()) / 1e6  # Convert µA to A
-            success = self.smu_manager.set_current(current, channel)
-            if success:
-                print(f"[SMU] Channel {channel} current set to {current*1e6} µA")
-            else:
-                print(f"[SMU] Failed to set current")
+            for channel in channels:
+                # Set source mode to current before setting current
+                self.smu_manager.set_source_mode("current", channel)
+                success = self.smu_manager.set_current(current, channel)
+                if success:
+                    print(f"[SMU] Channel {channel} current set to {current*1e6} µA")
+                else:
+                    print(f"[SMU] Failed to set current for channel {channel}")
         except Exception as e:
             print(f"[SMU] Set current error: {e}")
     
     def onclick_set_v_limit(self):
         """Set voltage limit for selected channel"""
         if not self.smu_connected:
-            print("[SMU] Not connected")
-            return
+            success = self.connect_smu()
+            if not success:
+                print("[SMU] Cannot set voltage limit: Not connected")
+                return
         
         try:
-            channel = self.set_output.get_value()
+            channels = self._get_channels()
             v_limit = float(self.set_v_limit_sb.get_value())
-            success = self.smu_manager.set_voltage_limit(v_limit, channel)
-            if success:
-                print(f"[SMU] Channel {channel} voltage limit set to {v_limit} V")
-            else:
-                print(f"[SMU] Failed to set voltage limit")
+            for channel in channels:
+                success = self.smu_manager.set_voltage_limit(v_limit, channel)
+                if success:
+                    print(f"[SMU] Channel {channel} voltage limit set to {v_limit} V")
+                else:
+                    print(f"[SMU] Failed to set voltage limit for channel {channel}")
         except Exception as e:
             print(f"[SMU] Set voltage limit error: {e}")
     
     def onclick_set_i_limit(self):
         """Set current limit for selected channel"""
         if not self.smu_connected:
-            print("[SMU] Not connected")
-            return
+            success = self.connect_smu()
+            if not success:
+                print("[SMU] Cannot set current limit: Not connected")
+                return
         
         try:
-            channel = self.set_output.get_value()
+            channels = self._get_channels()
             i_limit = float(self.set_i_limit_sb.get_value()) / 1e6  # Convert µA to A
-            success = self.smu_manager.set_current_limit(i_limit, channel)
-            if success:
-                print(f"[SMU] Channel {channel} current limit set to {i_limit*1e6} µA")
-            else:
-                print(f"[SMU] Failed to set current limit")
+            for channel in channels:
+                success = self.smu_manager.set_current_limit(i_limit, channel)
+                if success:
+                    print(f"[SMU] Channel {channel} current limit set to {i_limit*1e6} µA")
+                else:
+                    print(f"[SMU] Failed to set current limit for channel {channel}")
         except Exception as e:
             print(f"[SMU] Set current limit error: {e}")
     
     def onclick_set_p_limit(self):
         """Set power limit for selected channel"""
         if not self.smu_connected:
-            print("[SMU] Not connected")
-            return
+            success = self.connect_smu()
+            if not success:
+                print("[SMU] Cannot set power limit: Not connected")
+                return
         
         try:
-            channel = self.set_output.get_value()
+            channels = self._get_channels()
             p_limit = float(self.set_p_limit_sb.get_value()) / 1000  # Convert mW to W
-            success = self.smu_manager.set_power_limit(p_limit, channel)
-            if success:
-                print(f"[SMU] Channel {channel} power limit set to {p_limit*1000} mW")
-            else:
-                print(f"[SMU] Failed to set power limit")
+            for channel in channels:
+                success = self.smu_manager.set_power_limit(p_limit, channel)
+                if success:
+                    print(f"[SMU] Channel {channel} power limit set to {p_limit*1000} mW")
+                else:
+                    print(f"[SMU] Failed to set power limit for channel {channel}")
         except Exception as e:
             print(f"[SMU] Set power limit error: {e}")
 
