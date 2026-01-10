@@ -15,7 +15,8 @@ Made by: Cameron Basara, 2025
 Area sweep module that takes instances of managers, completes an area scan and returns
 positional data of the optical sweep.
 """
-...
+
+
 class AreaSweep:
     """
     Take an optical area sweep for alignement purposes
@@ -106,108 +107,6 @@ class AreaSweep:
         else:
             self._log(f"Unknown pattern '{pattern}', defaulting to spiral.", "warning")
             return await self._begin_sweep_spiral_grid()
-
-
-    # async def _begin_sweep_crosshair(self) -> np.ndarray:
-    #     """
-    #     Sweep crosshair-like pattern using a serpentine approach
-    #     """
-    #     try:
-    #         cfg = self.config
-    #         # Cache config to keep inner loop tight
-    #         x_len = float(cfg.x_size)   # total X length
-    #         y_len = float(cfg.y_size)   # total Y length
-    #         x_step = float(getattr(cfg, "x_step", getattr(cfg, "step_size", 1.0)))
-    #         y_step = float(getattr(cfg, "y_step", getattr(cfg, "step_size", 1.0)))
-    #         if x_step <= 0 or y_step <= 0:
-    #             raise ValueError("x_step/y_step must be > 0 um")
-
-    #         # inclusive endpoints => floor(extent/step) + 1
-    #         # (e.g., 0..100 step 50 => col indices 0,1,2 => 3 cols)
-    #         total_cols = max(1, int(x_len // x_step))
-    #         total_rows = max(1, int(y_len // y_step))
-    #         total_points = total_cols * total_rows
-
-    #         self._log(f"Crosshair sweep: cols={total_cols}, rows={total_rows}, step=({x_step},{y_step})")
-    #         self._report(5.0, f"Area sweep: scanning {total_points} points...")
-
-    #         # anchor origin pose
-    #         x_pos = (await self.stage_manager.get_position(AxisType.X)).actual
-    #         y_pos = (await self.stage_manager.get_position(AxisType.Y)).actual
-    #         initial_x, initial_y = x_pos, y_pos
-
-    #         # first sample at the center
-    #         loss_master, loss_slave = self.nir_manager.read_power()
-    #         first_val = self._select_detector_channel(loss_master, loss_slave)
-
-    #         # allocate output (rows of x_data)
-    #         data = []
-    #         x_data = [first_val]
-
-    #         # serpentine X across rows; move Y between rows
-    #         def parity(step, n):
-    #             return step if (n % 2) != 0 else -step
-
-    #         point_count = 1  # already sampled the first point
-
-    #         for i in range(total_cols):
-    #             if self._cancelled():
-    #                 self._log("Area sweep canceled")
-    #                 self._report(100.0, "Area sweep: canceled")
-    #                 break
-
-    #             # Walk across a row (in X)
-    #             for _ in range(total_rows):
-    #                 if self._cancelled():
-    #                     self._report(100.0, "Area sweep: canceled")
-    #                     break
-
-    #                 step = parity(x_step, i)
-    #                 await self.stage_manager.move_axis(
-    #                     axis=AxisType.X,
-    #                     position=step,
-    #                     relative=True,
-    #                     wait_for_completion=True,
-    #                 )
-
-    #                 loss_master, loss_slave = self.nir_manager.read_power()
-    #                 current_power = self._select_detector_channel(loss_master, loss_slave)
-    #                 x_data.append(current_power)
-    #                 x_pos += step
-    #                 point_count += 1
-                    
-    #                 # Report progress
-    #                 progress = min(95.0, 10.0 + (point_count / total_points) * 85.0)
-    #                 self._report(progress, f"Area sweep: point {point_count}/{total_points}")
-
-    #             # End of a row -> store and reset row accumulator
-    #             data.append(x_data)
-    #             x_data = []
-
-    #             # Move to the next row in Y (except after the last)
-    #             if not self._cancelled() and (i + 1) < total_cols:
-    #                 await self.stage_manager.move_axis(
-    #                     axis=AxisType.Y,
-    #                     position=y_step,
-    #                     relative=True,
-    #                     wait_for_completion=True,
-    #                 )
-    #                 loss_master, loss_slave = self.nir_manager.read_power()
-    #                 x_data.append(self._select_detector_channel(loss_master, loss_slave))
-    #                 y_pos += y_step
-
-    #         # Return to origin pose
-    #         self._report(98.0, "Area sweep: returning to start position...")
-    #         await self.stage_manager.move_axis(AxisType.X, initial_x, relative=False, wait_for_completion=True)
-    #         await self.stage_manager.move_axis(AxisType.Y, initial_y, relative=False, wait_for_completion=True)
-
-    #         self._report(100.0, "Area sweep: completed")
-    #         self._log(f"Crosshair sweep completed. Total rows stored: {len(data)}")
-    #         return np.array(data, dtype=float)
-
-    #     except Exception as e:
-    #         self._log(f"Area sweep (crosshair) error: {e}", "error")
-    #         raise
 
     async def _begin_sweep_spiral_grid(self) -> np.ndarray:
         """
