@@ -65,6 +65,7 @@ class HP816xLambdaScan:
             laser_gpib: str = 'GPIB0::20::INSTR',
             detectors_gpib: Optional[list] = None):
         # Load the HP 816x library
+        self.gpib_addr = gpib_addr
         self.lib = ctypes.WinDLL("C:\\Program Files\\IVI Foundation\\VISA\\Win64\\Bin\\hp816x_64.dll")  # or .lib path
         self.visa_lib = ctypes.WinDLL("visa32.dll")
         self.session = None

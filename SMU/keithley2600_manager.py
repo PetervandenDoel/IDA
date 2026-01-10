@@ -14,31 +14,31 @@ class Keithley2600Manager:
     """
     Manager for Keithley 2600 Series SMU - Simplified Implementation
     Following the design patterns of existing managers in the codebase.
-    
+
     Cameron Basara, 2025
     """
-    
+
     def __init__(self, config: SMUConfiguration, use_shared_memory: bool = False, debug: bool = False):
         self.config = config
         self.debug = debug or config.debug
         self._connected = False
         self._event_callbacks: List[Callable[[SMUEvent], None]] = []
         self.smu = None
-        
+
         # Polling and monitoring
         self._is_polling = False
         self._polling_thread: Optional[threading.Thread] = None
         self._last_measurements: Dict[str, Any] = {}
         self._measurement_callbacks: List[Callable[[Dict[str, Any]], None]] = []
-        
+
         # Setup logger
         self.logger = setup_logger("Keithley2600Manager", "SMU", debug_mode=self.debug)
-        
+
         # Validate configuration
         if not self.config.validate():
             self.logger.error("Invalid SMU configuration")
             raise ValueError("Invalid SMU configuration")
-        
+
         # Shared memory setup (placeholder for future implementation)
         self.use_shared_memory = use_shared_memory or config.use_shared_memory
         if self.use_shared_memory:
@@ -55,7 +55,7 @@ class Keithley2600Manager:
             self.logger.error(message)
 
     # === Context Management ===
-    
+
     def __enter__(self):
         """Context manager entry"""
         return self
@@ -71,7 +71,7 @@ class Keithley2600Manager:
         self._log("Keithley 2600 manager shutdown complete")
 
     # === Device Lifecycle ===
-    
+
     def initialize(self) -> bool:
         """Initialize the SMU device"""
         try:
@@ -81,19 +81,19 @@ class Keithley2600Manager:
                 nplc=self.config.nplc,
                 off_mode=self.config.off_mode
             )
-            
+
             # Add event callback to forward events
             self.smu.add_event_callback(self._handle_smu_event)
-            
+
             # Connect to device
             success = self.connect()
             if success:
                 self._log("Keithley 2600 initialized successfully")
             else:
                 self._log("Keithley 2600 initialization failed", "error")
-            
+
             return success
-            
+
         except Exception as e:
             self._log(f"SMU initialization error: {e}", "error")
             return False
@@ -104,16 +104,16 @@ class Keithley2600Manager:
             if not self.smu:
                 self._log("SMU not initialized. Call initialize() first.", "error")
                 return False
-                
+
             success = self.smu.connect()
             if success:
                 self._connected = True
                 self._log("Connected to Keithley 2600 device")
             else:
                 self._log("Failed to connect to Keithley 2600 device", "error")
-                
+
             return success
-            
+
         except Exception as e:
             self._log(f"Connection error: {e}", "error")
             return False
@@ -128,7 +128,7 @@ class Keithley2600Manager:
                     self._log("Disconnected from Keithley 2600 device")
                 return success
             return True
-            
+
         except Exception as e:
             self._log(f"Disconnect error: {e}", "error")
             return False
@@ -138,21 +138,21 @@ class Keithley2600Manager:
         return self._connected
 
     # === Device Control ===
-    
+
     def output_on(self, channel: str) -> bool:
         """Turn on output for specified channel"""
         try:
             if not self.smu or not self._connected:
                 self._log("SMU not connected", "error")
                 return False
-                
+
             success = self.smu.output_on(channel)
             if success:
                 self._log(f"Channel {channel} output turned on")
             else:
                 self._log(f"Failed to turn on channel {channel} output", "error")
             return success
-            
+
         except Exception as e:
             self._log(f"Output on error: {e}", "error")
             return False
@@ -163,14 +163,14 @@ class Keithley2600Manager:
             if not self.smu or not self._connected:
                 self._log("SMU not connected", "error")
                 return False
-                
+
             success = self.smu.output_off(channel)
             if success:
                 self._log(f"Channel {channel} output turned off")
             else:
                 self._log(f"Failed to turn off channel {channel} output", "error")
             return success
-            
+
         except Exception as e:
             self._log(f"Output off error: {e}", "error")
             return False
@@ -181,14 +181,14 @@ class Keithley2600Manager:
             if not self.smu or not self._connected:
                 self._log("SMU not connected", "error")
                 return False
-                
+
             success = self.smu.set_source_mode(mode, channel)
             if success:
                 self._log(f"Channel {channel} source mode set to {mode}")
             else:
                 self._log(f"Failed to set channel {channel} source mode to {mode}", "error")
             return success
-            
+
         except Exception as e:
             self._log(f"Set source mode error: {e}", "error")
             return False
@@ -199,14 +199,14 @@ class Keithley2600Manager:
             if not self.smu or not self._connected:
                 self._log("SMU not connected", "error")
                 return False
-                
+
             success = self.smu.set_voltage(voltage, channel)
             if success:
                 self._log(f"Channel {channel} voltage set to {voltage}V")
             else:
                 self._log(f"Failed to set channel {channel} voltage to {voltage}V", "error")
             return success
-            
+
         except Exception as e:
             self._log(f"Set voltage error: {e}", "error")
             return False
@@ -217,14 +217,14 @@ class Keithley2600Manager:
             if not self.smu or not self._connected:
                 self._log("SMU not connected", "error")
                 return False
-                
+
             success = self.smu.set_current(current, channel)
             if success:
                 self._log(f"Channel {channel} current set to {current}A")
             else:
                 self._log(f"Failed to set channel {channel} current to {current}A", "error")
             return success
-            
+
         except Exception as e:
             self._log(f"Set current error: {e}", "error")
             return False
@@ -235,14 +235,14 @@ class Keithley2600Manager:
             if not self.smu or not self._connected:
                 self._log("SMU not connected", "error")
                 return False
-                
+
             success = self.smu.set_voltage_limit(limit, channel)
             if success:
                 self._log(f"Channel {channel} voltage limit set to {limit}V")
             else:
                 self._log(f"Failed to set channel {channel} voltage limit to {limit}V", "error")
             return success
-            
+
         except Exception as e:
             self._log(f"Set voltage limit error: {e}", "error")
             return False
@@ -253,14 +253,14 @@ class Keithley2600Manager:
             if not self.smu or not self._connected:
                 self._log("SMU not connected", "error")
                 return False
-                
+
             success = self.smu.set_current_limit(limit, channel)
             if success:
                 self._log(f"Channel {channel} current limit set to {limit}A")
             else:
                 self._log(f"Failed to set channel {channel} current limit to {limit}A", "error")
             return success
-            
+
         except Exception as e:
             self._log(f"Set current limit error: {e}", "error")
             return False
@@ -271,30 +271,30 @@ class Keithley2600Manager:
             if not self.smu or not self._connected:
                 self._log("SMU not connected", "error")
                 return False
-                
+
             success = self.smu.set_power_limit(limit, channel)
             if success:
                 self._log(f"Channel {channel} power limit set to {limit}W")
             else:
                 self._log(f"Failed to set channel {channel} power limit to {limit}W", "error")
             return success
-            
+
         except Exception as e:
             self._log(f"Set power limit error: {e}", "error")
             return False
 
     # === Measurements ===
-    
+
     def get_voltage(self) -> Optional[Dict[str, float]]:
         """Get voltage measurements from all channels"""
         try:
             if not self.smu or not self._connected:
                 self._log("SMU not connected", "error")
                 return None
-                
+
             voltages = self.smu.get_voltage()
             return voltages
-            
+
         except Exception as e:
             self._log(f"Get voltage error: {e}", "error")
             return None
@@ -305,10 +305,10 @@ class Keithley2600Manager:
             if not self.smu or not self._connected:
                 self._log("SMU not connected", "error")
                 return None
-                
+
             currents = self.smu.get_current()
             return currents
-            
+
         except Exception as e:
             self._log(f"Get current error: {e}", "error")
             return None
@@ -319,30 +319,30 @@ class Keithley2600Manager:
             if not self.smu or not self._connected:
                 self._log("SMU not connected", "error")
                 return None
-                
+
             resistances = self.smu.get_resistance()
             return resistances
-            
+
         except Exception as e:
             self._log(f"Get resistance error: {e}", "error")
             return None
 
     # === Ranging ===
-    
+
     def source_range(self, range_val: float, channels: List[str], var_type: str) -> bool:
         """Set source range for specified channels"""
         try:
             if not self.smu or not self._connected:
                 self._log("SMU not connected", "error")
                 return False
-                
+
             success = self.smu.source_range(range_val, channels, var_type)
             if success:
                 self._log(f"Source range set to {range_val} for {var_type} on channels {channels}")
             else:
                 self._log(f"Failed to set source range", "error")
             return success
-            
+
         except Exception as e:
             self._log(f"Source range error: {e}", "error")
             return False
@@ -353,76 +353,76 @@ class Keithley2600Manager:
             if not self.smu or not self._connected:
                 self._log("SMU not connected", "error")
                 return False
-                
+
             success = self.smu.source_autorange(lowest_range, channels, var_type)
             if success:
                 self._log(f"Autorange enabled for {var_type} on channels {channels}")
             else:
                 self._log(f"Failed to enable autorange", "error")
             return success
-            
+
         except Exception as e:
             self._log(f"Source autorange error: {e}", "error")
             return False
 
     # === IV Sweeps ===
-    
-    def iv_sweep(self, start: float, stop: float, step: float, 
+
+    def iv_sweep(self, start: float, stop: float, step: float,
                  channels: List[str], sweep_type: str, scale: str = "LIN") -> Optional[Dict[str, Any]]:
         """Perform IV sweep"""
         try:
             if not self.smu or not self._connected:
                 self._log("SMU not connected", "error")
                 return None
-                
+
             results = self.smu.iv_sweep(start, stop, step, channels, sweep_type, scale)
             self._log(f"IV sweep completed for channels {channels}")
             return results
-            
+
         except Exception as e:
             self._log(f"IV sweep error: {e}", "error")
             return None
 
-    def iv_sweep_list(self, sweep_list: List[float], channels: List[str], 
+    def iv_sweep_list(self, sweep_list: List[float], channels: List[str],
                       sweep_type: str) -> Optional[Dict[str, Any]]:
         """Perform IV sweep using list of values"""
         try:
             if not self.smu or not self._connected:
                 self._log("SMU not connected", "error")
                 return None
-                
+
             results = self.smu.iv_sweep_list(sweep_list, channels, sweep_type)
             self._log(f"IV sweep list completed for channels {channels}")
             return results
-            
+
         except Exception as e:
             self._log(f"IV sweep list error: {e}", "error")
             return None
 
     # === Configuration ===
-    
+
     def update_config(self, new_config: SMUConfiguration) -> bool:
         """Update configuration"""
         try:
             if not new_config.validate():
                 self._log("Invalid configuration provided", "error")
                 return False
-                
+
             old_config = self.config
             self.config = new_config
-            
+
             # If connected, may need to reinitialize with new settings
             if self._connected:
                 self._log("Configuration updated - device may need reinitialization")
-            
+
             self._log("Configuration updated successfully")
             return True
-            
+
         except Exception as e:
             self.config = old_config  # Rollback
             self._log(f"Config update error: {e}", "error")
             return False
-    
+
     def get_config(self) -> Dict[str, Any]:
         """Get current configuration"""
         try:
@@ -443,10 +443,10 @@ class Keithley2600Manager:
         try:
             if not self.smu or not self._connected:
                 return {"connected": False}
-                
+
             state = self.smu.get_state()
             return state
-            
+
         except Exception as e:
             self._log(f"Get state error: {e}", "error")
             return None
@@ -457,10 +457,10 @@ class Keithley2600Manager:
             if not self.smu or not self._connected:
                 self._log("SMU not connected", "error")
                 return []
-                
+
             errors = self.smu.get_errors()
             return errors
-            
+
         except Exception as e:
             self._log(f"Get errors error: {e}", "error")
             return []
@@ -471,28 +471,28 @@ class Keithley2600Manager:
             if not self.smu or not self._connected:
                 self._log("SMU not connected", "error")
                 return False
-                
+
             self.smu.clear_errors()
             self._log("Device errors cleared")
             return True
-            
+
         except Exception as e:
             self._log(f"Clear errors error: {e}", "error")
             return False
 
     # === Polling and Monitoring ===
-    
+
     def start_polling(self) -> bool:
         """Start background polling of SMU measurements"""
         try:
             if self._is_polling:
                 self._log("Polling already running")
                 return True
-                
+
             if not self._connected:
                 self._log("Cannot start polling - SMU not connected", "error")
                 return False
-                
+
             self._is_polling = True
             self._polling_thread = threading.Thread(
                 target=self._polling_loop,
@@ -502,7 +502,7 @@ class Keithley2600Manager:
             self._polling_thread.start()
             self._log(f"Started polling at {self.config.polling_interval}s intervals")
             return True
-            
+
         except Exception as e:
             self._log(f"Start polling error: {e}", "error")
             return False
@@ -512,14 +512,14 @@ class Keithley2600Manager:
         try:
             if not self._is_polling:
                 return True
-                
+
             self._is_polling = False
             if self._polling_thread and self._polling_thread.is_alive():
                 self._polling_thread.join(timeout=2.0)
-                
+
             self._log("Polling stopped")
             return True
-            
+
         except Exception as e:
             self._log(f"Stop polling error: {e}", "error")
             return False
@@ -534,11 +534,11 @@ class Keithley2600Manager:
             if interval <= 0:
                 self._log("Polling interval must be positive", "error")
                 return False
-                
+
             self.config.polling_interval = interval
             self._log(f"Polling interval set to {interval}s")
             return True
-            
+
         except Exception as e:
             self._log(f"Set polling interval error: {e}", "error")
             return False
@@ -546,33 +546,33 @@ class Keithley2600Manager:
     def _polling_loop(self):
         """Background polling loop - runs in separate thread"""
         self._log("Polling loop started")
-        
+
         while self._is_polling:
             try:
                 if not self._connected or not self.smu:
                     time.sleep(1.0)
                     continue
-                    
+
                 # Get current measurements
                 measurements = self._get_all_measurements()
-                
+
                 if measurements:
                     # Update last measurements
                     self._last_measurements.update(measurements)
-                    
+
                     # Notify measurement callbacks
                     self._notify_measurement_callbacks(measurements)
-                    
+
                     # Update shared memory if enabled (placeholder)
                     if self.use_shared_memory:
                         self._update_shared_memory(measurements)
-                
+
                 time.sleep(self.config.polling_interval)
-                
+
             except Exception as e:
                 self._log(f"Polling loop error: {e}", "error")
                 time.sleep(1.0)
-                
+
         self._log("Polling loop stopped")
 
     def _get_all_measurements(self) -> Optional[Dict[str, Any]]:
@@ -589,7 +589,7 @@ class Keithley2600Manager:
                 'state': self.smu.get_state()
             }
             return measurements
-            
+
         except Exception as e:
             self._log(f"Get all measurements error: {e}", "error")
             return None
@@ -630,7 +630,7 @@ class Keithley2600Manager:
                 self._log(f"Measurement callback error: {e}", "error")
 
     # === Event Handling ===
-    
+
     def add_event_callback(self, callback: Callable[[SMUEvent], None]):
         """Register callback for SMU events."""
         try:
@@ -650,7 +650,7 @@ class Keithley2600Manager:
     def _handle_smu_event(self, event: SMUEvent) -> None:
         """Handle events from SMU controller and forward to callbacks"""
         self._log(f"Event: {event.event_type.value} - {event.data}")
-        
+
         # Forward event to all callbacks
         for callback in self._event_callbacks:
             try:
@@ -659,7 +659,7 @@ class Keithley2600Manager:
                 self._log(f"Event callback error: {e}", "error")
 
     # === Status and Monitoring ===
-    
+
     def get_device_info(self) -> Dict[str, Any]:
         """Get device information and status"""
         try:
@@ -673,16 +673,16 @@ class Keithley2600Manager:
                 "polling_interval": self.config.polling_interval,
                 "last_measurements": self._last_measurements
             }
-            
+
             if self._connected and self.smu:
                 try:
                     device_info["idn"] = self.smu.idn()
                     device_info["state"] = self.smu.get_state()
                 except Exception as e:
                     self._log(f"Error getting device details: {e}", "error")
-            
+
             return device_info
-            
+
         except Exception as e:
             self._log(f"Get device info error: {e}", "error")
             return {"error": str(e)}

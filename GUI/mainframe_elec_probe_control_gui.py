@@ -1,14 +1,36 @@
+import sys
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 from remi import start, App
 import os, threading, webview
 from GUI.lib_gui import *
+from SMU.keithley2600_manager import Keithley2600Manager
+from SMU.config.smu_config import SMUConfiguration
 
 shared_path = os.path.join("database", "shared_memory.json")
 
 class elecprobe(App):
+    # Class-level variables (shared across all instances)
+    _smu_manager_instance = None
+    _smu_initialized = False
+    
     def __init__(self, *args, **kwargs):
         self._user_stime = None
         if "editing_mode" not in kwargs:
             super(elecprobe, self).__init__(*args, **{"static_file_path": {"my_res": "./res/"}})
+        
+        # Initialize SMU Manager (only once for all instances)
+        if not elecprobe._smu_initialized:
+            self._init_smu()
+            elecprobe._smu_initialized = True
+        
+        # Use the shared instance
+        self.smu_manager = elecprobe._smu_manager_instance
+        self.smu_connected = False
 
     def idle(self):
         try:
@@ -23,6 +45,105 @@ class elecprobe(App):
                     data = json.load(f)
             except Exception as e:
                 print(f"[Warn] read json failed: {e}")
+        
+        # Update SMU display if connected
+        self._update_smu_display()
+    
+    def _update_smu_display(self):
+        """Update SMU measurement display"""
+        if not self.smu_connected:
+            return
+        
+        try:
+            # Get measurements for all channels at once
+            voltages = self.smu_manager.get_voltage()
+            currents = self.smu_manager.get_current()
+            resistances = self.smu_manager.get_resistance()
+            
+            if voltages and currents and resistances:
+                # Update Channel A display
+                if 'A' in voltages and 'A' in currents and 'A' in resistances:
+                    self.chl_a_v.set_text(f"{voltages['A']:.4f}")
+                    self.chl_a_i.set_text(f"{currents['A']*1e6:.4f}")  # Convert to µA
+                    self.chl_a_o.set_text(f"{resistances['A']/1000:.4f}")  # Convert to KΩ
+                
+                # Update Channel B display
+                if 'B' in voltages and 'B' in currents and 'B' in resistances:
+                    self.chl_b_v.set_text(f"{voltages['B']:.4f}")
+                    self.chl_b_i.set_text(f"{currents['B']*1e6:.4f}")  # Convert to µA
+                    self.chl_b_o.set_text(f"{resistances['B']/1000:.4f}")  # Convert to KΩ
+        except Exception as e:
+            # Silently ignore errors to avoid spamming console during normal operation
+            pass
+    
+    def _init_smu(self):
+        """Initialize SMU Manager (singleton pattern)"""
+        try:
+            # Create SMU configuration with default address
+            smu_config = SMUConfiguration(
+                visa_address="GPIB0::26::INSTR",  # Default VISA address
+                nplc=1.0,
+                off_mode="NORMAL",
+                debug=False
+            )
+            
+            # Create SMU Manager instance and store in class variable
+            elecprobe._smu_manager_instance = Keithley2600Manager(
+                config=smu_config,
+                use_shared_memory=False,
+                debug=False
+            )
+            
+            print("[SMU] SMU Manager created successfully")
+            
+        except Exception as e:
+            print(f"[SMU] Initialization failed: {e}")
+            elecprobe._smu_manager_instance = None
+    
+    def connect_smu(self):
+        """Connect to SMU device"""
+        if self.smu_manager is None:
+            print("[SMU] Manager not initialized")
+            return False
+        
+        try:
+            print("[SMU] Attempting to connect to device...")
+            print("[SMU] This may take a few seconds...")
+            success = self.smu_manager.initialize()
+            if success:
+                self.smu_connected = True
+                print("[SMU] ✓ SMU connected successfully")
+                
+                # Set default source mode to voltage for both channels
+                try:
+                    self.smu_manager.set_source_mode("voltage", "A")
+                    self.smu_manager.set_source_mode("voltage", "B")
+                    print("[SMU] Default source mode set to VOLTAGE for both channels")
+                except Exception as e:
+                    print(f"[SMU] Warning: Could not set default source mode: {e}")
+            else:
+                self.smu_connected = False
+                print("[SMU] ✗ SMU connection failed")
+                print("[SMU] Check:")
+                print("  - Device is powered on")
+                print("  - GPIB/USB cable is connected")
+                print("  - GPIB address is correct (current: GPIB0::26::INSTR)")
+                print("  - No other software is using the device")
+            return success
+        except Exception as e:
+            print(f"[SMU] Connection error: {e}")
+            self.smu_connected = False
+            return False
+    
+    def disconnect_smu(self):
+        """Disconnect from SMU device"""
+        if self.smu_manager and self.smu_connected:
+            try:
+                self.smu_manager.disconnect()
+                self.smu_connected = False
+                print("[SMU] SMU disconnected")
+            except Exception as e:
+                print(f"[SMU] Disconnect error: {e}")
 
     def main(self):
         return self.construct_ui()
@@ -61,7 +182,7 @@ class elecprobe(App):
 
         smu_control_container = StyledContainer(
             container=smu_container, variable_name="smu_control_container", border=True,
-            left=8, top=10, height=200, width=584
+            left=8, top=10, height=215, width=584
         )
 
         StyledLabel(
@@ -70,80 +191,205 @@ class elecprobe(App):
             flex=True, on_line=True
         )
 
-# Display --------------------------------------------------------------------------------------------------------------
+        smu_sweep_container = StyledContainer(
+            container=smu_container, variable_name="smu_sweep_container", border=True,
+            left=8, top=250, height=200, width=584
+        )
+
+        StyledLabel(
+            container=smu_sweep_container, text="Sweep Setting", variable_name=f"smu_lb",
+            left=30, top=-12, width=112, height=20, font_size=120, color="#222", position="absolute",
+            flex=True, on_line=True
+        )
+
+# Sweep Setting --------------------------------------------------------------------------------------------------------
+        StyledLabel(
+            container=smu_sweep_container, text="Independent Variable", variable_name=f"set_sweep_var_lb",
+            left=5, top=10, width=150, height=25, font_size=110, color="#222", position="absolute",
+            flex=True, justify_content="left"
+        )
+
+        self.set_sweep_var = StyledDropDown(
+            container=smu_sweep_container, variable_name="set_sweep_var", text=["V", "I"],
+            left=158, top=10, width=142, height=25
+        )
+
+        StyledLabel(
+            container=smu_sweep_container, text="SMU Output", variable_name=f"set_sweep_output_lb",
+            left=340, top=10, width=85, height=25, font_size=110, color="#222", position="absolute",
+            flex=True, justify_content="left"
+        )
+
+        self.set_sweep_output = StyledDropDown(
+            container=smu_sweep_container, variable_name="set_sweep_output", text=["A", "B"],
+            left=432, top=10, width=142, height=25
+        )
+
+        sweep_params = [
+            ("Set Sweep Min", "set_sweep_min", "V", 42),
+            ("Set Sweep Max", "set_sweep_max", "V", 74),
+            ("Set Sweep Resolution", "set_sweep_resolution", "mV", 106),
+        ]
+
+        for text, var_prefix, unit, top in sweep_params:
+            StyledLabel(
+                container=smu_sweep_container,
+                text=text,
+                variable_name=f"{var_prefix}_lb",
+                left=5, top=top, width=160, height=25,
+                font_size=110, color="#222", position="absolute",
+                flex=True, justify_content="left"
+            )
+
+            setattr(self, f"{var_prefix}_sb", StyledSpinBox(
+                container=smu_sweep_container,
+                variable_name=f"{var_prefix}_sb",
+                max_value=30, min_value=-30, value=0.0, step=0.1,
+                left=180, top=top, width=180, height=24
+            ))
+
+            StyledLabel(
+                container=smu_sweep_container,
+                text=unit,
+                variable_name=f"{var_prefix}_unit",
+                left=400, top=top, width=30, height=25,
+                font_size=110, color="#222", position="absolute",
+                flex=True, justify_content="left"
+            )
+
+        StyledLabel(
+            container=smu_sweep_container, text="Plot Type", variable_name="set_sweep_plot_lb",
+            left=5, top=150, width=70, height=25, font_size=110, color="#222", position="absolute",
+            flex=True, justify_content="left"
+        )
+
+        self.set_sweep_iv_box = StyledCheckBox(
+            container=smu_sweep_container, variable_name="set_sweep_iv_box", left=140, top=148, width=12, height=12
+        )
+
+        StyledLabel(
+            container=smu_sweep_container, text="IV/VI", variable_name="set_sweep_iv_lb",
+            left=170, top=150, width=70, height=25, font_size=110, color="#222", position="absolute",
+            flex=True, justify_content="left"
+        )
+
+        self.set_sweep_riv_box = StyledCheckBox(
+            container=smu_sweep_container, variable_name="set_sweep_riv_box", left=290, top=148, width=12, height=12
+        )
+
+        StyledLabel(
+            container=smu_sweep_container, text="RV/RI", variable_name="set_sweep_riv_lb",
+            left=320, top=150, width=70, height=25, font_size=110, color="#222", position="absolute",
+            flex=True, justify_content="left"
+        )
+
+        self.set_sweep_piv_box = StyledCheckBox(
+            container=smu_sweep_container, variable_name="set_sweep_piv_box", left=440, top=148, width=12, height=12
+        )
+
+        StyledLabel(
+            container=smu_sweep_container, text="PV/PI", variable_name="set_sweep_piv_lb",
+            left=470, top=150, width=70, height=25, font_size=110, color="#222", position="absolute",
+            flex=True, justify_content="left"
+        )
+
+        self.sweep_btn = StyledButton(
+            container=smu_container, variable_name="sweep_btn", text="Sweep",
+            left=245, top=500, width=100, height=40, font_size=120
+        )
+
+        # Display --------------------------------------------------------------------------------------------------------------
         StyledContainer(
-            container=smu_control_container, variable_name="smu_line", left=310, top=10, width=0, height=180,
+            container=smu_control_container, variable_name="smu_line", left=310, top=10, width=0, height=195,
             border=True, line="1.5px dashed #ccc"
         )
 
-        StyledLabel(
-            container=smu_control_container, text="Channel A", variable_name=f"chl_a_lb",
-            left=360, top=10, width=110, height=25, font_size=110, color="#222", position="absolute",
-            flex=True
-        )
+        channel_headers = [
+            ("A", 360),
+            ("B", 470),
+        ]
 
-        StyledLabel(
-            container=smu_control_container, text="Channel B", variable_name=f"chl_b_lb",
-            left=470, top=10, width=110, height=25, font_size=110, color="#222", position="absolute",
-            flex=True
-        )
+        for ch, left in channel_headers:
+            StyledLabel(
+                container=smu_control_container,
+                text=f"Channel {ch}",
+                variable_name=f"chl_{ch.lower()}_lb",
+                left=left, top=25, width=110, height=25,
+                font_size=110, color="#222", position="absolute",
+                flex=True
+            )
 
-        StyledLabel(
-            container=smu_control_container, text="V (V)", variable_name=f"read_v_lb",
-            left=320, top=40, width=50, height=25, font_size=110, color="#222", position="absolute",
-            flex=True, justify_content="left"
-        )
+        metric_labels = [
+            ("V (V)", "v", 57),
+            ("I (µA)", "i", 97),
+            ("R (KΩ)", "o", 137),
+        ]
 
-        StyledLabel(
-            container=smu_control_container, text="I (mA)", variable_name=f"read_i_lb",
-            left=320, top=70, width=50, height=25, font_size=110, color="#222", position="absolute",
-            flex=True, justify_content="left"
-        )
+        for text, suffix, top in metric_labels:
+            StyledLabel(
+                container=smu_control_container,
+                text=text,
+                variable_name=f"read_{suffix}_lb",
+                left=320, top=top, width=50, height=25,
+                font_size=110, color="#222", position="absolute",
+                flex=True, justify_content="left"
+            )
 
-        StyledLabel(
-            container=smu_control_container, text="R (Ω)", variable_name=f"read_o_lb",
-            left=320, top=100, width=50, height=25, font_size=110, color="#222", position="absolute",
-            flex=True, justify_content="left"
-        )
+        for ch, left in channel_headers:
+            ch_lower = ch.lower()
+            for _, suffix, top in metric_labels:
+                var_name = f"chl_{ch_lower}_{suffix}"
+                setattr(self, var_name,
+                        StyledLabel(
+                            container=smu_control_container,
+                            text="0.0",
+                            variable_name=var_name,
+                            left=left, top=top, width=110, height=25,
+                            font_size=110, color="#222", position="absolute",
+                            flex=True
+                        ))
 
 # Setting --------------------------------------------------------------------------------------------------------------
         StyledLabel(
             container=smu_control_container, text="SMU Output", variable_name=f"smu_output_lb",
-            left=5, top=10, width=100, height=25, font_size=110, color="#222", position="absolute",
+            left=5, top=15, width=100, height=25, font_size=110, color="#222", position="absolute",
             flex=True, justify_content="left"
         )
 
         self.set_output = StyledDropDown(
-            container=smu_control_container, variable_name="set_output", text=["A", "B"],
-            left=105, top=10, width=80, height=25
+            container=smu_control_container, variable_name="set_output", text=["A", "B", "All"],
+            left=105, top=15, width=80, height=25
         )
 
-        self.set_output_on = StyledButton(
-            container=smu_control_container, variable_name="set_output_on", text="ON",
-            left=195, top=10, width=50, height=25
+        # Mode dropdown (V or I)
+        self.set_mode = StyledDropDown(
+            container=smu_control_container, variable_name="set_mode", text=["V", "I"],
+            left=195, top=15, width=50, height=25
         )
 
-        self.set_output_off = StyledButton(
-            container=smu_control_container, variable_name="set_output_off", text="OFF",
-            left=250, top=10, width=50, height=25
+        # Toggle button (starts as "On", toggles between "On" and "Off")
+        self.set_output_toggle = StyledButton(
+            container=smu_control_container, variable_name="set_output_toggle", text="On",
+            left=250, top=15, width=50, height=25
         )
+        self._output_state = False  # Track output state (False = Off, True = On)
 
         labels = [
             "Set Voltage (V)",
-            "Set Current (mA)",
+            "Set Current (µA)",
             "Set Voltage Lim (V)",
-            "Set Current Lim (mA)",
+            "Set Current Lim (µA)",
             "Set Power Lim (mW)"
         ]
         names = ["voltage", "current", "v_limit", "i_limit", "p_limit"]
 
-        base_top = 40
-        spacing = 30
+        base_top = 47
+        spacing = 32
 
         for i, (label, name) in enumerate(zip(labels, names)):
             top_pos = base_top + i * spacing
 
-            StyledLabel(
+            label_widget = StyledLabel(
                 container=smu_control_container,
                 text=label,
                 variable_name=f"set_lb_{i}",
@@ -151,6 +397,7 @@ class elecprobe(App):
                 font_size=110, color="#222", position="absolute",
                 flex=True, justify_content="left"
             )
+            setattr(self, f"set_{name}_lb", label_widget)
 
             setattr(self, f"set_{name}_sb",
                 StyledSpinBox(
@@ -227,10 +474,263 @@ class elecprobe(App):
                 left=BTN_R_LEFT, top=top, width=50, height=ROW_H, normal_color="#007BFF", press_color="#0056B3"
             ))
 
-        #self.tec_configure_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_configure_btn))
+        # Initialize controls to voltage mode (default) without resetting params yet
+        self._update_controls_for_mode("V", reset_params=False)
+        
+        # Bind SMU button events
+        self.set_output_toggle.do_onclick(lambda *_: self.run_in_thread(self.onclick_output_toggle))
+        self.set_mode.onchange.do(lambda widget, value: self.run_in_thread(self.on_mode_change, value))
+        
+        # Bind SET buttons for each parameter
+        self.set_voltage_bt.do_onclick(lambda *_: self.run_in_thread(self.onclick_set_voltage))
+        self.set_current_bt.do_onclick(lambda *_: self.run_in_thread(self.onclick_set_current))
+        self.set_v_limit_bt.do_onclick(lambda *_: self.run_in_thread(self.onclick_set_v_limit))
+        self.set_i_limit_bt.do_onclick(lambda *_: self.run_in_thread(self.onclick_set_i_limit))
+        self.set_p_limit_bt.do_onclick(lambda *_: self.run_in_thread(self.onclick_set_p_limit))
 
         self.elecprobe_container = elecprobe_container
         return elecprobe_container
+    
+    # === SMU Control Event Handlers ===
+    
+    def _get_channels(self):
+        """Get list of channels based on dropdown selection"""
+        selection = self.set_output.get_value()
+        if selection == "All":
+            return ["A", "B"]
+        else:
+            return [selection]
+    
+    def _update_controls_for_mode(self, mode, reset_params=True):
+        """Enable/disable controls based on source mode"""
+        print(f"[DEBUG] _update_controls_for_mode called: mode={mode}, reset_params={reset_params}")
+        
+        if mode == "V":
+            # Voltage mode: enable voltage controls, disable current controls
+            self.set_voltage_lb.set_enabled(True)
+            self.set_voltage_sb.set_enabled(True)
+            self.set_voltage_bt.set_enabled(True)
+            self.set_i_limit_lb.set_enabled(True)
+            self.set_i_limit_sb.set_enabled(True)
+            self.set_i_limit_bt.set_enabled(True)
+            
+            self.set_current_lb.set_enabled(False)
+            self.set_current_sb.set_enabled(False)
+            self.set_current_bt.set_enabled(False)
+            self.set_v_limit_lb.set_enabled(False)
+            self.set_v_limit_sb.set_enabled(False)
+            self.set_v_limit_bt.set_enabled(False)
+                    
+        elif mode == "I":
+            # Current mode: enable current controls, disable voltage controls
+            self.set_current_lb.set_enabled(True)
+            self.set_current_sb.set_enabled(True)
+            self.set_current_bt.set_enabled(True)
+            self.set_v_limit_lb.set_enabled(True)
+            self.set_v_limit_sb.set_enabled(True)
+            self.set_v_limit_bt.set_enabled(True)
+            
+            self.set_voltage_lb.set_enabled(False)
+            self.set_voltage_sb.set_enabled(False)
+            self.set_voltage_bt.set_enabled(False)
+            self.set_i_limit_lb.set_enabled(False)
+            self.set_i_limit_sb.set_enabled(False)
+            self.set_i_limit_bt.set_enabled(False)
+    
+    def on_mode_change(self, new_mode):
+        """Handle mode dropdown change - update UI controls only"""
+        # Update UI controls based on mode (no parameter reset, no source mode change)
+        self._update_controls_for_mode(new_mode, reset_params=False)
+        
+        print(f"[SMU] UI switched to {new_mode} mode")
+    
+    def onclick_output_toggle(self):
+        """Toggle SMU output ON/OFF"""
+        if not self.smu_connected:
+            # Try to connect first
+            success = self.connect_smu()
+            if not success:
+                print("[SMU] Cannot toggle output: Not connected")
+                return
+        
+        try:
+            channels = self._get_channels()
+            mode = self.set_mode.get_value()  # Get selected mode (V or I)
+            button_text = self.set_output_toggle.get_text()
+            
+            if button_text == "On":
+                # Button shows "On", so turn output ON
+                # First set the source mode based on dropdown selection
+                for channel in channels:
+                    if mode == "V":
+                        self.smu_manager.set_source_mode("voltage", channel)
+                    elif mode == "I":
+                        self.smu_manager.set_source_mode("current", channel)
+                
+                # Update controls to match mode (don't reset params here, just enable/disable)
+                self._update_controls_for_mode(mode, reset_params=False)
+                
+                for channel in channels:
+                    success = self.smu_manager.output_on(channel)
+                    if success:
+                        print(f"[SMU] Channel {channel} output ON (mode: {mode})")
+                    else:
+                        print(f"[SMU] Failed to turn on channel {channel}")
+                
+                self._output_state = True
+                self.set_output_toggle.set_text("Off")
+            else:
+                # Button shows "Off", so turn output OFF
+                for channel in channels:
+                    success = self.smu_manager.output_off(channel)
+                    if success:
+                        print(f"[SMU] Channel {channel} output OFF")
+                    else:
+                        print(f"[SMU] Failed to turn off channel {channel}")
+                
+                self._output_state = False
+                self.set_output_toggle.set_text("On")
+        except Exception as e:
+            print(f"[SMU] Output toggle error: {e}")
+    
+    def onclick_output_on(self):
+        """Turn on SMU output"""
+        if not self.smu_connected:
+            # Try to connect first
+            success = self.connect_smu()
+            if not success:
+                print("[SMU] Cannot turn on output: Not connected")
+                return
+        
+        try:
+            channel = self.set_output.get_value()  # Get selected channel (A or B)
+            success = self.smu_manager.output_on(channel)
+            if success:
+                print(f"[SMU] Channel {channel} output ON")
+            else:
+                print(f"[SMU] Failed to turn on channel {channel}")
+        except Exception as e:
+            print(f"[SMU] Output ON error: {e}")
+    
+    def onclick_output_off(self):
+        """Turn off SMU output"""
+        if not self.smu_connected:
+            print("[SMU] Cannot turn off output: Not connected")
+            return
+        
+        try:
+            channel = self.set_output.get_value()  # Get selected channel (A or B)
+            success = self.smu_manager.output_off(channel)
+            if success:
+                print(f"[SMU] Channel {channel} output OFF")
+            else:
+                print(f"[SMU] Failed to turn off channel {channel}")
+        except Exception as e:
+            print(f"[SMU] Output OFF error: {e}")
+    
+    def onclick_set_voltage(self):
+        """Set voltage for selected channel"""
+        if not self.smu_connected:
+            success = self.connect_smu()
+            if not success:
+                print("[SMU] Cannot set voltage: Not connected")
+                return
+        
+        try:
+            channels = self._get_channels()
+            voltage = float(self.set_voltage_sb.get_value())
+            for channel in channels:
+                # Set source mode to voltage before setting voltage
+                self.smu_manager.set_source_mode("voltage", channel)
+                success = self.smu_manager.set_voltage(voltage, channel)
+                if success:
+                    print(f"[SMU] Channel {channel} voltage set to {voltage} V")
+                else:
+                    print(f"[SMU] Failed to set voltage for channel {channel}")
+        except Exception as e:
+            print(f"[SMU] Set voltage error: {e}")
+    
+    def onclick_set_current(self):
+        """Set current for selected channel"""
+        if not self.smu_connected:
+            success = self.connect_smu()
+            if not success:
+                print("[SMU] Cannot set current: Not connected")
+                return
+        
+        try:
+            channels = self._get_channels()
+            current = float(self.set_current_sb.get_value()) / 1e6  # Convert µA to A
+            for channel in channels:
+                # Set source mode to current before setting current
+                self.smu_manager.set_source_mode("current", channel)
+                success = self.smu_manager.set_current(current, channel)
+                if success:
+                    print(f"[SMU] Channel {channel} current set to {current*1e6} µA")
+                else:
+                    print(f"[SMU] Failed to set current for channel {channel}")
+        except Exception as e:
+            print(f"[SMU] Set current error: {e}")
+    
+    def onclick_set_v_limit(self):
+        """Set voltage limit for selected channel"""
+        if not self.smu_connected:
+            success = self.connect_smu()
+            if not success:
+                print("[SMU] Cannot set voltage limit: Not connected")
+                return
+        
+        try:
+            channels = self._get_channels()
+            v_limit = float(self.set_v_limit_sb.get_value())
+            for channel in channels:
+                success = self.smu_manager.set_voltage_limit(v_limit, channel)
+                if success:
+                    print(f"[SMU] Channel {channel} voltage limit set to {v_limit} V")
+                else:
+                    print(f"[SMU] Failed to set voltage limit for channel {channel}")
+        except Exception as e:
+            print(f"[SMU] Set voltage limit error: {e}")
+    
+    def onclick_set_i_limit(self):
+        """Set current limit for selected channel"""
+        if not self.smu_connected:
+            success = self.connect_smu()
+            if not success:
+                print("[SMU] Cannot set current limit: Not connected")
+                return
+        
+        try:
+            channels = self._get_channels()
+            i_limit = float(self.set_i_limit_sb.get_value()) / 1e6  # Convert µA to A
+            for channel in channels:
+                success = self.smu_manager.set_current_limit(i_limit, channel)
+                if success:
+                    print(f"[SMU] Channel {channel} current limit set to {i_limit*1e6} µA")
+                else:
+                    print(f"[SMU] Failed to set current limit for channel {channel}")
+        except Exception as e:
+            print(f"[SMU] Set current limit error: {e}")
+    
+    def onclick_set_p_limit(self):
+        """Set power limit for selected channel"""
+        if not self.smu_connected:
+            success = self.connect_smu()
+            if not success:
+                print("[SMU] Cannot set power limit: Not connected")
+                return
+        
+        try:
+            channels = self._get_channels()
+            p_limit = float(self.set_p_limit_sb.get_value()) / 1000  # Convert mW to W
+            for channel in channels:
+                success = self.smu_manager.set_power_limit(p_limit, channel)
+                if success:
+                    print(f"[SMU] Channel {channel} power limit set to {p_limit*1000} mW")
+                else:
+                    print(f"[SMU] Failed to set power limit for channel {channel}")
+        except Exception as e:
+            print(f"[SMU] Set power limit error: {e}")
 
 def run_remi():
     start(

@@ -42,7 +42,6 @@ class NIRConfiguration:
             'timeout': self.timeout,
             'initial_wavelength_nm': self.initial_wavelength_nm,
             'initial_power_dbm': self.initial_power_dbm,
-            'visa_address': self.visa_address,
             'start_nm': self.start_nm,
             'stop_nm': self.stop_nm,
             'step_nm': self.step_nm,
