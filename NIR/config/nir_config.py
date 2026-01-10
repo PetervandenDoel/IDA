@@ -11,11 +11,11 @@ class NIRConfiguration:
     """Simple configuration for NIR system"""
     
     # Connection settings
-    gpib_addr: int = 20 
-    laser_slot: int = 0
-    detector_slots: List[int] = field(default_factory=lambda: [1,2])
+    laser_slot: str = 'GPIB0::20::INSTR'  # Default
+    detector_slots: List[str] = field(default_factory=lambda: [])
+    driver_types: str = '8164B_NIR'
     safety_password: str = "1234"
-    timeout: int = 3000 # long for lambda sweep
+    timeout: int = 3000  # long for lambda sweep
     
     # Default settings
     initial_wavelength_nm: float = 1550.0
@@ -25,16 +25,19 @@ class NIRConfiguration:
     start_nm = 1545
     stop_nm = 1565
     step_nm = 0.1 
-    laser_power_dbm = 1.0
+    laser_power_dbm = -5.0
+    
+    @property
+    def visa_address(self) -> str:
+        """Get VISA address"""
+        return self.laser_slot
     
     def to_dict(self) -> dict:
         """Convert to dictionary"""
         return {
-            # 'com_port': self.com_port,
-            # 'laser_slot': self.laser_slot,
-            # 'detector_slots': self.detector_slots,
-            'is_mf': self.is_mf,
-            'visa_list': self.visa_list,
+            'laser_slot': self.laser_slot,
+            'detector_slots': self.detector_slots,
+            'driver_types': self.driver_types,
             'safety_password': self.safety_password,
             'timeout': self.timeout,
             'initial_wavelength_nm': self.initial_wavelength_nm,

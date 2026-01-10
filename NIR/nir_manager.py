@@ -2,8 +2,9 @@ import logging
 from typing import Dict, Any, Callable, List, Optional, Tuple
 from dataclasses import dataclass, asdict
 
-from NIR.nir_controller import NIR8164
+# from NIR.nir_controller import NIR8164
 from NIR.hal.nir_hal import LaserEvent
+from NIR.hal.nir_factory import create_driver
 from NIR.config.nir_config import NIRConfiguration
 from utils.logging_helper import setup_logger
 
@@ -11,7 +12,7 @@ from utils.logging_helper import setup_logger
 Cameron Basara, 2025
 """
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
 
 
 class NIRManager:
@@ -25,14 +26,12 @@ class NIRManager:
         self.logger = setup_logger("NIRManager", "NIR", debug_mode=debug)
 
         # Initialize controller
-        self.controller = NIR8164(
-            com_port=config.com_port,
-            gpib_addr=config.gpib_addr,
-            laser_slot=config.laser_slot,
-            detector_slots=config.detector_slots,
-            safety_password=config.safety_password,
-            timeout_ms=config.timeout
-        )
+        cfg = self.config.to_dict()
+        driver_key = cfg.get('driver_types')
+        self.controller = create_driver(driver_key, **cfg)
+                
+        # Slot info helper
+        self.slot_info = None
 
     def _log(self, message: str, level: str = "info"):
         """Simple logging that respects debug flag"""
@@ -145,6 +144,28 @@ class NIRManager:
         except Exception as e:
             self._log(f"Device configuration error: {e}", "error")
 
+    def get_mainframe_slot_info(self):
+        """ 
+        Get slot information for a 816x mainframe
+
+        Specify return data as follows:
+
+        [(MF,slot,head), ...] 
+        """
+        try:
+            if not self.controller or not self._connected:
+                return
+
+            if hasattr(self.controller, "get_mainframe_slot_info"):
+                self.slot_info = self.controller.get_mainframe_slot_info()
+            else:
+                return [(0,1,0),(0,1,1)]  # Default to 1 slot
+            return self.slot_info
+        
+        except Exception as e:
+            self._log(f"Mainframe slot info: {e}", "error")
+            return None
+
     ######################################################################
     # Laser control
     ######################################################################
@@ -234,7 +255,7 @@ class NIRManager:
             return False
 
     def is_laser_on(self) -> bool:
-        """Check if laser is enabled"""
+        """ Check if laser is enabled """
         try:
             if not self.controller or not self._connected:
                 return False
@@ -248,92 +269,90 @@ class NIRManager:
     ######################################################################
     # Detector methods
     ######################################################################
-    def read_power(self) -> tuple[float, float]:
+    def read_power(self, slot: int = 1, head: int = 0, mf: int = 0) -> tuple[float, float]:
         """Read power from detector channel"""
         try:
             if not self.controller or not self._connected:
                 self._log("Controller not connected", "error")
-                return (-100.0, -100.0)
+                return -80.0
 
-            reading = self.controller.read_power()
-            if reading[0] > 0.0:
-                reading = (-80.0, reading[1])
-            if reading[1] > 0.0:
-                reading = (reading[0], -80.0)
-            return (reading[0], reading[1])
+            reading = self.controller.read_power(slot, head, mf)
+            if reading > 0.0:
+                reading = -80.0
+            return reading
 
         except Exception as e:
             self._log(f"Read power error: {e}", "error")
-            return (-80.0, -80.0)
+            return -80.0
 
-    def set_detector_units(self, units: int = 0) -> bool:
+    def set_detector_units(self, slot, units: int = 0, mf: int = 0) -> bool:
         """Set Detector units"""
         try:
             if not self.controller or not self._connected:
                 self._log("Controller not connected", "error")
                 return False
 
-            self.controller.set_detector_units(units=units)
+            self.controller.set_detector_units(slot, units=units, mf=mf)
             return True
 
         except Exception as e:
             self._log(f"Set detector units error: {e}", "error")
             return False
 
-    def get_detector_units(self) -> bool:
+    def get_detector_units(self, slot) -> bool:
         """Get Detector units"""
         try:
             if not self.controller or not self._connected:
                 self._log("Controller not connected", "error")
                 return False
-            self.controller.get_detector_units()
+            self.controller.get_detector_units(slot)
             return True
         except Exception as e:
             self._log(f"Get detector units error: {e}", "error")
             return False
 
-    def set_power_range(self, range_dbm: float, channel: int = 1) -> bool:
+    def set_power_range(self, range_dbm: float, slot: int = 1, mf: int = 0) -> bool:
         """Set power range"""
         try:
             if not self.controller or not self._connected:
                 self._log("Controller not connected", "error")
                 return False
 
-            ok = self.controller.set_power_range(range_dbm, channel)
+            ok = self.controller.set_power_range(range_dbm, slot, mf)
             if ok:
-                self._log(f"Power range set to {range_dbm}dBm for channel {channel}", "info")
+                self._log(f"Power range set to {range_dbm}dBm for slot {slot}", "info")
                 return True
             else:
-                self._log(f"Failed to set power range for channel {channel}", "error")
+                self._log(f"Failed to set power range for slot {slot}", "error")
                 return False
         except Exception as e:
             self._log(f"Set detector range error: {e}", "error")
             return False
 
-    def set_power_range_auto(self, channel: int = 1):
+    def set_power_range_auto(self, slot: int = 1, mf: int = 0):
         """Set the devices power ranging to auto"""
         try:
             if not self.controller or not self._connected:
                 self._log("Controller not connected", "error")
                 return False
 
-            ok = self.controller.set_power_range_auto(channel)
+            ok = self.controller.set_power_range_auto(slot, mf)
             if ok:
-                self._log(f"Set power range auto: {channel}")
+                self._log(f"[NIR Manager] Set power range auto: {slot}")
                 return True
-            self._log(f"Failed to set power range auto: {channel}dBm", "error")
+            self._log(f"Failed to set power range auto: {slot}dBm", "error")
             return False
         except Exception as e:
             self._log(f"Set power range error: {e}", "info")
             return False
 
-    def get_power_range(self) -> Optional[Tuple]:
+    def get_power_range(self, slot) -> Optional[Tuple]:
         """Get power range"""
         try:
             if not self.controller or not self._connected:
                 self._log("Controller not connected", "error")
                 return False
-            ok = self.controller.get_power_range()
+            ok = self.controller.get_power_range(slot)
             if not ok:
                 self._log(f"Failed to get power range: {ok}dBm", "error")
                 return False
@@ -343,36 +362,36 @@ class NIRManager:
             self._log(f"Get detector range error: {e}", "error")
             return False
 
-    def set_power_reference(self, ref_dbm: float, channel: int = 1) -> bool:
+    def set_power_reference(self, ref_dbm: float, slot: int = 1, mf: int = 0) -> bool:
         """Set power reference (noise floor)"""
         try:
             if not self.controller or not self._connected:
                 self._log("Controller not connected", "error")
                 return False
 
-            success = self.controller.set_power_reference(ref_dbm, channel)
+            success = self.controller.set_power_reference(ref_dbm, slot, mf)
             if success:
-                self._log(f"Power reference set to {ref_dbm}dBm for channel {channel}", "info")
+                self._log(f"Power reference set to {ref_dbm}dBm for slot {slot}", "info")
             else:
-                self._log(f"Failed to set power reference to {ref_dbm}dBm for channel {channel}", "error")
+                self._log(f"Failed to set power reference to {ref_dbm}dBm for slot {slot}", "error")
             return success
 
         except Exception as e:
             self._log(f"Set power reference error: {e}", "error")
             return False
 
-    def get_power_reference(self, channel: int = 1) -> Optional[Tuple]:
+    def get_power_reference(self, slot: int = 1) -> Optional[Tuple]:
         """Get current power reference (noise floor)"""
         try:
             if not self.controller or not self._connected:
                 self._log("Controller not connected", "error")
                 return False
 
-            ok = self.controller.get_power_reference(channel)
+            ok = self.controller.get_power_reference(slot)
             if not ok:
                 self._log(f"Failed to get power reference: {ok}dBm", "error")
                 return False
-            self._log(f"Power reference set to {ok}dBm for channel {channel}", "info")
+            self._log(f"Power reference set to {ok}dBm for slot {slot}", "info")
             return ok
 
         except Exception as e:
@@ -382,7 +401,9 @@ class NIRManager:
     ######################################################################
     # Sweep methods
     ######################################################################
-    def sweep(self, start_nm, stop_nm, step_nm, laser_power_dbm, num_scans=0, args=[]):
+    def sweep(self, start_nm, stop_nm,
+              step_nm, laser_power_dbm,
+              num_scans=0, args=[]):
         """
         Execute a lambda scan, auto stitches longer measurements (>20,001 points)
         params:
@@ -391,38 +412,40 @@ class NIRManager:
             step_nm[nm]: step size of sweep in nm
             laser_power_dbm[dbm]: laser power in dBm
             num_scans[int]: num scans zero indexes up to 3,
-            :param *args: input arguments for changing the reference and ranging before
+            :param args: input arguments for changing the reference and ranging before
                       a sweep has been taken. Use these parameter naming convention,
-                      should be taken from shared memory config. If more than 1 channel,
-                      group *args into 3 pairs, eg.
-                      lambda_scan(..., chan1=1, ref1=-10, range1=-80,
-                                  chan2=2, ref2=-20, range2=None)
-                      :param channel[int]: master/slave channel slot
+                      should be taken from shared memory config. Group args into a 
+                      list of 3 tuples like the following:
+                      lambda_scan(..., [(slot1=1, ref1=-10, range1=-80),
+                                  (slot2=2, ref2=-20, range2=None)])
+                                  but w/o var names: [(1,-30.0, -20.0)] 
+                      :param slot[int]: master/slave channel slot
                       :param ref[float]: reference value in dBm (PWM relative internal)
-                      :param range[float]: range value in dBm, if unspecified autorange
+                      :param range[float]: range value in dBm, if None, then autorange
         """
         try:
             if not self.controller or not self._connected:
                 self._log("Controller not connected", "error")
                 return None
 
-            # (wavelengths[nm], channel1[dBm], channel2[dBm])
+            # (wavelengths[nm], channels[ch1[dBm], ch2[dBm], ..., chn[dBm]])
             results = self.controller.optical_sweep(
                 start_nm, stop_nm, step_nm, laser_power_dbm,
                 num_scans, args)
             self.controller.cleanup_scan()
             self.controller.set_wavelength(self.config.initial_wavelength_nm)
-
+            self.controller.configure_units()
+            
             if results is not None:
                 self._log("Lambda scan completed successfully")
-                return results[0], results[1], results[2]
+                return results[0], results[1:]
             else:
                 self._log("Lambda scan failed", "error")
-                return None, None, None
+                return None, None
 
         except Exception as e:
             self._log(f"Lambda scan error: {e}", "error")
-            return None, None, None
+            return None, None
 
     def cancel_sweep(self):
         try:

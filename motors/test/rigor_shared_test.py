@@ -37,7 +37,7 @@ def writer_pos():
         print("🧹 [Writer-Pos] Cleanup completed")
         
     except Exception as e:
-        print(f"❌ [Writer-Pos] ERROR: {e}")
+        print(f"X [Writer-Pos] ERROR: {e}")
         traceback.print_exc()
 
 def reader_pos():
@@ -70,7 +70,7 @@ def reader_pos():
         for axis_name, axis_data in axes_data:
             exp_pos, exp_homed = expected[axis_name]
             if abs(axis_data.position - exp_pos) > 0.001 or axis_data.is_homed != exp_homed:
-                print(f"❌ [Reader-Pos] Data mismatch for {axis_name}!")
+                print(f"X [Reader-Pos] Data mismatch for {axis_name}!")
                 all_correct = False
         
         if all_correct:
@@ -83,7 +83,7 @@ def reader_pos():
         print("🧹 [Reader-Pos] Cleanup completed")
         
     except Exception as e:
-        print(f"❌ [Reader-Pos] ERROR: {e}")
+        print(f"X [Reader-Pos] ERROR: {e}")
         traceback.print_exc()
 
 def writer_config():
@@ -120,7 +120,7 @@ def writer_config():
         print("🧹 [Writer-Config] Cleanup completed")
         
     except Exception as e:
-        print(f"❌ [Writer-Config] ERROR: {e}")
+        print(f"X [Writer-Config] ERROR: {e}")
         traceback.print_exc()
 
 def reader_config():
@@ -145,13 +145,13 @@ def reader_config():
         
         config_correct = True
         if cfg.baudrate != expected_baudrate:
-            print(f"❌ [Reader-Config] Baudrate mismatch: got {cfg.baudrate}, expected {expected_baudrate}")
+            print(f"X [Reader-Config] Baudrate mismatch: got {cfg.baudrate}, expected {expected_baudrate}")
             config_correct = False
             
         for axis, expected_vel in expected_velocities.items():
             actual_vel = cfg.velocities.get(axis, 0.0)
             if abs(actual_vel - expected_vel) > 0.1:
-                print(f"❌ [Reader-Config] Velocity mismatch for {axis.name}: got {actual_vel}, expected {expected_vel}")
+                print(f"X [Reader-Config] Velocity mismatch for {axis.name}: got {actual_vel}, expected {expected_vel}")
                 config_correct = False
         
         if config_correct:
@@ -162,7 +162,7 @@ def reader_config():
         print("🧹 [Reader-Config] Cleanup completed")
         
     except Exception as e:
-        print(f"❌ [Reader-Config] ERROR: {e}")
+        print(f"X [Reader-Config] ERROR: {e}")
         traceback.print_exc()
 
 def stress_test_position():
@@ -181,7 +181,7 @@ def stress_test_position():
             if abs(current_pos - new_pos) < 0.001:
                 print(f"✅ [Stress-Test] Update {i+1}/10: {current_pos:.3f}")
             else:
-                print(f"❌ [Stress-Test] Update {i+1}/10 FAILED: got {current_pos:.3f}, expected {new_pos:.3f}")
+                print(f"X [Stress-Test] Update {i+1}/10 FAILED: got {current_pos:.3f}, expected {new_pos:.3f}")
             sleep(0.01)  # Small delay
         
         del sp
@@ -190,7 +190,7 @@ def stress_test_position():
         print("🧹 [Stress-Test] Cleanup completed")
         
     except Exception as e:
-        print(f"❌ [Stress-Test] ERROR: {e}")
+        print(f"X [Stress-Test] ERROR: {e}")
         traceback.print_exc()
 
 if __name__ == "__main__":
@@ -225,7 +225,7 @@ if __name__ == "__main__":
         if pw.exitcode == 0:
             print("✅ Position writer completed successfully")
         else:
-            print(f"❌ Position writer failed with exit code: {pw.exitcode}")
+            print(f"X Position writer failed with exit code: {pw.exitcode}")
         
         # Test reader process
         print("\n📖 Testing Position Reader Process:")
@@ -236,7 +236,7 @@ if __name__ == "__main__":
         if pr.exitcode == 0:
             print("✅ Position reader completed successfully")
         else:
-            print(f"❌ Position reader failed with exit code: {pr.exitcode}")
+            print(f"X Position reader failed with exit code: {pr.exitcode}")
         
         # Stress test
         print("\n💪 Testing Position Stress Test:")
@@ -247,7 +247,7 @@ if __name__ == "__main__":
         if ps.exitcode == 0:
             print("✅ Position stress test completed successfully")
         else:
-            print(f"❌ Position stress test failed with exit code: {ps.exitcode}")
+            print(f"X Position stress test failed with exit code: {ps.exitcode}")
         
         # Clean up position shared memory
         del raw_pos
@@ -283,7 +283,7 @@ if __name__ == "__main__":
         if pwc.exitcode == 0:
             print("✅ Config writer completed successfully")
         else:
-            print(f"❌ Config writer failed with exit code: {pwc.exitcode}")
+            print(f"X Config writer failed with exit code: {pwc.exitcode}")
         
         # Test config reader process
         print("\n📖 Testing Config Reader Process:")
@@ -294,7 +294,7 @@ if __name__ == "__main__":
         if prc.exitcode == 0:
             print("✅ Config reader completed successfully")
         else:
-            print(f"❌ Config reader failed with exit code: {prc.exitcode}")
+            print(f"X Config reader failed with exit code: {prc.exitcode}")
         
         # Clean up config shared memory
         shm_cfg.close()

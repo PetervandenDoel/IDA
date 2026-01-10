@@ -29,7 +29,7 @@ async def stop():
     all = [x,y,z,fr,cp]
 
     print(">>> Initializing X …")
-    ok = await mgr.initialize_all()
+    ok = await mgr.initialize_all(all)
     if not ok:
         print(f"init failed")
         await mgr.disconnect_all()

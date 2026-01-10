@@ -44,7 +44,7 @@ class LDCHardwareTest:
             status = "✅ PASS"
         else:
             self.failed += 1
-            status = "❌ FAIL"
+            status = "X FAIL"
             
         result = f"{status} {test_name}"
         if message:
@@ -64,12 +64,12 @@ class LDCHardwareTest:
             'pid_coeffs': copy.deepcopy(manager.config.pid_coeffs),
             'tec_status': manager.get_tec_status() if manager.is_connected() else False
         }
-        self.log(f"✅ Configuration backed up: {self.original_config['setpoint']}°C setpoint")
+        self.log(f"✅ Configuration backed up: {self.original_config['setpoint']}C setpoint")
 
     def restore_configuration(self, manager):
         """Restore original configuration"""
         if not self.original_config:
-            self.log("⚠️  No configuration to restore")
+            self.log("!  No configuration to restore")
             return False
             
         self.log("🔄 Restoring original configuration...")
@@ -84,7 +84,7 @@ class LDCHardwareTest:
             # Restore temperature setpoint
             success = manager.set_temperature(self.original_config['setpoint'])
             if success:
-                self.log(f"✅ Temperature setpoint restored to {self.original_config['setpoint']}°C")
+                self.log(f"✅ Temperature setpoint restored to {self.original_config['setpoint']}C")
             
             # Restore sensor coefficients
             success = manager.set_sensor_coefficients(self.original_config['model_coeffs'])
@@ -105,7 +105,7 @@ class LDCHardwareTest:
             return True
             
         except Exception as e:
-            self.log(f"❌ Error during restoration: {e}")
+            self.log(f"X Error during restoration: {e}")
             return False
 
     def test_controller_connection(self):
@@ -171,7 +171,7 @@ class LDCHardwareTest:
                     temp = manager.get_temperature()
                     
                     if temp is not None and isinstance(temp, float):
-                        return self.test_result("Temperature Reading", True, f"Temperature: {temp:.2f}°C")
+                        return self.test_result("Temperature Reading", True, f"Temperature: {temp:.2f}C")
                     else:
                         return self.test_result("Temperature Reading", False, "Invalid temperature reading")
                 else:
@@ -241,9 +241,9 @@ class LDCHardwareTest:
                         self.restore_configuration(manager)
                         
                         if abs(setpoint - test_temp) < 0.1:
-                            return self.test_result("Temperature Setting", True, f"Setpoint: {setpoint:.1f}°C")
+                            return self.test_result("Temperature Setting", True, f"Setpoint: {setpoint:.1f}C")
                         else:
-                            return self.test_result("Temperature Setting", False, f"Setpoint mismatch: {setpoint:.1f}°C")
+                            return self.test_result("Temperature Setting", False, f"Setpoint mismatch: {setpoint:.1f}C")
                     else:
                         self.restore_configuration(manager)
                         return self.test_result("Temperature Setting", False, "Failed to set temperature")
@@ -437,18 +437,18 @@ class LDCHardwareTest:
         """Run all hardware tests"""
         print("🌡️  LDC Hardware Test Suite")
         print("=" * 60)
-        print("⚠️  WARNING: This will control real LDC hardware!")
-        print("⚠️  Ensure device is properly connected and powered")
+        print("!  WARNING: This will control real LDC hardware!")
+        print("!  Ensure device is properly connected and powered")
         print("=" * 60)
         
         # Ask for confirmation
         try:
             response = input("\n🤔 Continue with hardware tests? (y/N): ")
             if response.lower() != 'y':
-                print("❌ Tests cancelled by user")
+                print("X Tests cancelled by user")
                 return False
         except KeyboardInterrupt:
-            print("\n❌ Tests cancelled by user")
+            print("\nX Tests cancelled by user")
             return False
         
         print("\n🚀 Starting LDC hardware tests...\n")
@@ -471,7 +471,7 @@ class LDCHardwareTest:
         print("=" * 60)
         
         for test_name, success, message in self.results:
-            status = "✅ PASS" if success else "❌ FAIL"
+            status = "✅ PASS" if success else "X FAIL"
             print(f"{status} {test_name}")
             if message and not success:
                 print(f"     {message}")
@@ -488,7 +488,7 @@ class LDCHardwareTest:
             print("🔄 All settings have been restored to defaults")
             return True
         else:
-            print(f"❌ {self.failed} test(s) failed")
+            print(f"X {self.failed} test(s) failed")
             print("🔍 Check hardware connections and VISA drivers")
             return False
 
@@ -500,10 +500,10 @@ def main():
         success = test_suite.run_all_tests()
         return 0 if success else 1
     except KeyboardInterrupt:
-        print("\n\n❌ Tests interrupted by user")
+        print("\n\nX Tests interrupted by user")
         return 1
     except Exception as e:
-        print(f"\n❌ Test runner error: {e}")
+        print(f"\nX Test runner error: {e}")
         return 1
 
 if __name__ == "__main__":

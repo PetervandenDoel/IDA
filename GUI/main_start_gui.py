@@ -1,26 +1,13 @@
-"""
-Remi GUI — User/Mode selector with dynamic dropdown + JSON sync
---------------------------------------------------------------
-* Keeps user list in ROOT_DIR
-* Writes currently selected user to JSON_PATH whenever it changes
-* No functional change versus the original script — only formatting / layout tidy-up
-"""
-
 import json, os, shutil, threading, webview
 from typing import List, Union
 from remi import App, start
 from GUI.lib_gui import *
 
-# ──────────────────────────────────────────
 ROOT_DIR = "./UserData"
 JSON_PATH = "database/shared_memory.json"
 
 
 class Starts(App):
-    """Main application class (unchanged behaviour, cleaner layout)."""
-
-    # ──────────────────────────────── INIT & REMI HOOKS
-
     def __init__(self, *args, **kwargs):
         # runtime flags
         self._last_saved_user: str = ""
@@ -64,7 +51,7 @@ class Starts(App):
         threading.Thread(target=target, args=args, daemon=True).start()
 
     def list_user_folders(self) -> Union[str, List[str]]:
-        """Return sub-folders of ROOT_DIR (same logic as original)."""
+        """Return sub-folders of ROOT_DIR."""
         names = [
             d for d in os.listdir(ROOT_DIR)
             if os.path.isdir(os.path.join(ROOT_DIR, d))
@@ -81,7 +68,7 @@ class Starts(App):
         return names
 
     def list_project_folders(self) -> Union[str, List[str]]:
-        """Return sub-folders of ROOT_DIR (same logic as original)."""
+        """Return sub-folders of ROOT_DIR."""
         path = os.path.join(ROOT_DIR, self.user_dd.get_value())
         names = [
             d for d in os.listdir(path)
@@ -126,7 +113,18 @@ class Starts(App):
 
         self.add_btn = StyledButton(
             container=starts_container, text="Add", variable_name="add",
-            left=270, top=180, normal_color="#007BFF", press_color="#0056B3",
+            left=170, top=180, normal_color="#007BFF", press_color="#0056B3",
+        )
+
+        self.settings_btn = StyledButton(
+            container=starts_container, text="Settings", variable_name="settings",
+            left=280, top=180, width=80, normal_color="#007BFF", press_color="#0056B3",
+        )
+
+        self.apply_settings_btn = StyledButton(
+            container=starts_container, text="Apply Settings", variable_name="apply_settings",
+            left=370, top=180, width=120, height=30,
+            normal_color="#007BFF", press_color="#0056B3",
         )
 
         self.user_btn = StyledButton(
@@ -149,10 +147,14 @@ class Starts(App):
             left=10, top=15, width=610, height=100,
         )
 
-        # ── event bindings
+        # --- Event bindings ---
         self.add_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_add))
+        self.settings_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_settings))
         self.user_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_user_remove))
         self.project_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_project_remove))
+        self.apply_settings_btn.do_onclick(
+            lambda *_: self.run_in_thread(self.onclick_apply_settings)
+        )
 
         self.starts_container = starts_container
         return starts_container
@@ -171,30 +173,71 @@ class Starts(App):
             on_top=True
         )
 
+    def onclick_settings(self):
+        # file = File("shared_memory", "Settings_User", self.user_dd.get_value())
+        # file.save()
+        local_ip = '127.0.0.1'
+        webview.create_window(
+            "User Settings",
+            f"http://{local_ip}:7009",
+            width=895+web_w,
+            height=650+web_h,
+            resizable=True,
+            on_top=True
+        )
+    
+    def onclick_apply_settings(self):
+        """Apply merged config (project > user > defaults) into shared_memory.json."""
+        user = self.user_dd.get_value()
+        project = self.project_dd.get_value()
+        try:
+            #   project overrides > user defaults > stage defaults
+            config_manager = UserConfigManager(user, project)
+            merged_config = config_manager.load_config()
+
+            # Push each section into shared_memory.json
+            for section, data in merged_config.items():
+                file = File("shared_memory", section, data)
+                file.save()
+            
+            flag = File("shared_memory", "LoadConfig", True)
+            flag.save()
+            
+            msg = f"[Start] Applied settings for {user}/{project}\n"
+            print(msg)
+            if hasattr(self, "terminal") and hasattr(self.terminal, "append_text"):
+                self.terminal.append_text(msg)
+
+        except Exception as e:
+            msg = f"[Start] Failed to apply settings for {user}/{project}: {e}\n"
+            print(msg)
+            if hasattr(self, "terminal") and hasattr(self.terminal, "append_text"):
+                self.terminal.append_text(msg)
+
     def onclick_user_remove(self):
         folder = self.user_dd.get_value().replace(" ", "")
         path = os.path.join(ROOT_DIR, folder)
         if not os.path.isdir(path):
-            print(f"⚠️ No such folder: {folder}")
+            print(f"No such folder: {folder}")
             return
         try:
             shutil.rmtree(path)
-            print(f"🗑️ Removed {folder}")
+            print(f"Removed {folder}")
         except Exception as exc:
-            print(f"❌ Failed to remove: {exc}")
+            print(f"Failed to remove: {exc}")
 
     def onclick_project_remove(self):
         user = self.user_dd.get_value().replace(" ", "")
         project = self.project_dd.get_value().replace(" ", "")
         path = os.path.join(ROOT_DIR, user, project)
         if not os.path.isdir(path):
-            print(f"⚠️ No such project: {project}")
+            print(f"No such project: {project}")
             return
         try:
             shutil.rmtree(path)
-            print(f"🗑️ Removed {project}")
+            print(f"Removed {project}")
         except Exception as exc:
-            print(f"❌ Failed to remove: {exc}")
+            print(f"Failed to remove: {exc}")
 
     def refresh_user(self):
         self.user_dd.empty()
@@ -208,7 +251,7 @@ def run_remi():
     start(
         Starts,
         address="0.0.0.0",
-        port=9000,
+        port=9109,
         start_browser=False,
         multiple_instance=False,
         enable_file_cache=False,
@@ -232,7 +275,7 @@ if __name__ == "__main__":
     local_ip = '127.0.0.1'
     webview.create_window(
         "Main Window",
-        f"http://{local_ip}:9000",
+        f"http://{local_ip}:9109",
         width=0,
         height=0,
         resizable=True,

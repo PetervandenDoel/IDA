@@ -23,7 +23,7 @@ class TestResults:
     def fail_test(self, test_name, error=None):
         self.failed += 1
         error_msg = f" - {error}" if error else ""
-        print(f"❌ {test_name}{error_msg}")
+        print(f"X {test_name}{error_msg}")
         if error:
             self.errors.append(f"{test_name}: {error}")
     
@@ -393,7 +393,7 @@ async def test_status_methods(controller, results):
 
 async def test_edge_cases(controller, results):
     """Test edge cases and error conditions"""
-    print("\n⚠️  Testing Edge Cases")
+    print("\n!  Testing Edge Cases")
     print("-" * 40)
     
     try:
@@ -447,7 +447,7 @@ async def run_comprehensive_tests():
     try:
         # Test connection first - if this fails, we can't do other tests
         if not await test_connection(controller, results):
-            print("❌ Connection failed - stopping tests")
+            print("X Connection failed - stopping tests")
             return
         
         # Run all test suites
@@ -461,7 +461,7 @@ async def run_comprehensive_tests():
         await test_edge_cases(controller, results)
         
     except Exception as e:
-        print(f"❌ Test suite failed with exception: {e}")
+        print(f"X Test suite failed with exception: {e}")
         results.fail_test("Test suite execution", str(e))
         
     finally:
@@ -474,7 +474,7 @@ async def run_comprehensive_tests():
                 controller.disconnect()
             print("✓ Cleanup complete")
         except Exception as e:
-            print(f"⚠️  Cleanup warning: {e}")
+            print(f"!  Cleanup warning: {e}")
         
         # Show results
         results.summary()

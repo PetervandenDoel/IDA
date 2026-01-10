@@ -138,6 +138,10 @@ if (Test-Path $ReqTxt) {
   Write-Host "No requirements(.in|.txt) found; venv created with base tools only."
 }
 
+# Install requirements as a backup
+python -m pip install -r requirements.txt
+python -m pip install -r build-requirements.txt
+
 Write-Host "Done! Using $(python --version)"
 Write-Host "To reactivate later: $(Join-Path $VenvPath 'Scripts\Activate.ps1')"
 

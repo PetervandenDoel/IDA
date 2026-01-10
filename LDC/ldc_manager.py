@@ -8,7 +8,7 @@ from LDC.utils.shared_memory import *
 from utils.logging_helper import setup_logger
 
 """
-LDC Manager - Simplified Implementation
+LDC Manager 
 Cameron Basara, 2025
 """
 
@@ -45,7 +45,7 @@ class LDCManager:
         elif level == "error":
             self.logger.error(message)
 
-    # === Context Management ===
+    # --- Context Management ---
     
     def __enter__(self):
         """Context manager entry"""
@@ -70,7 +70,7 @@ class LDCManager:
         
         self._log("LDC manager shutdown complete")
 
-    # === Device Lifecycle ===
+    # --- Device Lifecycle ---
     
     def initialize(self) -> bool:
         """Initialize the LDC device"""
@@ -91,8 +91,8 @@ class LDCManager:
                 'temp_setpoint': self.config.setpoint,
                 'debug': self.debug
             }
-            
-            self.ldc = create_driver("srs_ldc_502", **params)
+            driver_key = self.config.driver_types
+            self.ldc = create_driver(driver_key, **params)
             
             # Add event callback to forward events
             self.ldc.add_event_callback(self._handle_ldc_event)
@@ -156,8 +156,9 @@ class LDCManager:
         """Configure device with current settings"""
         try:
             if not self.ldc or not self._connected:
+                print('am I returnig ealry/ why?')
                 return
-            
+            print('I am not returing early, but I am being stubbron')
             # Set sensor type
             self.ldc.set_sensor_type(self.config.sensor_type)
             
@@ -175,7 +176,7 @@ class LDCManager:
         except Exception as e:
             self._log(f"Device configuration error: {e}", "error")
 
-    # === Temperature Control ===
+    # --- Temperature Control ---
     
     def tec_on(self) -> bool:
         """Turn on the TEC"""
@@ -251,7 +252,7 @@ class LDCManager:
             success = self.ldc.set_temp(temperature)
             if success:
                 self.config.setpoint = temperature
-                self._log(f"Temperature setpoint set to {temperature}°C")
+                self._log(f"Temperature setpoint set to {temperature}C")
                 
                 # Update shared memory config
                 if self.use_shared_memory:
@@ -260,7 +261,7 @@ class LDCManager:
                     except Exception as e:
                         self._log(f"Failed to update shared memory: {e}")
             else:
-                self._log(f"Failed to set temperature to {temperature}°C", "error")
+                self._log(f"Failed to set temperature to {temperature}C", "error")
                 
             return success
             
@@ -276,7 +277,7 @@ class LDCManager:
             self.logger.error(f"Failed to get temperature setpoint: {e}")
             return 0.0
 
-    # === Configuration ===
+    # --- Configuration ---
     
     def get_config(self) -> Dict[str, Any]:
         """Get current configuration"""
@@ -358,8 +359,209 @@ class LDCManager:
         except Exception as e:
             self._log(f"Set PID coefficients error: {e}", "error")
             return False
+    
+    # --- Laser Diode Controller
+    def ld_on(self) -> bool:
+        """Enable laser diode output."""
+        try:
+            if not self.ldc or not self._connected:
+                self._log("LDC not connected", "error")
+                return False
 
-    # === Event Handling ===
+            self.ldc.ldc_on()
+            self._log("Laser diode enabled")
+            return True
+
+        except Exception as e:
+            self._log(f"LD on error: {e}", "error")
+            return False
+
+    def ld_off(self) -> bool:
+        """Disable laser diode output."""
+        try:
+            if not self.ldc or not self._connected:
+                self._log("LDC not connected", "error")
+                return False
+
+            self.ldc.ldc_off()
+            self._log("Laser diode disabled")
+            return True
+
+        except Exception as e:
+            self._log(f"LD off error: {e}", "error")
+            return False
+
+    def get_ld_status(self) -> str:
+        """Return LD state ('on' / 'off')."""
+        try:
+            if not self.ldc or not self._connected:
+                self._log("LDC not connected", "error")
+                return "unknown"
+
+            return self.ldc.ldc_state()
+
+        except Exception as e:
+            self._log(f"LD status error: {e}", "error")
+            return "unknown"
+
+    # --- Limits ---
+
+    def set_ld_voltage_limit(self, v_limit: float) -> bool:
+        """Set LD voltage compliance limit (V)."""
+        try:
+            if not self.ldc or not self._connected:
+                self._log("LDC not connected", "error")
+                return False
+
+            self.ldc.set_voltage_limit(v_limit)
+            self._log(f"LD voltage limit set to {v_limit} V")
+            return True
+
+        except Exception as e:
+            self._log(f"Set LD voltage limit error: {e}", "error")
+            return False
+
+    def get_ld_voltage_limit(self) -> float:
+        """Get LD voltage compliance limit (V)."""
+        try:
+            if not self.ldc or not self._connected:
+                self._log("LDC not connected", "error")
+                return None
+
+            return self.ldc.get_voltage_limit()
+
+        except Exception as e:
+            self._log(f"Get LD voltage limit error: {e}", "error")
+            return None
+
+    def set_ld_current_limit(self, i_limit: float) -> bool:
+        """Set LD current limit (mA)."""
+        try:
+            if not self.ldc or not self._connected:
+                self._log("LDC not connected", "error")
+                return False
+
+            self.ldc.set_current_limit(i_limit)
+            self._log(f"LD current limit set to {i_limit} mA")
+            return True
+
+        except Exception as e:
+            self._log(f"Set LD current limit error: {e}", "error")
+            return False
+
+    def get_ld_current_limit(self) -> float:
+        """Get LD current limit (mA)."""
+        try:
+            if not self.ldc or not self._connected:
+                self._log("LDC not connected", "error")
+                return None
+
+            return self.ldc.get_current_limit()
+
+        except Exception as e:
+            self._log(f"Get LD current limit error: {e}", "error")
+            return None
+
+    # --- Current / Voltage ---
+
+    def set_ld_current(self, current_ma: float) -> bool:
+        """Set LD current setpoint (mA)."""
+        try:
+            if not self.ldc or not self._connected:
+                self._log("LDC not connected", "error")
+                return False
+
+            self.ldc.set_current(current_ma)
+            self._log(f"LD current set to {current_ma} mA")
+            return True
+
+        except Exception as e:
+            self._log(f"Set LD current error: {e}", "error")
+            return False
+
+    def get_ld_current(self) -> float:
+        """Read measured LD current (mA)."""
+        try:
+            if not self.ldc or not self._connected:
+                self._log("LDC not connected", "error")
+                return None
+
+            return self.ldc.get_current()
+
+        except Exception as e:
+            self._log(f"Get LD current error: {e}", "error")
+            return None
+
+    def get_ld_voltage(self) -> float:
+        """Read measured LD voltage (V)."""
+        try:
+            if not self.ldc or not self._connected:
+                self._log("LDC not connected", "error")
+                return None
+
+            return self.ldc.get_voltage()
+
+        except Exception as e:
+            self._log(f"Get LD voltage error: {e}", "error")
+            return None
+
+    def set_ld_current_range(self, high: bool) -> bool:
+        """Set LD current range (True = HIGH, False = LOW)."""
+        try:
+            if not self.ldc or not self._connected:
+                self._log("LDC not connected", "error")
+                return False
+
+            self.ldc.set_current_range(high)
+            self._log(f"LD current range set to {'HIGH' if high else 'LOW'}")
+            return True
+
+        except Exception as e:
+            self._log(f"Set LD current range error: {e}", "error")
+            return False
+
+    # --- Current Sweep ---
+
+    def ld_current_sweep(
+        self,
+        start_ma: float,
+        stop_ma: float,
+        step_ma: float,
+        dwell_ms: int,
+        trigger_delay_ms: int = 0,
+    ) -> bool:
+        """
+        Run a blocking LD current sweep using the instrument SCAN command.
+
+        NOTE:
+        - start_ma must not be 0 (SRS firmware limitation).
+        """
+        try:
+            if not self.ldc or not self._connected:
+                self._log("LDC not connected", "error")
+                return False
+
+            self._log(
+                f"Starting LD current sweep: "
+                f"{start_ma}->{stop_ma} mA, step {step_ma} mA"
+            )
+
+            self.ldc.current_sweep(
+                start_ma=start_ma,
+                stop_ma=stop_ma,
+                step_ma=step_ma,
+                dwell_ms=dwell_ms,
+                trigger_delay_ms=trigger_delay_ms,
+            )
+
+            self._log("LD current sweep completed")
+            return True
+
+        except Exception as e:
+            self._log(f"LD current sweep error: {e}", "error")
+            return False
+
+    # --- Event Handling ---
     
     def add_event_callback(self, callback: Callable[[LDCEvent], None]):
         """Register callback for LDC events."""
@@ -388,7 +590,7 @@ class LDCManager:
             except Exception as e:
                 self._log(f"Event callback error: {e}", "error")
 
-    # === Status and Monitoring ===
+    # --- Status and Monitoring ---
     
     def get_device_info(self) -> Dict[str, Any]:
         """Get device information and status"""

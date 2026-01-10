@@ -1,27 +1,39 @@
-from GUI.lib_gui import *
+import threading
+import asyncio
+import signal
+import webview 
+import time
+import datetime
+
 from remi.gui import *
 from remi import start, App
-import threading, webview, signal
+
 from GUI import lib_coordinates
-import asyncio, datetime
-from motors.stage_manager import StageManager
-from motors.config.stage_config import StageConfiguration
+from GUI.lib_gui import *
 from NIR.nir_manager import NIRManager
 from NIR.config.nir_config import NIRConfiguration
 from measure.area_sweep import AreaSweep
 from measure.fine_align import FineAlign
 from measure.config.area_sweep_config import AreaSweepConfiguration
 from measure.config.fine_align_config import FineAlignConfiguration
-import time
+from utils.progress_write_helpers import write_progress_file
+from motors.stage_manager import StageManager
+from motors.config.stage_config import StageConfiguration
 
-filename = "coordinates.json"
-
-command_path = os.path.join("database", "command.json")
-shared_path = os.path.join("database", "shared_memory.json")
+# Global Vars
+FILENAME = "coordinates.json"
+COMMAND_PATH = os.path.join("database", "command.json")
+SHARED_PATH = os.path.join("database", "shared_memory.json")
 
 
 class stage_control(App):
+    """
+    Primary control method for state machine involving movements
+    and operations
+    """
+
     def __init__(self, *args, **kwargs):
+        # Mixed Label + (high level) State vars
         self.memory = None
         self.configure = None
         self.stage_manager = None
@@ -33,23 +45,27 @@ class stage_control(App):
         self._user_mtime = None
         self._first_command_check = True
         self._user_stime = None
+        
+        # Config vars
         self.user = "Guest"
         self.limit = {}
         self.area_s = {}
         self.fine_a = {}
-        self.auto_sweep = 0
         self.count = 0
         self.filter = {}
         self.configuration = {}
         self.configuration_check = {}
-        self.port = {}
+        self.port = {}  # For VISA addr
         self.data_window = {}
 
+        # State vars
+        self.auto_sweep = 0
         self.configuration_stage = 0
         self.configuration_sensor = 0
         self.project = None
         self.scanpos = {}
         self.stagepos = {}
+        self.zero_state = {}
         self.stage_x_pos = 0
         self.stage_y_pos = 0
         self.sweep = {}
@@ -62,8 +78,14 @@ class stage_control(App):
         self.devices = None
         self.web = None
         self.file_format = {}
+        self.use_destination_dir = {}  # For auto file pathing
         self.file_path = None
+        self.slot_info = None
+        self.slot_info_flag = False
+        self.detector_window_settings = {}
+        self.meta_data = {}
 
+        # Misc vars, managers, progress bar and locks
         self.nir_configure = None
         self.nir_manager = None
 
@@ -79,17 +101,25 @@ class stage_control(App):
         self.task_start = 0
         self._win_lock = threading.Lock()
         self.axis_locked = {"x": False, "y": False, "z": False, "chip": False, "fiber": False}
+        self.use_relative_movement = True  # For absolute movements
+        self._absolute_locked_axes = {"z": False, "chip": False}  # For tracking of abs mvnts
         self.area_sweep = None
         self.fine_align = None
         self.task_laser = 0
-
+        self._progress_lock = threading.Lock()  # For progress.json 'w'
+        
+        # User config settings 
+        self.load_user_settings = False  # False until loaded
+        self.apply_initial_positions = True
+        self.initial_positions = {}
+        
         if "editing_mode" not in kwargs:
             super(stage_control, self).__init__(*args, **{"static_file_path": {"my_res": "./res/"}})
 
     def idle(self):
         try:
-            mtime = os.path.getmtime(command_path)
-            stime = os.path.getmtime(shared_path)
+            mtime = os.path.getmtime(COMMAND_PATH)
+            stime = os.path.getmtime(SHARED_PATH)
         except FileNotFoundError:
             mtime = None
             stime = None
@@ -106,7 +136,7 @@ class stage_control(App):
         if stime != self._user_stime:
             self._user_stime = stime
             try:
-                with open(shared_path, "r", encoding="utf-8") as f:
+                with open(SHARED_PATH, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     self.user = data.get("User", "")
                     self.project = data.get("Project", "")
@@ -125,34 +155,102 @@ class stage_control(App):
                     self.web = data.get("Web", "")
                     self.file_format = data.get("FileFormat", {})
                     self.file_path = data.get("FilePath", "")
+                    self.use_destination_dir = data.get("ExportRequest", {})
+                    self.load_user_settings = data.get("LoadConfig", False)
                     
-                    # Read detector range and reference settings
-                    self.detector_range_ch1 = data.get("DetectorRange_Ch1", {})
-                    self.detector_range_ch2 = data.get("DetectorRange_Ch2", {})
-                    self.detector_ref_ch1 = data.get("DetectorReference_Ch1", {})
-                    self.detector_ref_ch2 = data.get("DetectorReference_Ch2", {})
-                    self.detector_auto_ch1 = data.get("DetectorAutoRange_Ch1", {})
-                    self.detector_auto_ch2 = data.get("DetectorAutoRange_Ch2", {})
+                    # Mainframe slot info
+                    self.slot_info = data.get("SlotInfo", None)
 
-                    # Apply detector settings if NIR manager is available
-                    if hasattr(self, 'nir_manager') and self.nir_manager and self.configuration_sensor == 1:
-                        if self.detector_range_ch1.get("range_dbm") is not None:
-                            self.nir_manager.set_power_range(self.detector_range_ch1["range_dbm"], 1)
-                        if self.detector_range_ch2.get("range_dbm") is not None:
-                            self.nir_manager.set_power_range(self.detector_range_ch2["range_dbm"], 2)
-                        if self.detector_ref_ch1.get("ref_dbm") is not None:
-                            self.nir_manager.set_power_reference(self.detector_ref_ch1["ref_dbm"], 1)
-                        if self.detector_ref_ch2.get("ref_dbm") is not None:
-                            self.nir_manager.set_power_reference(self.detector_ref_ch2["ref_dbm"], 2)
-                        if self.detector_auto_ch1:
-                            self.nir_manager.set_power_range_auto(1)
-                            File("shared_memory", "DetectorAutoRange_Ch1", {}).save()
-                        if self.detector_auto_ch2:
-                            self.nir_manager.set_power_range_auto(2)
-                            File("shared_memory", "DetectorAutoRange_Ch2", {}).save()
+                    # Read detector range and reference settings
+                    self.detector_window_settings = data.get("DetectorWindowSettings", {})
+
+                    # Meta data for auto sweeps
+                    self.meta_data = {
+                        'user': self.user,
+                        'project': self.project,
+                        'device_name': self.name,
+                        'fine_a': self.fine_a,
+                        'area_s': self.area_s,
+                        'detector_window': self.detector_window_settings,
+                        'slot_info': self.slot_info,
+                        'configuration': self.configuration,
+                        # Add more as you feel necessary
+                        # Used for passing information 
+                        # During automated measurements
+                        # For mata data context
+                    }
+
+                
+                if self.detector_window_settings.get("Detector_Change") == "1":
+                    if self.slot_info is not None:
+                        # If we've enumerated slot info, proceed as is
+                        for mf, slot, head in self.slot_info:
+                            self.apply_detector_window(slot, mf)
+                    
+                        data["DetectorWindowSettings"]["Detector_Change"] = "0"   # reset flag
+
+                        # write back to disk
+                        with open(SHARED_PATH, "w", encoding="utf-8") as f:
+                            json.dump(data, f, indent=2)
+                    
+                    else:
+                        # Otw, wait until enumeration
+                        pass
+                
+                if self.load_user_settings:
+                    # Load user settings on initial boot up 
+                    self.load_user_settings = False  # Do this only once
+
+                    # Import the class
+                    from GUI.lib_gui import UserConfigManager
+
+                    # Load hierarchical config
+                    config_manager = UserConfigManager(self.user, self.project)
+                    user_settings = config_manager.load_config()
+
+                    # Load sweep settings
+                    self.sweep = user_settings.get("Sweep", {})
+                    self.detector_window_settings = user_settings.get("DetectorWindowSettings")
+
+                    # Load FA / Area Scan settings
+                    self.area_s = user_settings.get("AreaS", {})
+                    self.fine_a = user_settings.get("FineA", {})
+
+                    # Load instrument connections and factory 
+                    self.configuration = user_settings.get("Configuration", {})  # Stage and Sensor config
+                    # Other configs can be added later
+
+                    self.initial_positions = user_settings.get("InitialPositions", {})
+                    if self.initial_positions == {}:
+                        # If there is no preference to initial positions
+                        # Do not apply anything
+                        self.apply_initial_positions = False
+                    else:
+                        self.apply_initial_positions = True  # Should reapply on a new config
+
+                    data["LoadConfig"] = False   # reset flag
+
+                    # write back to disk
+                    with open(SHARED_PATH, "w", encoding="utf-8") as f:
+                        json.dump(data, f, indent=2)
 
             except Exception as e:
                 print(f"[Warn] read json failed: {e}")
+
+        # For slot enum
+        if self.nir_manager is not None and not self.slot_info_flag:
+            self.slot_info = self.nir_manager.get_mainframe_slot_info()
+            self.slot_info_flag = True
+
+            try:
+                with open(SHARED_PATH, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                data["SlotInfo"] = self.slot_info
+                
+                with open(SHARED_PATH, "w", encoding="utf-8") as f:
+                    json.dump(data, f, indent=2)
+            except:
+                pass
 
         self.after_configuration()
 
@@ -173,72 +271,226 @@ class stage_control(App):
     def laser_on(self):
         self.nir_manager.enable_laser(self.sweep["on"])
         self.sweep_count = 0
+    
+    def apply_detector_auto_range(self, channel, mf=0):
+        success = self.nir_manager.set_power_range_auto(channel, mf=mf)
+        return success
+
+    def apply_detector_range(self, range_dbm, channel, mf=0):
+        success = self.nir_manager.set_power_range(range_dbm, channel, mf=mf)
+        return success
+    
+    def apply_detector_reference(self, ref_dbm, channel, mf=0):
+        success = self.nir_manager.set_power_reference(ref_dbm, channel, mf=mf)
+        return success
+    
+    def apply_detector_window(self, channel, mf=0):
+        try:
+            # Get detector window data from new compact structure
+            detector_window_data = getattr(self, 'detector_window_settings', {})
+            mf_data = detector_window_data.get(f'mf{mf}', {})
+            slot_data = mf_data.get(str(channel), {})
+            
+            # Extract settings from compact structure
+            auto_range = slot_data.get('auto_range', True)    # Default to auto
+            manual_range = slot_data.get('range', -10)        # Default -10 dBm
+            ref_value = slot_data.get('ref', -30)             # Default -30 dBm
+            
+            # Apply range settings
+            if auto_range:
+                self.apply_detector_auto_range(
+                    channel=channel,
+                    mf=mf
+                )
+            else:
+                self.apply_detector_range(
+                    manual_range,
+                    channel=channel,
+                    mf=mf
+                )
+
+            # Apply reference setting
+            self.apply_detector_reference(
+                ref_dbm=ref_value,
+                channel=channel,
+                mf=mf
+            )
+            
+            return True
+        
+        except Exception as e:
+            print(f'Detector window error: {e}')
+            return False
 
     def laser_sweep(self, name=None):
         print("Sweep Start")
         auto = 0
         if name is None:
-            name = self.name
+            # This is for manual measurements
+            # Name is None if not auto
+            # Assign a name and compute a single sweep
+            name = "Manual_Sweep"
             self.busy_dialog()
             self.task_start = 1
             self.task_laser = 1
             self.lock_all(1)
         else:
+            # Auto measuremnets, so already locked
             self.task_start = 1
             auto = 1
 
         try:
-            # For now, make work for 1 channel
-            # Ranging
-            if self.detector_auto_ch1 == {} and self.detector_range_ch1.get("range_dbm") is not None:
-                ch1_range = self.detector_range_ch1["range_dbm"]
-            elif self.detector_range_ch1 == {} and self.detector_auto_ch1:
-                # Machine expects None for auto
-                ch1_range = None
+            # --- LUNA CONTROLLER PATH ---
+            if self.configuration.get("sensor") == "luna_controller":
+                print("[Stage Control] Using Luna OVA sweep")
+                
+                # Luna returns full data matrix from output.txt
+                data_matrix = self.nir_manager.sweep(
+                    start_nm=self.sweep["start"],
+                    stop_nm=self.sweep["end"],
+                    step_nm=self.sweep["step"],
+                    laser_power_dbm=self.sweep["power"]
+                )
+                
+                # Extract wavelength for compatibility
+                wl = data_matrix[0]
+                detectors = None  # Luna doesn't use detector format
+                luna_data = data_matrix  # Keep full matrix for saving
+                
+                print("[Stage Control] Luna Sweep completed Successfully")
+            
+            # --- NIR CONTROLLER PATH  ---
             else:
-                ch1_range = -10 # dBm default
+                # Get slot info
+                if self.slot_info is None:
+                    slot_info = self.nir_manager.get_mainframe_slot_info()
+                    self.slot_info = slot_info
+                else:
+                    slot_info = self.slot_info
+                
+                if slot_info is None:
+                    raise RuntimeError("No slots found in the instrument")
+                
+                # Apply detector window to connected slots
+                args_list = []
 
-            # Reference
-            if self.detector_ref_ch1.get("ref_dbm") is not None:
-                ch1_ref = self.detector_ref_ch1["ref_dbm"]
-            else:
-                ch1_ref = -80 # dBm default
+                for mf, slot, head in slot_info:
+                    # Get data for this MF/slot combination
+                    detector_window_data = getattr(self, 'detector_window_settings', {})
+                    
+                    # Data window structure: mf -> slot -> settings
+                    mf_data = detector_window_data.get(f'mf{mf}', {})
+                    slot_data = mf_data.get(str(slot), {})
+                    
+                    # Extract settings 
+                    auto_range = slot_data.get('auto_range', False) # Default to manual
+                    manual_range = slot_data.get('range', -10.0)      # Default -10 dBm
+                    ref_value = slot_data.get('ref', -30.0)           # Default -30 dBm
+                    
+                    # Determine final range and ref values
+                    if auto_range:
+                        ch_range = None  # None indicates auto ranging
+                    else:
+                        ch_range = manual_range
+                    ch_ref = ref_value
+                    
+                    # Args format: (slot, mf, ref, range)
+                    args_list.append((slot, mf, ch_ref, ch_range))
+                    
+                
+                if len(args_list) == 0:
+                    raise Exception("No args found")
+                
+                wl, detectors = self.nir_manager.sweep(
+                    start_nm=self.sweep["start"],
+                    stop_nm=self.sweep["end"],
+                    step_nm=self.sweep["step"],
+                    laser_power_dbm=self.sweep["power"],
+                    args=args_list
+                )
+                
+                luna_data = None  # No Luna data in NIR mode
+                
+                print("[Stage Control] Laser Sweep completed Successfully")
 
-            wl, d1, d2 = self.nir_manager.sweep(
-                start_nm=self.sweep["start"],
-                stop_nm=self.sweep["end"],
-                step_nm=self.sweep["step"],
-                laser_power_dbm=self.sweep["power"],
-                args=[1,ch1_ref,ch1_range]
-            )
+                # Apply detector window settings once again 
+                for mf, slot, head in self.slot_info:
+                    self.apply_detector_window(slot, mf)
+            
         except Exception as e:
             print(f"[Error] Sweep failed: {e}")
-            wl, d1, d2 = [], [], []
-
+            wl, detectors, luna_data = [], [], None
+        
+        # Plotting the data
         x = wl
-        y = np.vstack([d1, d2])
-        fileTime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        diagram = plot(
-            x, y, "spectral_sweep", fileTime, self.user, name,
-            self.project, auto, self.file_format, self.file_path
-        )
-        p = Process(target=diagram.generate_plots)
-        p.start()
-        p.join()
+        active_detectors = []
+        cancel_flag = getattr(self, "_scan_cancel", None)
+        was_cancelled = bool(cancel_flag and cancel_flag.is_set())
+        
+        if was_cancelled:
+            print("[Plot] Sweep flag is 0  cancelled; skipping plot & webview.")
+        else:
+            try:
+                fileTime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+                
+                # Choose plotter based on sensor type
+                if self.configuration.get("sensor") == "luna_controller":
+                    if luna_data is None or len(luna_data) == 0:
+                        raise ValueError("No Luna data to plot.")
+                    
+                    # Only write to save path on auto measurements
+                    dest_cfg = self.use_destination_dir if auto == 1 else {}
+                    
+                    diagram = plot_luna(
+                        luna_data, "ova_sweep", fileTime,
+                        self.user, name, self.project,
+                        auto, self.file_format,
+                        destination_dir=dest_cfg,
+                        meta_data=self.meta_data
+                    )
+                else:
+                    # If detectors is None, treat as empty
+                    if not detectors:
+                        raise ValueError("No detectors data to plot.")
 
-        if self.web != "" and auto == 0:
-            file_uri = Path(self.web).resolve().as_uri()
-            print(file_uri)
-            webview.create_window(
-                'Stage Control',
-                file_uri,
-                width=700, height=500,
-                resizable=True,
-                hidden=False
-            )
+                    for d in detectors:
+                        active_detectors.append(d)
 
+                    if not active_detectors:
+                        raise ValueError("Detector list empty after sweep.")
+
+                    y = np.vstack(active_detectors)
+
+                    # Only write to save path on auto measurements
+                    dest_cfg = self.use_destination_dir if auto == 1 else {}
+
+                    diagram = plot(
+                        x, y, "spectral_sweep", fileTime, 
+                        self.user, name, self.project,
+                        auto, self.file_format, self.slot_info,
+                        destination_dir=dest_cfg,
+                        meta_data=self.meta_data
+                    )
+                
+                p = Process(target=diagram.generate_plots)
+                p.start()
+                p.join()
+
+                if self.web != "" and auto == 0:
+                    file_uri = Path(self.web).resolve().as_uri()
+                    webview.create_window(
+                        'Stage Control',
+                        file_uri,
+                        width=700, height=500,
+                        resizable=True,
+                        hidden=False
+                    )
+
+            except Exception as e:
+                print(f"[Plot] Skipping plot due to error: {e}")
+        
         if auto == 0:
-            if self.sweep["done"] == "Laser On":
+            if self.sweep.get("done", "Laser On") == "Laser On":
                 self.nir_manager.enable_laser(True)
             else:
                 self.nir_manager.enable_laser(False)
@@ -253,25 +505,53 @@ class stage_control(App):
             self.sweep["sweep"] = 0
             file = File("shared_memory", "Sweep", self.sweep)
             file.save()
+        if auto == 1:
+            # Always have the laser on during an auto 
+            self.nir_manager.enable_laser(True)
+            
         print("Sweep Done")
 
     def scan_move(self):
-        x_pos = self.scanpos["x"] * self.area_s["x_step"] + self.stage_x_pos
-        y_pos = self.scanpos["y"] * self.area_s["y_step"] + self.stage_y_pos
-        # Respect per-axis locks
-        if not self.axis_locked["x"]:
-            asyncio.run(self.stage_manager.move_axis(AxisType.X, x_pos, False))
-        if not self.axis_locked["y"]:
-            asyncio.run(self.stage_manager.move_axis(AxisType.Y, y_pos, False))
-        print(f"Move to: {x_pos}, {y_pos}")
-        self.scanpos["move"] = 0
-        file = File("shared_memory", "ScanPos", self.scanpos)
-        file.save()
+        import asyncio
 
+        sp = self.scanpos
+        x_step = float(self.area_s["x_step"])
+        y_step = float(self.area_s["y_step"])
+
+        use_rel = ("x_rel" in sp) and ("y_rel" in sp)
+
+        if use_rel:
+            xr = float(sp["x_rel"])
+            yr = float(sp["y_rel"])
+
+            # You must set these once at spiral start; see below.
+            x_anchor = float(getattr(self, "stage_x_center", self.stage_x_pos))
+            y_anchor = float(getattr(self, "stage_y_center", self.stage_y_pos))
+            x_pos = x_anchor + xr
+            y_pos = y_anchor + yr
+        else:
+            # Legacy path: BL indices
+            j = int(sp["x"])
+            i = int(sp["y"])
+            x_pos = float(self.stage_x_pos) + j * x_step
+            y_pos = float(self.stage_y_pos) + i * y_step
+
+        # Respect per-axis locks
+        if not self.axis_locked.get("x", False):
+            asyncio.run(self.stage_manager.move_axis(AxisType.X, x_pos, False))
+        if not self.axis_locked.get("y", False):
+            asyncio.run(self.stage_manager.move_axis(AxisType.Y, y_pos, False))
+
+        print(f"Move to: {x_pos:.3f}, {y_pos:.3f}")
+        sp["move"] = 0
+        File("shared_memory", "ScanPos", sp).save()
+    
     def after_configuration(self):
+        # Connect stage control instance
         if self.configuration["stage"] != "" and self.configuration_stage == 0 and self.configuration_check[
             "stage"] == 0:
-            self.gds = lib_coordinates.coordinates(("./res/" + filename), read_file=False,
+            # Initialize automeasurement params
+            self.gds = lib_coordinates.coordinates(("./res/" + FILENAME), read_file=False,
                                                    name="./database/coordinates.json")
             self.number = self.gds.listdeviceparam("number")
             self.coordinate = self.gds.listdeviceparam("coordinate")
@@ -279,28 +559,16 @@ class stage_control(App):
             self.wavelength = self.gds.listdeviceparam("wavelength")
             self.type = self.gds.listdeviceparam("type")
             self.devices = [f"{name} ({num})" for name, num in zip(self.gds.listdeviceparam("devicename"), self.number)]
-            # print('yesyes')
             self.memory = Memory()
+
+            # Initialize Stage configuration, startup stage manager
             self.configure = StageConfiguration()
             self.configure.driver_types[AxisType.X] = self.configuration["stage"]
             self.configure.driver_types[AxisType.Y] = self.configuration["stage"]
             self.configure.driver_types[AxisType.Z] = self.configuration["stage"]
             self.configure.driver_types[AxisType.ROTATION_CHIP] = self.configuration["stage"]
             self.configure.driver_types[AxisType.ROTATION_FIBER] = self.configuration["stage"]
-            if str(type(self.port["stage"])) == "<class 'str'>":
-                import re
-                numb = re.findall(r"\d+", self.port["stage"])[0]
-                print(numb)
-                if self.port["stage"][0] != 'A':
-                    # Not in visa format
-                    self.configure.visa_addr = f'ASRL{numb}::INSTR'
-                else:
-                    self.configure.visa_addr = self.port["stage"]
-            else:
-                # Type is already a number
-                numb = self.port["stage"]
-                pass
-            self.stage_manager = StageManager(self.configure, create_shm=True, port=numb)
+            self.stage_manager = StageManager(self.configure, create_shm=True)
             asyncio.run_coroutine_threadsafe(
                 self.stage_manager.startup(),
                 main_loop
@@ -309,8 +577,11 @@ class stage_control(App):
                 [AxisType.X, AxisType.Y, AxisType.Z, AxisType.ROTATION_CHIP, AxisType.ROTATION_FIBER])
             )
             if success_stage:
-                if self.stage_manager.config.driver_types[AxisType.X] == "Corvus_controller":
+                stage_d = self.stage_manager.config.driver_types[AxisType.X]
+                if (stage_d == "Corvus_controller") or (stage_d == "scylla_controller"):
                     self.onclick_home()  # Run "fake" home to get lims
+                
+                # Setup state machine
                 self.configuration_stage = 1
                 self.configuration_check["stage"] = 2
                 file = File(
@@ -320,7 +591,7 @@ class stage_control(App):
                 self.stage_window = webview.create_window(
                     'Stage Control',
                     f'http://{local_ip}:8000',
-                    width=842 + web_w, height=397 + web_h,
+                    width=1002 + web_w, height=437 + web_h,
                     x=800, y=465,
                     resizable=True,
                     hidden=False
@@ -334,6 +605,7 @@ class stage_control(App):
                 file.save()
 
         elif self.configuration["stage"] == "" and self.configuration_stage == 1:
+            # Disconnect instance
             self.configuration_stage = 0
             if self.stage_window:
                 self.stage_window.destroy()
@@ -343,8 +615,18 @@ class stage_control(App):
 
         if self.configuration["sensor"] != "" and self.configuration_sensor == 0 and self.configuration_check[
             "sensor"] == 0:
+            # Connect sensor instance
             self.nir_configure = NIRConfiguration()
-            self.nir_configure.gpib_addr = self.port["sensor"]
+            self.nir_configure.driver_types = self.configuration["sensor"]
+            laser = self.port.get("laser_gpib")
+            detector = self.port.get("detector_gpib")
+            if laser == detector or detector is None:
+                self.nir_configure.laser_slot = laser
+                self.nir_configure.detector_slots = []
+            else:
+                self.nir_configure.laser_slot = laser
+                self.nir_configure.detector_slots = detector
+            print(f'LASER: {laser} | DETECTOR: {detector}')
             self.nir_manager = NIRManager(self.nir_configure)
             success_sensor = self.nir_manager.initialize()
             if success_sensor:
@@ -371,6 +653,7 @@ class stage_control(App):
                 file.save()
 
         elif self.configuration["sensor"] == "" and self.configuration_sensor == 1:
+            # Disconnect sensor constrol instance
             self.configuration_sensor = 0
             if self.sensor_window:
                 self.sensor_window.destroy()
@@ -379,37 +662,53 @@ class stage_control(App):
             print("Sensor Disconnected")
 
         if self.configuration_stage == 1:
+            # Change positions using shared mem, if changed
             self.memory.reader_pos()
             if self.memory.x_pos != float(self.x_position_lb.get_text()):
-                self.x_position_lb.set_text(str(self.memory.x_pos))
+                x_zero = self.zero_state.get("x")
+                if x_zero is None:
+                    x_zero = 0.0
+                self.x_position_lb.set_text(str(round((self.memory.x_pos- x_zero), 3)))
             if self.memory.y_pos != float(self.y_position_lb.get_text()):
-                self.y_position_lb.set_text(str(self.memory.y_pos))
+                y_zero = self.zero_state.get("y")
+                if y_zero is None:
+                    y_zero = 0.0
+                self.y_position_lb.set_text(str(round((self.memory.y_pos - y_zero), 3)))
             if self.memory.z_pos != float(self.z_position_lb.get_text()):
-                self.z_position_lb.set_text(str(self.memory.z_pos))
+                z_zero = self.zero_state.get("z")
+                if z_zero is None:
+                    z_zero = 0.0
+                self.z_position_lb.set_text(str(round((self.memory.z_pos - z_zero), 3)))
             if self.memory.cp_pos != float(self.chip_position_lb.get_text()):
                 self.chip_position_lb.set_text(str(self.memory.cp_pos))
             if self.memory.fr_pos != float(self.fiber_position_lb.get_text()):
                 self.fiber_position_lb.set_text(str(45 - self.memory.fr_pos))
 
         if self.configuration_sensor == 1:
-            if self.sweep["sweep"] == 1 and self.sweep_count == 0:
+            # Use .get() so config-only dicts don't crash us
+            sweep_flag = self.sweep.get("sweep", 0)
+            if sweep_flag == 1 and self.sweep_count == 0:
                 self.sweep_count = 1
                 self.run_in_thread(self.laser_sweep)
 
-            if self.sweep["on"] != self.past_laser_on and self.sweep_count == 0:
+            on_flag = self.sweep.get("on", self.past_laser_on)
+            if on_flag != self.past_laser_on and self.sweep_count == 0:
                 self.sweep_count = 1
-                self.past_laser_on = self.sweep["on"]
+                self.past_laser_on = on_flag
                 self.run_in_thread(self.laser_on)
 
-            if self.sweep["wvl"] != self.past_wvl and self.sweep_count == 0:
+            wvl_val = self.sweep.get("wvl", self.past_wvl)
+            if wvl_val != self.past_wvl and self.sweep_count == 0:
                 self.sweep_count = 1
-                self.past_wvl = self.sweep["wvl"]
+                self.past_wvl = wvl_val
                 self.run_in_thread(self.set_wvl)
 
-            if self.sweep["power"] != self.past_power and self.sweep_count == 0:
+            power_val = self.sweep.get("power", self.past_power)
+            if power_val != self.past_power and self.sweep_count == 0:
                 self.sweep_count = 1
-                self.past_power = self.sweep["power"]
+                self.past_power = power_val
                 self.run_in_thread(self.set_power)
+
 
         if self.configuration_stage == 1 and self.configuration_sensor == 1:
             if self.auto_sweep == 1 and self.count == 0:
@@ -440,48 +739,100 @@ class stage_control(App):
                 if self.fine_align != None:
                     self.fine_align.stop_alignment()
 
-            if self.scanpos["move"] == 1 and (self.scanpos["x"] != self.pre_x or self.scanpos["y"] != self.pre_y):
-                self.run_in_thread(self.scan_move)
-                self.pre_x = self.scanpos["x"]
-                self.pre_y = self.scanpos["y"]
+            # Safely handle ScanPos; it may be {} right after loading config
+            move_flag = self.scanpos.get("move", 0)
+            if move_flag == 1:
+                x_val = self.scanpos.get("x")
+                y_val = self.scanpos.get("y")
+                if x_val != self.pre_x or y_val != self.pre_y:
+                    self.run_in_thread(self.scan_move)
+                    self.pre_x = x_val
+                    self.pre_y = y_val
 
             if self.ch_count == 0:
                 self.ch_count = 1
-                self.run_in_thread(self.update_ch)
+                if self.configuration.get("sensor") == "luna_controller":
+                    pass
+                else:
+                    self.run_in_thread(self.update_ch)
 
             self.stop_task()
 
     def stop_task(self):
+        # Called from idle() every loop
         if self._scan_done.value == -1:
+            # Reset our internal flags
             self._scan_done.value = 0
             self.task_start = 0
-            if self.area_sweep != None:
+
+            # Stop any area scan / fine align
+            if self.area_sweep is not None:
                 self.area_sweep.stop_sweep()
-            if self.fine_align != None:
+                self.area_sweep = None
+
+            if self.fine_align is not None:
                 self.fine_align.stop_alignment()
+                self.fine_align = None
+
+            # -------- MANUAL LASER SWEEP CANCEL --------
             if self.task_laser == 1:
                 self.task_laser = 0
-                self.nir_manager.cancel_sweep()
+                try:
+                    if self.nir_manager:
+                        self.nir_manager.cancel_sweep()
+                except Exception as e:
+                    print(f"[StopTask] Error cancelling laser sweep: {e}")
+
+                try:
+                    self.sweep["sweep"] = 0
+                    file = File("shared_memory", "Sweep", self.sweep)
+                    file.save()
+                except Exception as e:
+                    print(f"[StopTask] Error resetting Sweep flag: {e}")
+
+            # -------- AUTO SWEEP CANCEL --------
             if self.auto_sweep == 1 and self.count == 1:
                 self.auto_sweep = 0
-                file = File("shared_memory", "AutoSweep", 0)
-                file.save()
-                self.nir_manager.cancel_sweep()
-                if self.fine_align != None:
-                    self.fine_align.stop_alignment()
+                self.count = 0
+                try:
+                    file = File("shared_memory", "AutoSweep", 0)
+                    file.save()
+                    print("[StopTask] Reset AutoSweep flag -> 0")
+                except Exception as e:
+                    print(f"[StopTask] Error resetting AutoSweep flag: {e}")
 
+                try:
+                    if self.nir_manager:
+                        self.nir_manager.cancel_sweep()
+                except Exception as e:
+                    print(f"[StopTask] Error cancelling auto sweep: {e}")
+
+            # -------- UNLOCK STAGE UI --------
             self.lock_all(0)
+            print("[StopTask] Cancel completed, UI unlocked")
+
 
     def update_ch(self):
         while True:
-            if self.task_start == 0:
-                ch1, ch2 = self.nir_manager.read_power()
-                self.ch1_val.set_text(str(ch1))
-                self.ch2_val.set_text(str(ch2))
-                time.sleep(1)
+            if self.configuration.get("sensor") == "luna_controller":
+                # Read power is too slow of an operation on the OVA
+                # Due to DUT length calculation
+                # So we have to continue w/o updating calling
+                # ** May Be unnneeded to appendadge **
+                time.sleep(10.0)
+                continue
+            if self.task_start == 0 and self.slot_info is not None:
+                for mf, slot, head in self.slot_info:
+                    # Calculate display index for this specific head
+                    i = (slot-1)*2 + head  # 0-index
+                    
+                    # Read individual head power
+                    power = self.nir_manager.read_power(slot=slot, head=head, mf=mf)
+                    self.ch_vals[i].set_text(str(round(power, 3)))
+                time.sleep(0.3)
             else:
                 print("### Waiting ###")
-                time.sleep(1)
+                time.sleep(5.0)
 
     def do_auto_sweep(self):
         device_count = len(self.filter)
@@ -523,7 +874,7 @@ class stage_control(App):
             activity = f"Device {device_num}/{device_count}: Fine alignment"
             self._write_progress_file(device_num, activity, progress_percent)
 
-            self.onclick_start()
+            self.onclick_fine_align()
             if self.auto_sweep == 0:
                 break
 
@@ -532,14 +883,14 @@ class stage_control(App):
             activity = f"Device {device_num}/{device_count}: Spectral sweep"
             self._write_progress_file(device_num, activity, progress_percent)
 
-            self.laser_sweep(name=self.devices[int(key[i])])
+            self.laser_sweep(name=self.devices[int(key[i])-1])
 
             # Update progress: Device completed
             progress_percent = ((i + 1) / device_count) * 100
             activity = f"Device {device_num}/{device_count}: Completed"
             self._write_progress_file(device_num, activity, progress_percent)
 
-            file = File("shared_memory", "DeviceName", self.devices[int(key[i])], "DeviceNum", int(key[i]))
+            file = File("shared_memory", "DeviceName", self.devices[int(key[i])-1], "DeviceNum", int(key[i])-1)  # potential index error
             file.save()
 
             # Calculate actual device time for learning
@@ -554,18 +905,35 @@ class stage_control(App):
         with self._scan_done.get_lock():
             self._scan_done.value = 1
             self.task_start = 0
+
+        # Destroy destination dir var after auto measuremenet is complete
+        self.use_destination_dir = {}
+        try:
+            with open(SHARED_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception:
+            data = {}
+
+        data["ExportRequest"] = {}
+
+        try:
+            with open(SHARED_PATH, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2)
+        except Exception as e:
+            print(f"[AutoSweep] Failed to clear ExportRequest: {e}")
+        
+        
+        self.nir_manager.enable_laser(False)
         print("The Auto Sweep Is Finished")
         time.sleep(1)
         file = File("shared_memory", "AutoSweep", 0)
         file.save()
 
-    # NEW: enable/disable a single axis row widgets together
     def set_axis_enabled(self, prefix: str, enabled: bool):
         getattr(self, f"{prefix}_left_btn").set_enabled(enabled)
         getattr(self, f"{prefix}_right_btn").set_enabled(enabled)
         getattr(self, f"{prefix}_input").set_enabled(enabled)
 
-    # NEW: checkbox handler updating the lock state
     def onchange_axis_lock(self, prefix: str, value):
         # remi CheckBox sends 1 for checked, 0 for unchecked
         self.axis_locked[prefix] = bool(value)
@@ -601,15 +969,16 @@ class stage_control(App):
         # -------- layout constants (positions/sizes only) --------
         LEFT_PANEL_W = 490  # wider left box so rows + Zero buttons fit cleanly
         LOCK_COL_LEFT = 18  # per-axis lock column (aligns with top lock icon)
-        ICON_LEFT = 18  # big lock icon
-        LABEL_LEFT = 38  # axis text column (left of readouts)
-        POS_LEFT = 35  # position numeric readout
-        UNIT_LEFT = 150  # unit next to readout
-        BTN_L_LEFT = 185  # left jog button
-        SPIN_LEFT = 245  # step spinbox
-        BTN_R_LEFT = 345  # right jog button
-        ZERO_LEFT = 415  # Zero button (placeholder)
-        ROW_TOPS = [70, 110, 150, 190, 230]
+        ICON_LEFT = 18      # big lock icon
+        LABEL_LEFT = 38     # axis text column (left of readouts)
+        POS_LEFT = 35       # position numeric readout (limit label uses this too)
+        UNIT_LEFT = 150     # unit next to readout
+        BTN_L_LEFT = 185    # left jog button
+        SPIN_LEFT = 245     # step spinbox
+        BTN_R_LEFT = 345    # right jog button
+        ZERO_LEFT = 415     # Zero button
+        # slightly larger vertical spacing so rows + "lim" line don't overlap
+        ROW_TOPS = [70, 115, 160, 205, 250]
         ROW_H = 30
 
         RIGHT_START = LEFT_PANEL_W + 20  # right-hand panels start after wider box
@@ -617,17 +986,18 @@ class stage_control(App):
 
         stage_control_container = StyledContainer(
             container=None, variable_name="stage_control_container",
-            left=0, top=0, height=320, width=830
+            left=0, top=0, height=380, width=880  # bigger so nothing clips
         )
 
         xyz_container = StyledContainer(
             container=stage_control_container, variable_name="xyz_container",
-            left=0, top=20, height=300, width=LEFT_PANEL_W  # was narrower
+            left=0, top=20, height=300, width=LEFT_PANEL_W
         )
 
         self.stop_btn = StyledButton(
             container=xyz_container, text="Stop", variable_name="stop_button", font_size=100,
-            left=POS_LEFT, top=10, width=90, height=30, normal_color="#dc3545", press_color="#c82333"
+            left=POS_LEFT, top=10, width=90, height=30,
+            normal_color="#dc3545", press_color="#c82333"
         )
 
         self.lock_box = StyledCheckBox(
@@ -646,6 +1016,20 @@ class stage_control(App):
             left=ICON_LEFT, top=38, width=10, height=16, font_size=160, color="#444"
         )
 
+        self.absolute_movement_cb = StyledCheckBox(
+            container=xyz_container,
+            variable_name="absolute_movement_cb",
+            left=POS_LEFT + 165,
+            top=10, width=10, height=10, position="absolute"
+        )
+        StyledLabel(
+            container=xyz_container,
+            text="Absolute movement",
+            variable_name="absolute_movement_label",
+            left=POS_LEFT + 195,
+            top=17, width=180, height=50, font_size=100, color="#222"
+        )
+
         labels = ["X", "Y", "Z", "Chip", "Fiber"]
         left_arrows = ["⮜", "⮟", "Down", "⭮", "⭮"]
         right_arrows = ["⮞", "⮝", "Up", "⭯", "⭯"]
@@ -661,58 +1045,77 @@ class stage_control(App):
             # per-axis lock checkbox (aligned with header icon)
             setattr(self, f"{prefix}_lock", StyledCheckBox(
                 container=xyz_container, variable_name=f"{prefix}_lock",
-                left=LOCK_COL_LEFT, top=top , width=12, height=12
+                left=LOCK_COL_LEFT, top=top, width=12, height=12
             ))
 
             # axis label (left column)
             StyledLabel(
                 container=xyz_container, text=labels[i], variable_name=f"{prefix}_label",
                 left=LABEL_LEFT, top=top, width=55, height=ROW_H,
-                font_size=100, color="#222", flex=True, bold=True, justify_content="center"
+                font_size=100, color="#222", flex=True, bold=True,
+                justify_content="center"
             )
 
             # position readout + unit (next column)
             setattr(self, f"{prefix}_position_lb", StyledLabel(
                 container=xyz_container, text=position_texts[i], variable_name=f"{prefix}_position_lb",
-                left=POS_LEFT+50, top=top, width=70, height=ROW_H, font_size=100, color="#222",
-                flex=True, bold=True, justify_content="left"
+                left=POS_LEFT + 50, top=top, width=70, height=ROW_H,
+                font_size=100, color="#222", flex=True, bold=True,
+                justify_content="left"
             ))
+            # limit line, smaller and a bit higher so it doesn't collide with next row
             setattr(self, f"{prefix}_limit_lb", StyledLabel(
                 container=xyz_container, text="lim: N/A", variable_name=f"{prefix}_limit_lb",
-                left=POS_LEFT, top=top + 22, width=100, height=20, font_size=70, color="#666",
-                flex=True, justify_content="right"
+                left=POS_LEFT, top=top + 20, width=100, height=16,
+                font_size=70, color="#666", flex=True, justify_content="right"
             ))
             setattr(self, f"{prefix}_position_unit", StyledLabel(
                 container=xyz_container, text=position_unit[i], variable_name=f"{prefix}_position_unit",
-                left=UNIT_LEFT, top=top, width=40, height=ROW_H, font_size=100, color="#222",
-                flex=True, bold=True, justify_content="left"
+                left=UNIT_LEFT, top=top, width=40, height=ROW_H,
+                font_size=100, color="#222", flex=True, bold=True,
+                justify_content="left"
             ))
 
-            # jog controls (shifted right)
+            # per-axis buttons / spinbox
+            if prefix in ["x", "y"]:
+                max_val = 30000
+            elif prefix == "z":
+                max_val = 1000
+            elif prefix == "chip":
+                max_val = 360
+            else:  # fiber tilt
+                max_val = 45
+
             setattr(self, f"{prefix}_left_btn", StyledButton(
-                container=xyz_container, text=left_arrows[i], variable_name=f"{prefix}_left_button", font_size=100,
-                left=BTN_L_LEFT, top=top, width=50, height=ROW_H, normal_color="#007BFF", press_color="#0056B3"
+                container=xyz_container, text=left_arrows[i],
+                variable_name=f"{prefix}_left_button", font_size=100,
+                left=BTN_L_LEFT, top=top, width=50, height=ROW_H,
+                normal_color="#007BFF", press_color="#0056B3"
             ))
             setattr(self, f"{prefix}_input", StyledSpinBox(
-                container=xyz_container, variable_name=f"{prefix}_step", min_value=0, max_value=1000,
-                value=init_value[i], step=0.1, left=SPIN_LEFT, top=top, width=73, height=ROW_H, position="absolute"
+                container=xyz_container, variable_name=f"{prefix}_step",
+                min_value=0, max_value=max_val, value=init_value[i], step=0.1,
+                left=SPIN_LEFT, top=top, width=73, height=ROW_H, position="absolute"
             ))
             setattr(self, f"{prefix}_right_btn", StyledButton(
-                container=xyz_container, text=right_arrows[i], variable_name=f"{prefix}_right_button", font_size=100,
-                left=BTN_R_LEFT, top=top, width=50, height=ROW_H, normal_color="#007BFF", press_color="#0056B3"
+                container=xyz_container, text=right_arrows[i],
+                variable_name=f"{prefix}_right_button", font_size=100,
+                left=BTN_R_LEFT, top=top, width=50, height=ROW_H,
+                normal_color="#007BFF", press_color="#0056B3"
             ))
 
-            # Zero button placeholder
-            # if prefix in ["x", "y", "z"]:
-            setattr(self, f"{prefix}_zero_btn", StyledButton(
-                container=xyz_container, text="Zero", variable_name=f"{prefix}_zero_button", font_size=100,
-                left=ZERO_LEFT, top=top, width=55, height=ROW_H, normal_color="#6c757d", press_color="#5a6268"
-            ))
+            # Zero button
+            if prefix in ["x", "y", "z"]:
+                setattr(self, f"{prefix}_zero_btn", StyledButton(
+                    container=xyz_container, text="Zero", variable_name=f"{prefix}_zero_button",
+                    font_size=100, left=ZERO_LEFT, top=top, width=55, height=ROW_H,
+                    normal_color="#6c757d", press_color="#5a6268"
+                ))
 
-        # ---- Right-hand panels (tighter vertical spacing; start after wider left box) ----
+        # ---- Right-hand panels ----
         limits_container = StyledContainer(
             container=stage_control_container, variable_name="limits_container",
-            left=RIGHT_START, top=12, height=90, width=90, border=True  # top was 20
+            left=RIGHT_START, top=12, height=90, width=90, border=True
         )
         StyledLabel(
             container=limits_container, text="Home Lim", variable_name="limits_label",
@@ -720,17 +1123,19 @@ class stage_control(App):
             position="absolute", flex=True, on_line=True, justify_content="center"
         )
         self.limit_setting_btn = StyledButton(
-            container=limits_container, text="Setting", variable_name="limit_setting_btn", font_size=100,
-            left=5, top=10, width=80, height=30, normal_color="#007BFF", press_color="#0056B3"
+            container=limits_container, text="Setting", variable_name="limit_setting_btn",
+            font_size=100, left=5, top=10, width=80, height=30,
+            normal_color="#007BFF", press_color="#0056B3"
         )
         self.home_btn = StyledButton(
-            container=limits_container, text="Home", variable_name="home_btn", font_size=100,
-            left=5, top=50, width=80, height=30, normal_color="#007BFF", press_color="#0056B3"
+            container=limits_container, text="Home", variable_name="home_btn",
+            font_size=100, left=5, top=50, width=80, height=30,
+            normal_color="#007BFF", press_color="#0056B3"
         )
 
         fine_align_container = StyledContainer(
             container=stage_control_container, variable_name="fine_align_container",
-            left=RIGHT_START + 100, top=12, height=90, width=90, border=True  # top was 20
+            left=RIGHT_START + 100, top=12, height=90, width=90, border=True
         )
         StyledLabel(
             container=fine_align_container, text="Fine Align", variable_name="fine_align_label",
@@ -738,17 +1143,19 @@ class stage_control(App):
             position="absolute", flex=True, on_line=True, justify_content="center"
         )
         self.fine_align_setting_btn = StyledButton(
-            container=fine_align_container, text="Setting", variable_name="fine_align_setting_btn", font_size=100,
-            left=5, top=10, width=80, height=30, normal_color="#007BFF", press_color="#0056B3"
+            container=fine_align_container, text="Setting", variable_name="fine_align_setting_btn",
+            font_size=100, left=5, top=10, width=80, height=30,
+            normal_color="#007BFF", press_color="#0056B3"
         )
         self.start_btn = StyledButton(
-            container=fine_align_container, text="Start", variable_name="start_button", font_size=100,
-            left=5, top=50, width=80, height=30, normal_color="#007BFF", press_color="#0056B3"
+            container=fine_align_container, text="Start", variable_name="start_button",
+            font_size=100, left=5, top=50, width=80, height=30,
+            normal_color="#007BFF", press_color="#0056B3"
         )
 
         area_scan_container = StyledContainer(
             container=stage_control_container, variable_name="area_scan_container",
-            left=RIGHT_START + 200, top=12, height=90, width=90, border=True  # top was 20
+            left=RIGHT_START + 200, top=12, height=90, width=90, border=True
         )
         StyledLabel(
             container=area_scan_container, text="Area Scan", variable_name="area_scan_label",
@@ -756,17 +1163,19 @@ class stage_control(App):
             position="absolute", flex=True, on_line=True, justify_content="center"
         )
         self.scan_setting_btn = StyledButton(
-            container=area_scan_container, text="Setting", variable_name="area_scan_setting_btn", font_size=100,
-            left=5, top=10, width=80, height=30, normal_color="#007BFF", press_color="#0056B3"
+            container=area_scan_container, text="Setting", variable_name="area_scan_setting_btn",
+            font_size=100, left=5, top=10, width=80, height=30,
+            normal_color="#007BFF", press_color="#0056B3"
         )
         self.scan_btn = StyledButton(
-            container=area_scan_container, text="Scan", variable_name="scan_button", font_size=100,
-            left=5, top=50, width=80, height=30, normal_color="#007BFF", press_color="#0056B3"
+            container=area_scan_container, text="Scan", variable_name="scan_button",
+            font_size=100, left=5, top=50, width=80, height=30,
+            normal_color="#007BFF", press_color="#0056B3"
         )
 
         move_container = StyledContainer(
             container=stage_control_container, variable_name="move_container",
-            left=RIGHT_START, top=112, height=88, width=200, border=True  # was 130
+            left=RIGHT_START, top=112, height=88, width=200, border=True
         )
         StyledLabel(
             container=move_container, text="Move To Device", variable_name="move_label",
@@ -784,45 +1193,99 @@ class stage_control(App):
         )
         self.move_dd.attributes["title"] = "N/A"
         self.load_btn = StyledButton(
-            container=move_container, text="Load", variable_name="load_button", font_size=100,
-            left=10, top=50, width=85, height=28, normal_color="#007BFF", press_color="#0056B3"
+            container=move_container, text="Load", variable_name="load_button",
+            font_size=100, left=10, top=50, width=85, height=28,
+            normal_color="#007BFF", press_color="#0056B3"
         )
         self.move_btn = StyledButton(
-            container=move_container, text="Move", variable_name="move_button", font_size=100,
-            left=105, top=50, width=85, height=28, normal_color="#007BFF", press_color="#0056B3"
+            container=move_container, text="Move", variable_name="move_button",
+            font_size=100, left=105, top=50, width=85, height=28,
+            normal_color="#007BFF", press_color="#0056B3"
         )
+
+        # ---- Stacked channel tables (CH1–CH4 on first row, CH5–CH8 on second row) ----
+        # ---- 2×4 channel grid (CH1–CH8), each with header + value ----
+        TABLE_W = 360
+        COLS = 4
+        COL_W = TABLE_W // COLS
+
+        HEADER_H = 22   # height of "CHx" header row
+        DATA_H   = 22   # height of value row
+        V_PAD    = 4    # vertical gap between channels
+
+        # total height = 2 rows of (header+data+gap)
+        TABLE_H = 2 * (HEADER_H + DATA_H + V_PAD)
 
         table_container = StyledContainer(
-            container=stage_control_container, variable_name="coordinate_container",
-            left=RIGHT_START, top=212, height=70, width=290, border=True  # was 240
+            container=stage_control_container,
+            variable_name="coordinate_container",
+            left=RIGHT_START,
+            top=212,
+            height=TABLE_H + 4,  # a little padding
+            width=TABLE_W,
+            border=True
         )
-        headers = ["CH1", "CH2"]
-        widths = [80, 80]
-        self.table = StyledTable(
-            container=table_container, variable_name="ch_table",
-            left=0, top=0, height=30, table_width=290, headers=headers, widths=widths, row=2
-        )
-        table = self.table
-        row = list(table.children.values())[1]
-        self.ch1_cell, self.ch2_cell = [list(row.children.values())[i] for i in range(2)]
-        self.ch1_val = StyledLabel(
-            container=None, text="N/A", variable_name="ch1_val", left=0, top=0,
-            width=100, height=100, font_size=100, color="#222", align="right", position="inherit",
-            percent=True, flex=True
-        )
-        self.ch2_val = StyledLabel(
-            container=None, text="N/A", variable_name="ch2_val", left=0, top=0,
-            width=100, height=100, font_size=100, color="#222", align="right", position="inherit",
-            percent=True, flex=True
-        )
-        self.ch1_cell.append(self.ch1_val)
-        self.ch2_cell.append(self.ch2_val)
 
-        # Wire-ups (unchanged)
+        self.ch_vals = []  # flat list: index 0 -> CH1, 1 -> CH2, ... 7 -> CH8
+
+        for ch_idx in range(1, 9):
+            # row: 0 for CH1–CH4, 1 for CH5–CH8
+            row = 0 if ch_idx <= 4 else 1
+            # col: 0..3
+            col = (ch_idx - 1) % 4
+
+            left = col * COL_W
+
+            # vertical block for this channel (header + value)
+            header_top = row * (HEADER_H + DATA_H + V_PAD)
+            data_top   = header_top + HEADER_H
+
+            # ---- header label: "CH1", "CH2", ... ----
+            hdr = StyledLabel(
+                container=table_container,
+                text=f"CH{ch_idx}",
+                variable_name=f"ch{ch_idx}_header",
+                left=left,
+                top=header_top,
+                width=COL_W,
+                height=HEADER_H,
+                font_size=100,
+                color="#222",
+                flex=True,
+                bold=True,
+                justify_content="center"
+            )
+            # light header background so it still looks like a table
+            hdr.style["background-color"] = "#eae8df"
+            hdr.style["border-right"] = "1px solid #d0cec4"
+            hdr.style["border-bottom"] = "1px solid #d0cec4"
+
+            # ---- value label: "N/A" (this is what you'll update later) ----
+            val = StyledLabel(
+                container=table_container,
+                text="N/A",
+                variable_name=f"ch{ch_idx}_val",
+                left=left,
+                top=data_top,
+                width=COL_W,
+                height=DATA_H,
+                font_size=100,
+                color="#222",
+                flex=True,
+                justify_content="center"
+            )
+            val.style["border-right"] = "1px solid #d0cec4"
+
+            self.ch_vals.append(val)
+
+
+        # --------------------------------------------- #
+
+        # ---- wire-ups (unchanged from your code) ----
         self.stop_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_stop))
         self.home_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_home))
-        self.start_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_start))
-        self.scan_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_scan))
+        self.start_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_fine_align))
+        self.scan_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_area_scan))
         self.x_left_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_x_left))
         self.x_right_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_x_right))
         self.y_left_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_y_left))
@@ -836,13 +1299,11 @@ class stage_control(App):
         self.x_zero_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_zero, "x"))
         self.y_zero_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_zero, "y"))
         self.z_zero_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_zero, "z"))
-        self.chip_zero_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_zero, "chip"))
-        self.fiber_zero_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_zero, "fiber"))
         self.load_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_load))
         self.move_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_move))
         self.limit_setting_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_limit_setting_btn))
         self.fine_align_setting_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_fine_align_setting_btn))
-        self.scan_setting_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_scan_setting_btn))
+        self.scan_setting_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_area_scan_setting_btn))
         self.lock_box.onchange.do(lambda emitter, value: self.run_in_thread(self.onchange_lock_box, emitter, value))
         self.move_dd.onchange.do(lambda emitter, value: self.run_in_thread(self.onchange_move_dd, emitter, value))
         self.x_lock.onchange.do(lambda e, v: self.run_in_thread(self.onchange_axis_lock, "x", v))
@@ -850,10 +1311,16 @@ class stage_control(App):
         self.z_lock.onchange.do(lambda e, v: self.run_in_thread(self.onchange_axis_lock, "z", v))
         self.chip_lock.onchange.do(lambda e, v: self.run_in_thread(self.onchange_axis_lock, "chip", v))
         self.fiber_lock.onchange.do(lambda e, v: self.run_in_thread(self.onchange_axis_lock, "fiber", v))
-
+        self.absolute_movement_cb.onchange.do(
+            lambda emitter, value: self.run_in_thread(
+                self.onclick_change_absolute_movement, emitter, value
+            )
+        )
         self.move_btn.set_enabled(False)
         self.stage_control_container = stage_control_container
         return stage_control_container
+
+
 
     def onclick_stop(self):
         print("Stopping stage control")
@@ -882,7 +1349,8 @@ class stage_control(App):
 
     def onclick_home(self):
         # Non homable case
-        if self.stage_manager.config.driver_types[AxisType.X] == "Corvus_controller":
+        stage_d = self.stage_manager.config.driver_types[AxisType.X] 
+        if (stage_d == "Corvus_controller"):
             pslims = self.stage_manager.config.position_limits
             self.x_limit_lb.set_text(
                 f"lim: {round(pslims[AxisType.X][0], 2)}~{round(pslims[AxisType.X][1], 2)}"
@@ -894,7 +1362,29 @@ class stage_control(App):
                 f"lim: {round(pslims[AxisType.Z][0], 2)}~{round(pslims[AxisType.Z][1], 2)}"
                 )
             return None
-        
+        elif (stage_d == "scylla_controller"):
+            """
+            # Axis 1 [50000.000, -50000.000] 
+            # Axis 2 [24000.000, -24000.000] 
+            # Axis 3 [12000.000, -12000.000] 
+            # Axis 4 [56.577, -56.577]  fa
+            # Axis 5 [360.000, -360.000] CR   
+            """
+            self.x_limit_lb.set_text(
+                f"lim: {round(-50000.000, 2)}~{round(50000.000, 2)}"
+                )
+            self.y_limit_lb.set_text(
+                f"lim: {round(-24000.000, 2)}~{round(24000.000, 2)}"
+                )
+            self.z_limit_lb.set_text(
+                f"lim: {round(-12000.000, 2)}~{round(12000.000, 2)}"
+                )
+            self.chip_limit_lb.set_text(
+                f"lim: {round(-360.000, 2)}~{round(360.000, 2)}"
+                )
+            self.fiber_limit_lb.set_text(
+                f"lim: {round(-56.577, 2)}~{round(56.577, 2)}"
+                )
         print("Start Home")
         self.busy_dialog()
         self.lock_all(1)
@@ -910,26 +1400,55 @@ class stage_control(App):
         for _, motor_class in self.stage_manager.motors.items():
             motor_class._stop_requested = False
         
+        # Progress bar update
+        p_bar = [val for val in [x, y, z, chip, fiber] if val == "Yes"]
+        total_steps = len(p_bar)
+        current_step = 0
+        
+        def update_progress(activity):
+            percent = (current_step / total_steps) * 100.0 if total_steps > 0 else 0.0
+            write_progress_file(
+                activity=activity,
+                percent=percent,
+                n=current_step,
+                total=total_steps
+            )
+
         if x == "Yes":
+            update_progress("Homing X axis")
             xok, xlim = asyncio.run(self.stage_manager.home_limits(AxisType.X))
             if xok:
                 self.x_limit_lb.set_text(f"lim: {round(xlim[0], 2)}~{round(xlim[1], 2)}")
+            current_step += 1
+            update_progress("Homed X axis")
         if y == "Yes":
+            update_progress("Homing Y axis")
             yok, ylim = asyncio.run(self.stage_manager.home_limits(AxisType.Y))
             if yok:
                 self.y_limit_lb.set_text(f"lim: {round(ylim[0], 2)}~{round(ylim[1], 2)}")
+            current_step += 1
+            update_progress("Homed Y axis")
         if z == "Yes":
+            update_progress("Homing Z axis")
             zok, zlim = asyncio.run(self.stage_manager.home_limits(AxisType.Z))
             if zok:
                 self.z_limit_lb.set_text(f"lim: {round(zlim[0], 2)}~{round(zlim[1], 2)}")
+            current_step += 1
+            update_progress("Homed Z axis")
         if chip == "Yes":
+            update_progress("Homing Chip Rotation axis")
             cok, clim = asyncio.run(self.stage_manager.home_limits(AxisType.ROTATION_CHIP))
             if cok:
                 self.chip_limit_lb.set_text(f"lim: {round(clim[0], 2)}~{3.6}")
+            current_step += 1
+            update_progress("Homed Chip Rotation axis")
         if fiber == "Yes":
+            update_progress("Homing Fiber Rotation axis")
             fok, flim = asyncio.run(self.stage_manager.home_limits(AxisType.ROTATION_FIBER))
             if fok:
                 self.fiber_limit_lb.set_text(f"lim: 0~45")
+            current_step += 1
+            update_progress("Homed Fiber Rotation axis")
 
         with self._scan_done.get_lock():
             self._scan_done.value = 1
@@ -937,10 +1456,17 @@ class stage_control(App):
             self.lock_all(0)
         print("Home Finished")
 
-    def onclick_start(self):
+        # Apply initial position settings
+        if self.apply_initial_positions:
+            init_fa = self.initial_positions.get("fa", None)
+            if init_fa is not None:
+                _ = asyncio.run(self.stage_manager.move_axis(AxisType.ROTATION_FIBER, init_fa, False))
+            self.apply_initial_positions = False  # Apply only once
+
+    def onclick_fine_align(self):
         print("Start Fine Align")
         manual = (self.auto_sweep == 0)
-
+        
         try:
             if manual:
                 # Show dialog
@@ -953,14 +1479,25 @@ class stage_control(App):
 
             # Build config
             config = FineAlignConfiguration()
-            config.scan_window = self.fine_a["window_size"]
-            config.step_size = self.fine_a["step_size"]
-            config.gradient_iters = self.fine_a["max_iters"]
+            config.scan_window = self.fine_a.get("window_size", 10.0) or 10.0
+            config.step_size = self.fine_a.get("step_size", 1.0) or 1.0
+            config.min_gradient_ss = self.fine_a.get("min_gradient_ss", 0.1) or 0.1
+            config.gradient_iters = self.fine_a.get("max_iters", 10) or 10.0
+            config.primary_detector = self.fine_a.get("detector", "ch1") or "ch1"
+            config.ref_wl = self.fine_a.get("ref_wl", 1550.0) or 1550.0
+            config.threshold = self.fine_a.get("threshold", -10.0)
+            config.secondary_wl = self.fine_a.get("secondary_wl", 1540.0)
+            config.secondary_loss = self.fine_a.get("secondary_loss", 50.0)
+            if self.slot_info is not None:
+                s_temp = self.slot_info
+            else:
+                s_temp = [[0, 1, 0]]  # Assume only primary slot
+            config.slots = s_temp
 
             # Create aligner
             self.fine_align = FineAlign(
                 config.to_dict(),
-                self.stage_manager, 
+                self.stage_manager,
                 self.nir_manager,
                 progress=self._fa_progress,
                 cancel_event=self._scan_cancel,
@@ -973,15 +1510,8 @@ class stage_control(App):
             except Exception:
                 pass
 
-            # ---- IMPORTANT: wait until alignment truly finishes ----
-            # If begin_fine_align() is blocking until completion, this is enough:
+            # Wait until FA finishes
             asyncio.run(self.fine_align.begin_fine_align())
-
-            # If begin_fine_align() returns quickly and runs work in the background,
-            # swap the line above with a polling loop like this (uncomment/change if your API exposes a flag):
-            # asyncio.run(self.fine_align.begin_fine_align())
-            # while getattr(self.fine_align, "is_running", False):
-            #     time.sleep(0.2)
 
             # (Optional) final update
             try:
@@ -1067,9 +1597,9 @@ class stage_control(App):
 
         time_per_device = sweep_time + area_time + align_time + overhead_time
         return device_count * time_per_device
-
+    
     def _write_progress_file(self, current_device, activity, progress_percent):
-        """Atomically write progress for the PyQt dialog to read."""
+        """Atomically write progress for the PyQt dialog to read (thread-safe on Windows)."""
         from pathlib import Path
         import os, json, time
 
@@ -1090,14 +1620,39 @@ class stage_control(App):
         }
 
         tmp_path = PROGRESS_PATH.with_suffix(PROGRESS_PATH.suffix + ".tmp")
-        with open(tmp_path, "w", encoding="utf-8") as f:
-            json.dump(progress_data, f)
-            f.flush()
-            os.fsync(f.fileno())  # ensure contents hit disk on some platforms
-        os.replace(tmp_path, PROGRESS_PATH)  # atomic swap
+
+        # Ensure we have a lock even if __init__ somehow didn't run fully
+        lock = getattr(self, "_progress_lock", None)
+        if lock is None:
+            lock = threading.Lock()
+            self._progress_lock = lock
+
+        # Only one thread at a time writes/renames this file
+        with lock:
+            # Small retry loop in case another PROCESS has the file open
+            for attempt in range(5):
+                try:
+                    with open(tmp_path, "w", encoding="utf-8") as f:
+                        json.dump(progress_data, f)
+                        f.flush()
+                        os.fsync(f.fileno())  # ensure contents hit disk where possible
+
+                    os.replace(tmp_path, PROGRESS_PATH)  # atomic swap (if allowed by OS)
+                    break
+                except PermissionError as e:
+                    # If some other process (e.g., the PyQt dialog) briefly locks the file,
+                    # wait a bit and retry instead of crashing the autosweep thread.
+                    if attempt == 4:
+                        print(f"[Progress] Failed to update progress file after retries: {e}")
+                    else:
+                        time.sleep(0.05)  # 50 ms backoff and try again
+                except Exception as e:
+                    # Any other I/O error, just log and bail out of the loop
+                    print(f"[Progress] Unexpected error writing progress file: {e}")
+                    break
 
     def _fa_progress(self, percent: float, msg: str):
-        """Bridge FineAlign -> progress dialog (file the dialog is polling)."""
+        """Write fine alignment progress helper"""
         try:
             self._write_progress_file(0, msg, float(percent))
         except Exception as e:
@@ -1105,7 +1660,7 @@ class stage_control(App):
             pass
             
     def _as_progress(self, percent: float, msg: str):
-        """Bridge AreaSweep -> progress dialog (file the dialog is polling)."""
+        """Write Area scan progress helper"""
         try:
             self._write_progress_file(0, msg, float(percent))
         except Exception:
@@ -1124,7 +1679,7 @@ class stage_control(App):
         )
         self._busy_proc.start()
 
-    def onclick_scan(self):
+    def onclick_area_scan(self):
         print("Start Scan")
         self.busy_dialog()
         self.task_start = 1
@@ -1133,12 +1688,17 @@ class stage_control(App):
             self.stage_x_pos = self.memory.x_pos
             self.stage_y_pos = self.memory.y_pos
             config = AreaSweepConfiguration()
-            config.pattern = str(self.area_s["pattern"])
-            config.x_size = int(self.area_s["x_size"])
-            config.x_step = int(self.area_s["x_step"])
-            config.y_size = int(self.area_s["y_size"])
-            config.y_step = int(self.area_s["y_step"])
-            config.primary_detector = str(self.area_s["primary_detector"])
+            config.x_size = int(self.area_s.get("x_size", "x_size") or "x_size")
+            config.x_step = int(self.area_s.get("x_step", "x_step") or "x_step")
+            config.y_size = int(self.area_s.get("y_size", "y_size") or "y_size")
+            config.y_step = int(self.area_s.get("y_step", "y_step") or "y_step")
+            config.primary_detector = str(self.area_s.get("primary_detector", "ch1") or "ch1")
+            if self.slot_info is not None:
+                s_temp = self.slot_info
+            else:
+                s_temp = [[0, 1, 0]]  # Assume only primary slot
+            config.slots = s_temp
+
             self.area_sweep = AreaSweep(
                 config, self.stage_manager, self.nir_manager,
                 progress=self._as_progress,
@@ -1146,29 +1706,18 @@ class stage_control(App):
             )
             self.data = asyncio.run(self.area_sweep.begin_sweep())
             fileTime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-
+            
             # Create window for plotting
-            if str(self.area_s["pattern"]) == "spiral":
-                diagram = plot(
-                    filename="heat_map",
-                    fileTime=fileTime,
-                    user=self.user,
-                    project=self.project,
-                    data=self.data,
-                    xticks=int(self.area_s["x_step"]),
-                    yticks=None,
-                    pos_i = [self.stage_x_pos, self.stage_y_pos])
-            else:
-                diagram = plot(
-                    filename="heat_map",
-                    fileTime=fileTime,
-                    user=self.user,
-                    project=self.project,
-                    data=self.data,
-                    xticks=int(self.area_s["x_step"]),
-                    yticks=int(self.area_s["y_step"]),
-                    pos_i = [self.stage_x_pos, self.stage_y_pos])
-
+            diagram = plot(
+                filename="heat_map",
+                fileTime=fileTime,
+                user=self.user,
+                project=self.project,
+                data=self.data,
+                xticks=int(self.area_s["x_step"]),
+                yticks=None,
+                pos_i = [self.stage_x_pos, self.stage_y_pos]
+            )
 
             with self._scan_done.get_lock():
                 self._scan_done.value = 1
@@ -1183,7 +1732,12 @@ class stage_control(App):
 
         elif self.area_s["plot"] == "Previous":
             fileTime = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            diagram = plot(filename="heat_map", fileTime=fileTime, user=self.user, project=self.project, data=self.data)
+            diagram = plot(
+                filename="heat_map",
+                fileTime=fileTime,
+                user=self.user,
+                project=self.project,
+                data=self.data)
 
             with self._scan_done.get_lock():
                 self._scan_done.value = 1
@@ -1195,14 +1749,45 @@ class stage_control(App):
 
         print("Done Scan")
 
+    def onclick_change_absolute_movement(self, emitter=None, value=None):
+        """
+        Change between relative and absolute movement.
+        """
+        is_absolute_mode = bool(value)
+        self.use_relative_movement = not is_absolute_mode
+
+        # Handle locking of Z and CHIP axes
+        for axis in ("z", "chip"):
+            lock_widget = getattr(self, f"{axis}_lock", None)
+
+            if is_absolute_mode:
+                # lock if not already locked
+                if not self.axis_locked.get(axis, False):
+                    self.axis_locked[axis] = True
+                    self._absolute_locked_axes[axis] = True
+                    if lock_widget is not None:
+                        lock_widget.set_value(1)
+                    self.set_axis_enabled(axis, False)
+            else:
+                # only unlock what we locked ourselves
+                if self._absolute_locked_axes.get(axis, False):
+                    self.axis_locked[axis] = False
+                    self._absolute_locked_axes[axis] = False
+                    if lock_widget is not None:
+                        lock_widget.set_value(0)
+                    self.set_axis_enabled(axis, True)
+
+
     def onclick_x_left(self):
         if self.axis_locked["x"]:
             print("[Axis Locked] X move ignored");
             return
         value = float(self.x_input.get_value())
         print(f"X Left {value} um")
+        if not self.use_relative_movement:
+            value = -value  # Fixes (-)abs movement issue
         self.lock_all(1)
-        asyncio.run(self.stage_manager.move_axis(AxisType.X, -value, True))
+        asyncio.run(self.stage_manager.move_axis(AxisType.X, -value, self.use_relative_movement))
         self.lock_all(0)
 
     def onclick_x_right(self):
@@ -1212,7 +1797,7 @@ class stage_control(App):
         value = float(self.x_input.get_value())
         print(f"X Right {value} um")
         self.lock_all(1)
-        asyncio.run(self.stage_manager.move_axis(AxisType.X, value, True))
+        asyncio.run(self.stage_manager.move_axis(AxisType.X, value, self.use_relative_movement))
         self.lock_all(0)
 
     def onclick_y_left(self):
@@ -1222,7 +1807,9 @@ class stage_control(App):
         value = float(self.y_input.get_value())
         print(f"Y Left {value} um")
         self.lock_all(1)
-        asyncio.run(self.stage_manager.move_axis(AxisType.Y, -value, True))
+        if not self.use_relative_movement:
+            value = -value  # Fixes (-)abs movement issue
+        asyncio.run(self.stage_manager.move_axis(AxisType.Y, -value, self.use_relative_movement))
         self.lock_all(0)
 
     def onclick_y_right(self):
@@ -1232,7 +1819,7 @@ class stage_control(App):
         value = float(self.y_input.get_value())
         print(f"Y Right {value} um")
         self.lock_all(1)
-        asyncio.run(self.stage_manager.move_axis(AxisType.Y, value, True))
+        asyncio.run(self.stage_manager.move_axis(AxisType.Y, value, self.use_relative_movement))
         self.lock_all(0)
 
     def onclick_z_left(self):
@@ -1281,8 +1868,10 @@ class stage_control(App):
             return
         value = float(self.fiber_input.get_value())
         print(f"Fiber Turn CW {value} deg")
+        if not self.use_relative_movement:
+            value = -value  # Fixes (-)abs movement issue
         self.lock_all(1)
-        asyncio.run(self.stage_manager.move_axis(AxisType.ROTATION_FIBER, -value, True))
+        asyncio.run(self.stage_manager.move_axis(AxisType.ROTATION_FIBER, -value, self.use_relative_movement))
         self.lock_all(0)
 
     def onclick_fiber_right(self):
@@ -1292,11 +1881,11 @@ class stage_control(App):
         value = float(self.fiber_input.get_value())
         print(f"Fiber Turn CCW {value} deg")
         self.lock_all(1)
-        asyncio.run(self.stage_manager.move_axis(AxisType.ROTATION_FIBER, value, True))
+        asyncio.run(self.stage_manager.move_axis(AxisType.ROTATION_FIBER, value, self.use_relative_movement))
         self.lock_all(0)
 
     def onclick_load(self):
-        self.gds = lib_coordinates.coordinates(("./res/" + filename), read_file=False,
+        self.gds = lib_coordinates.coordinates(("./res/" + FILENAME), read_file=False,
                                                name="./database/coordinates.json")
         self.number = self.gds.listdeviceparam("number")
         self.coordinate = self.gds.listdeviceparam("coordinate")
@@ -1316,7 +1905,7 @@ class stage_control(App):
 
     def onclick_zero(self, prefix: str):
         try:
-            if getattr(self, "axis_locked", {}).get(prefix, False):
+            if getattr(self, "axis_locked", {}).get(prefix, False) or prefix in ["chip", "fiber"]:
                 # print(f"[Zero] Axis '{prefix}' is locked; ignoring zero request.")
                 return
 
@@ -1324,18 +1913,63 @@ class stage_control(App):
             self.lock_all(1)
 
             # Map UI prefix -> StageManager axis enum
-            axis_map = {
-                "x": AxisType.X,
-                "y": AxisType.Y,
-                "z": AxisType.Z,
-                "chip": AxisType.ROTATION_CHIP,
-                "fiber": AxisType.ROTATION_FIBER,
+            memory_map = {
+                "x": self.memory.x_pos,
+                "y": self.memory.y_pos,
+                "z": self.memory.z_pos,
             }
-            axis = axis_map.get(prefix)
+            lims_map = {
+                "x": self.configure.position_limits[AxisType.X],
+                "y": self.configure.position_limits[AxisType.Y],
+                "z": self.configure.position_limits[AxisType.Z]
+            }
+            pos = memory_map.get(prefix)
+            if self.zero_state.get(prefix) is None:
+                self.zero_state[prefix] = pos
 
-            asyncio.run(self.stage_manager.zero_axis(axis))
+                # Alter text box
+                box_widg = getattr(self, f'{prefix}_zero_btn')
+                box_widg.normal_color = "#942eb4"
+                
+                # Alter position label
+                pos_attr = f'{prefix}_position_lb'
+                pos_widg = getattr(self, pos_attr)
+                pos_widg.set_text(str(0))
+
+                # If on zero, retrieve and alter ficticous limits
+                lim = lims_map.get(prefix)
+                if lim is None:
+                    return
+                label_attr = f'{prefix}_limit_lb'
+                label_widg = getattr(self, label_attr)
+                txt = f"lim: {round((lim[0] - pos), 2)}~{round((lim[1] - pos), 2)}"
+                label_widg.set_text(txt)
+
+            else:
+                self.zero_state[prefix] = None
+                
+                # Alter text box
+                box_widg = getattr(self, f'{prefix}_zero_btn')
+                box_widg.normal_color = "#6c757d"
+ 
+                # Reassign actual position to label
+                pos_attr = f'{prefix}_position_lb'
+                pos_widg = getattr(self, pos_attr)
+                pos_widg.set_text(f'{round(pos, 3)}')
+
+                # If not on zero, retrieve and alter ficticous limits
+                lim = lims_map.get(prefix)
+                if lim is None:
+                    return
+                label_attr = f'{prefix}_limit_lb'
+                label_widg = getattr(self, label_attr)
+                txt = f"lim: {round((lim[0]), 2)}~{round((lim[1]), 2)}"
+                label_widg.set_text(txt)
+
+
         except Exception as e:
             print(f"[Zero] Error handling zero for '{prefix}': {e}")
+        
         finally:
             # Always re-enable the UI
             with self._scan_done.get_lock():
@@ -1372,19 +2006,12 @@ class stage_control(App):
             print(f"[Error] Failed to move to device {selected_device}: {e}")
 
     def onchange_lock_box(self, emitter, value):
-        print("onchange_lock_box")
+        # Locking applications except stop button
         enabled = value == 0
         widgets_to_check = [self.stage_control_container]
         while widgets_to_check:
             widget = widgets_to_check.pop()
 
-            # if hasattr(widget, "variable_name") and widget.variable_name == "lock_box":
-            #     continue
-
-            # # keep per-axis lock checkboxes enabled
-            # if hasattr(widget, "variable_name") and isinstance(widget.variable_name,
-            #                                                    str) and widget.variable_name.endswith("_lock"):
-            #     pass
             if hasattr(widget, "variable_name"):
                 vn = widget.variable_name
                 case1 = vn in ("lock_box", "stop_button")
@@ -1433,14 +2060,14 @@ class stage_control(App):
         webview.create_window(
             "Setting",
             f"http://{local_ip}:7003",
-            width=222 + web_w,
-            height=236 + web_h,
+            width=250 + web_w,
+            height=380 + web_h,
             resizable=True,
             on_top=True,
             hidden=False
         )
 
-    def onclick_scan_setting_btn(self):
+    def onclick_area_scan_setting_btn(self):
         # local_ip = get_local_ip()
         local_ip = '127.0.0.1'
         webview.create_window(
@@ -1453,7 +2080,7 @@ class stage_control(App):
             hidden=False
         )
 
-    def execute_command(self, path=command_path):
+    def execute_command(self, path=COMMAND_PATH):
         stage = 0
         record = 0
         new_command = {}
@@ -1550,9 +2177,9 @@ class stage_control(App):
             elif key == "stage_home":
                 self.onclick_home()
             elif key == "stage_start":
-                self.onclick_start()
+                self.onclick_fine_align()
             elif key == "stage_scan":
-                self.onclick_scan()
+                self.onclick_area_scan()
             elif key == "stage_move":
                 self.onclick_move()
             elif key == "stage_lock":
@@ -1571,63 +2198,10 @@ class stage_control(App):
                 self.move_dd.set_value(device)
 
         if stage == 1:
-            print("stage record")
             file = File("command", "command", new_command)
             file.save()
 
-    def apply_detector_auto_range(self, channel):
-        """Apply detector autorange to specified channel"""
-        try:
-            if self.nir_manager and self.configuration_sensor == 1:
-                success = self.nir_manager.set_power_range_auto(channel)
-                if success:
-                    print(f"Applied detector autorange to  CH{channel}")
-                else:
-                    print(f"Failed to apply detector autorange to  CH{channel}")
-                return success
-            else:
-                print("NIR manager not available")
-                return False
-        except Exception as e:
-            print(f"Error applying detector auto-range: {e}")
-            return False
-
-
-    def apply_detector_range(self, range_dbm, channel):
-        """Apply detector range setting via NIR manager"""
-        try:
-            if self.nir_manager and self.configuration_sensor == 1:
-                success = self.nir_manager.set_power_range(range_dbm, channel)
-                if success:
-                    print(f"Applied detector range {range_dbm} dBm to channel {channel}")
-                else:
-                    print(f"Failed to apply detector range {range_dbm} dBm to channel {channel}")
-                return success
-            else:
-                print("NIR manager not available")
-                return False
-        except Exception as e:
-            print(f"Error applying detector range: {e}")
-            return False
-
-    def apply_detector_reference(self, ref_dbm, channel):
-        """Apply detector reference setting via NIR manager"""
-        try:
-            if self.nir_manager and self.configuration_sensor == 1:
-                success = self.nir_manager.set_power_reference(ref_dbm, channel)
-                if success:
-                    print(f"Applied detector reference {ref_dbm} dBm to channel {channel}")
-                else:
-                    print(f"Failed to apply detector reference {ref_dbm} dBm to channel {channel}")
-                return success
-            else:
-                print("NIR manager not available")
-                return False
-        except Exception as e:
-            print(f"Error applying detector reference: {e}")
-            return False
-
-
+   
 def get_local_ip():
     """Automatically detect local LAN IP address"""
     try:
@@ -1701,7 +2275,7 @@ if __name__ == '__main__':
     webview.create_window(
         'Stage Control',
         f'http://{local_ip}:8000',
-        width=872 + web_w, height=407 + web_h,
+        width=1302 + web_w, height=537 + web_h,
         x=700, y=465,
         resizable=True,
         hidden=True

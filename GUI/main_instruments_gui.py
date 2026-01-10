@@ -1,5 +1,5 @@
 from remi import start, App
-import os, threading, webview
+import os, threading, webview, sys
 from GUI.lib_gui import *
 
 shared_path = os.path.join("database", "shared_memory.json")
@@ -34,8 +34,13 @@ class instruments(App):
             try:
                 with open(shared_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
-                    self.configuration_check = data.get("Configuration_check", {})
-                    self.configuration_check = 1
+                    config_check = data.get("Configuration_check", {})
+                    if isinstance(config_check, dict):
+                        self.configuration_check = config_check
+                    
+                    # Update NIR configuration display
+                    self._update_nir_config_display(data)
+                    
             except Exception as e:
                 print(f"[Warn] read json failed: {e}")
 
@@ -100,7 +105,6 @@ class instruments(App):
             self.lock_all(0)
 
     def lock_all(self, value):
-        print('lock all instr')
         enabled = value == 0
         widgets_to_check = [self.instruments_container]
         while widgets_to_check:
@@ -129,59 +133,136 @@ class instruments(App):
             StyledLabel(
                 container=instruments_container, variable_name=f"label_{key}",
                 text={"stage": "Stage:",
-                      "sensor": "Laser / Detector:",
-                      "tec": "TEC:",
-                      "smu": "SMU:",
-                      "motor": "Elec Probe:"}[key],
-                left=0, top=15 + idx * 40, width=150, height=20, font_size=100, color="#444", align="right"
+                    "sensor": "Laser / Detector:",
+                    "tec": "TEC:",
+                    "smu": "SMU:",
+                    "motor": "Elec Probe:"}[key],
+                left=0, top=15 + idx * 40, width=150, height=20,
+                font_size=100, color="#444", align="right"
             )
 
             # DropDown
             setattr(self, f"{key}_dd", StyledDropDown(
                 container=instruments_container,
-                text={"stage": ["MMC100_controller", "Corvus_controller", "Dummy"],
-                      "sensor": ["8164B_NIR", "Dummy_A", "Dummy_B"],
-                      "tec": ["srs_ldc_502", "Dummy_A", "Dummy_B"],
-                      "smu": ["stage_control", "Dummy_A", "Dummy_B"],
-                      "motor": ["BSC203_emotor", "Dummy_A", "Dummy_B"]}[key],
-                variable_name=f"set_{key}", left=160, top=10 + idx * 40, width=180, height=30))
-
-            # Configure Button
-            setattr(self, f"{key}_configure_btn", StyledButton(
-                container=instruments_container, text="Configure", variable_name=f"configure_{key}",
-                left=360, top=10 + idx*40, normal_color="#007BFF", press_color="#0056B3"
+                text={"stage": ["MMC100_controller", "Corvus_controller", "scylla_controller"],
+                    "sensor": ["8164B_NIR", "luna_controller", "Dummy_B"],
+                    "tec": ["srs_ldc_502", "srs_ldc_501", "Dummy_B"],
+                    "smu": ["stage_control", "Dummy_A", "Dummy_B"],
+                    "motor": ["BSC203_emotor", "Dummy_A", "Dummy_B"]}[key],
+                variable_name=f"set_{key}",
+                left=160, top=10 + idx * 40, width=180, height=30
             ))
 
-            # Connect Button
+            # Connect button (ALWAYS FIRST, ALWAYS SAME POSITION)
             setattr(self, f"{key}_connect_btn", StyledButton(
-                container=instruments_container, text="Connect", variable_name=f"connect_{key}",
-                left=480, top=10 + idx * 40, normal_color="#007BFF", press_color="#0056B3"
+                container=instruments_container,
+                text="Connect",
+                variable_name=f"connect_{key}",
+                left=360, top=10 + idx * 40,
+                normal_color="#007BFF", press_color="#0056B3"
             ))
+
+        # Configure button 
+        setattr(self, f"stage_configure_btn", StyledButton(
+            container=instruments_container,
+            text="Configure VISA",
+            variable_name=f"configure_stage",
+            left=480, top=10,
+            normal_color="#007BFF", press_color="#0056B3"))
+               
+
+        # NIR Configuration Display
+        nir_config_container = StyledContainer(
+            container=instruments_container,
+            variable_name="nir_config_container",
+            left=0, top=220, height=120, width=650, bg_color=False
+        )
+        
+        StyledLabel(
+            container=nir_config_container,
+            text="NIR Configuration:",
+            variable_name="nir_config_header",
+            left=10, top=5, width=200, height=20,
+            font_size=110, color="#333", bold=True
+        )
+        
+        StyledLabel(
+            container=nir_config_container,
+            text="Laser GPIB:",
+            variable_name="laser_gpib_label",
+            left=10, top=30, width=100, height=20,
+            font_size=100, color="#666"
+        )
+        
+        self.laser_gpib_display = StyledLabel(
+            container=nir_config_container,
+            text="Not configured",
+            variable_name="laser_gpib_display",
+            left=120, top=30, width=200, height=20,
+            font_size=100, color="#333"
+        )
+        
+        StyledLabel(
+            container=nir_config_container,
+            text="Detector GPIB:",
+            variable_name="detector_gpib_label",
+            left=10, top=55, width=100, height=20,
+            font_size=100, color="#666"
+        )
+        
+        self.detector_gpib_display = StyledLabel(
+            container=nir_config_container,
+            text="Single mainframe mode",
+            variable_name="detector_gpib_display",
+            left=120, top=55, width=200, height=20,
+            font_size=100, color="#333"
+        )
+        
+        StyledLabel(
+            container=nir_config_container,
+            text="Mode:",
+            variable_name="nir_mode_label",
+            left=10, top=80, width=100, height=20,
+            font_size=100, color="#666"
+        )
+        
+        self.nir_mode_display = StyledLabel(
+            container=nir_config_container,
+            text="Single Mainframe",
+            variable_name="nir_mode_display",
+            left=120, top=80, width=200, height=20,
+            font_size=100, color="#333", bold=True
+        )
 
         # Terminal
         terminal_container = StyledContainer(
-            container=instruments_container, variable_name="terminal_container",
-            left=0, top=500, height=150, width=650, bg_color=True
+            container=instruments_container,
+            variable_name="terminal_container",
+            left=0, top=500, height=150, width=650, bg_color=True  # Moved down for NIR config
         )
 
         self.terminal = Terminal(
-            container=terminal_container, variable_name="terminal_text", left=10, top=15, width=610, height=100
+            container=terminal_container,
+            variable_name="terminal_text",
+            left=10, top=15, width=610, height=100
         )
 
+        # Connect handlers
         self.stage_connect_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_stage_connect_btn))
         self.sensor_connect_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_sensor_connect_btn))
         self.tec_connect_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_tec_connect_btn))
-        self.stage_configure_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_configure_btn))
-        self.sensor_configure_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_configure_btn))
-        self.tec_configure_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_configure_btn))
+
+        # Configure handlers (only if present)
+        if hasattr(self, "stage_configure_btn"):
+            self.stage_configure_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_configure_btn))
 
         self.instruments_container = instruments_container
         return instruments_container
 
+
     def onclick_stage_connect_btn(self):
         if self.stage_connect_btn.get_text() == "Connect":
             self.configuration["stage"] = self.stage_dd.get_value()
-            print(f"Connection pressed and conf set to {self.configuration['stage']}")
             file = File("shared_memory", "Configuration", self.configuration)
             file.save()
             self.stage_connect_btn.set_text("Connecting")
@@ -211,6 +292,17 @@ class instruments(App):
             file = File("shared_memory", "Configuration", self.configuration)
             file.save()
             self.tec_connect_btn.set_text("Connecting")
+            
+            # Display
+            local_ip = '127.0.0.1'
+            webview.create_window(
+                'TEC Control',
+                f'http://{local_ip}:8002',
+                width=322,
+                height=540,
+                resizable=True,
+                hidden=False
+            )
             # self.lock_all(1)
         else:
             self.configuration["tec"] = ""
@@ -220,20 +312,70 @@ class instruments(App):
 
     def onclick_configure_btn(self):
         # local_ip = get_local_ip()
-        local_ip = '127.0.0.1'
-        webview.create_window(
-            'Stage Control',
-            f'http://{local_ip}:7005',
-            width=222+web_w, height=236+web_h,
-            resizable=True,
-            on_top=True
+        # local_ip = '127.0.0.1'
+        # webview.create_window(
+        #     'Stage Control',
+        #     f'http://{local_ip}:7005',
+        #     width=222+web_w, height=236+web_h,
+        #     resizable=True,
+        #     on_top=True
+        # )
+        ### Issues with RM in sub connect configure
+        import subprocess
+        from pathlib import Path
+        GUI_DIR = Path(__file__).resolve().parent  # GUI dir
+        subprocess.Popen(
+            [sys.executable, "-u", str(GUI_DIR / "sub_connect_config_gui.py")],
+            env=os.environ.copy()
         )
+
+    def onclick_nir_configure_btn(self):
+        """Open NIR configuration window."""
+        import subprocess
+        from pathlib import Path
+        GUI_DIR = Path(__file__).resolve().parent  # GUI dir
+        subprocess.Popen(
+            [sys.executable, "-u", str(GUI_DIR / "sub_connect_config_gui.py")],
+            env=os.environ.copy()
+        )
+
+    def _update_nir_config_display(self, data):
+        """Update NIR configuration display from shared memory data."""
+        try:
+            nir_config = data.get("Port", {})
+            
+            laser_gpib = nir_config.get("laser_gpib", "Not configured")
+            detector_gpib = nir_config.get("detector_gpib", None)
+            detector_gpib = detector_gpib[0] if detector_gpib is not None else None
+
+            # Update laser GPIB display
+            if hasattr(self, 'laser_gpib_display'):
+                self.laser_gpib_display.set_text(str(laser_gpib) if laser_gpib else "Not configured")
+            
+            # Update detector GPIB display and mode
+            if hasattr(self, 'detector_gpib_display') and hasattr(self, 'nir_mode_display'):
+                if detector_gpib:
+                    self.detector_gpib_display.set_text(str(detector_gpib))
+                    self.nir_mode_display.set_text("Multiple Mainframes")
+                    self.nir_mode_display.set_style({"color": "#28A745"})  # Green for multi-MF
+                else:
+                    self.detector_gpib_display.set_text("Single mainframe mode")
+                    self.nir_mode_display.set_text("Single Mainframe")
+                    self.nir_mode_display.set_style({"color": "#007BFF"})  # Blue for single MF
+                    
+        except Exception as e:
+            print(f"[Warn] NIR config display update failed: {e}")
+
+    def run_in_thread(self, func):
+        """Run function in thread."""
+        import threading
+        threading.Thread(target=func, daemon=True).start()
 
 def run_remi():
     start(
         instruments,
         address="0.0.0.0",
-        port=9001,
+        port=9101,
         start_browser=False,
         multiple_instance=False,
         enable_file_cache=False,
@@ -257,7 +399,7 @@ if __name__ == "__main__":
     local_ip = '127.0.0.1'
     webview.create_window(
         "Main Window",
-        f"http://{local_ip}:9001",
+        f"http://{local_ip}:9101",
         width=0,
         height=0,
         resizable=True,

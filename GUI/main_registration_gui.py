@@ -10,9 +10,9 @@ class registration(App):
         self.number_1 = 1
         self.number_2 = 1
         self.number_3 = 1
-        self.first_mark_position = [-100,-100,0]
-        self.second_mark_position = [100, -100,0]
-        self.third_mark_position = [100, 100,0]
+        self.first_mark_position = [-100, -100, 0]
+        self.second_mark_position = [100, -100, 0]
+        self.third_mark_position = [100, 100, 0]
         self.memory = Memory()
 
         if "editing_mode" not in kwargs:
@@ -29,6 +29,18 @@ class registration(App):
         thread = threading.Thread(target=target, args=args, daemon=True)
         thread.start()
 
+    # ------- helper to notify devices UI to reload -------
+    def send_devices_load_command(self):
+        """
+        Write a 'devices_load' command into command.json.
+
+        The devices app watches this file and will call its
+        onclick_load() when it sees 'devices_load'.
+        """
+        cmd = {"devices_load": 1}
+        file = File("command", "command", cmd)
+        file.save()
+
     def construct_ui(self):
         registration_container = StyledContainer(
             container=None, variable_name="registration_container", left=0, top=0
@@ -44,13 +56,6 @@ class registration(App):
             container=file_container, variable_name="uploader", savepath="./res/coordinates/",
             left=10, top=10, width=220, height=30
         )
-
-        """StyledLabel(container=file_container, text="Stage:", variable_name="label_stage",
-                    left=130, top=13, width=150, height=20, font_size=100, color="#444", align="right")
-        StyledDropDown(container=file_container, text=["Fiber Stage", "Chip Stage"], variable_name="choose_stage",
-                       left=290, top=8, width=220, height=30)
-        StyledButton(container=file_container, text="Setting", variable_name="setting",
-                     left=515, top=8, font_size=90, normal_color="#007BFF", press_color="#0056B3")"""
 
         # ---------------- Coordinate Table Section ----------------
         coordinate_container = StyledContainer(
@@ -138,13 +143,27 @@ class registration(App):
         )
 
         # ---------------- Event Bindings ----------------
-        self.uploader.ondata.do(lambda emitter, filedata, filename: self.run_in_thread(self.ondata_uploader, emitter, filedata, filename))
-        self.device_id_1.onchange.do(lambda emitter, value: self.run_in_thread(self.onchange_device_1, emitter, value))
-        self.device_id_2.onchange.do(lambda emitter, value: self.run_in_thread(self.onchange_device_2, emitter, value))
-        self.device_id_3.onchange.do(lambda emitter, value: self.run_in_thread(self.onchange_device_3, emitter, value))
-        self.checkbox_1.onchange.do(lambda emitter, value: self.run_in_thread(self.onchange_checkbox_1, emitter, value))
-        self.checkbox_2.onchange.do(lambda emitter, value: self.run_in_thread(self.onchange_checkbox_2, emitter, value))
-        self.checkbox_3.onchange.do(lambda emitter, value: self.run_in_thread(self.onchange_checkbox_3, emitter, value))
+        self.uploader.ondata.do(
+            lambda emitter, filedata, filename: self.run_in_thread(self.ondata_uploader, emitter, filedata, filename)
+        )
+        self.device_id_1.onchange.do(
+            lambda emitter, value: self.run_in_thread(self.onchange_device_1, emitter, value)
+        )
+        self.device_id_2.onchange.do(
+            lambda emitter, value: self.run_in_thread(self.onchange_device_2, emitter, value)
+        )
+        self.device_id_3.onchange.do(
+            lambda emitter, value: self.run_in_thread(self.onchange_device_3, emitter, value)
+        )
+        self.checkbox_1.onchange.do(
+            lambda emitter, value: self.run_in_thread(self.onchange_checkbox_1, emitter, value)
+        )
+        self.checkbox_2.onchange.do(
+            lambda emitter, value: self.run_in_thread(self.onchange_checkbox_2, emitter, value)
+        )
+        self.checkbox_3.onchange.do(
+            lambda emitter, value: self.run_in_thread(self.onchange_checkbox_3, emitter, value)
+        )
         self.reset_button.do_onclick(lambda *_: self.run_in_thread(self.onclick_reset))
         self.transform_button.do_onclick(lambda *_: self.run_in_thread(self.onclick_transform))
 
@@ -163,7 +182,11 @@ class registration(App):
         except:
             pass
 
-        self.gds = lib_coordinates.coordinates(("./res/coordinates/" + filename), read_file=True,name="./database/coordinates.json")
+        self.gds = lib_coordinates.coordinates(
+            ("./res/coordinates/" + filename),
+            read_file=True,
+            name="./database/coordinates.json"
+        )
         self.number = self.gds.listdeviceparam("number")
         self.coordinate = self.gds.listdeviceparam("coordinate")
         self.polarization = self.gds.listdeviceparam("polarization")
@@ -187,11 +210,14 @@ class registration(App):
         self.gds_x_3.set_text(str(self.coordinate[0][0]))
         self.gds_y_3.set_text(str(self.coordinate[0][1]))
 
+        # ----- condition 1: file upload triggers devices reload -----
+        self.send_devices_load_command()
+
     def onchange_device_1(self, emitter, new_value):
         number_str = new_value.split("(")[-1].split(")")[0]
         self.number_1 = int(number_str)
-        x = self.coordinate[self.number_1-1][0]
-        y = self.coordinate[self.number_1-1][1]
+        x = self.coordinate[self.number_1 - 1][0]
+        y = self.coordinate[self.number_1 - 1][1]
         self.gds_x_1.set_text(str(x))
         self.gds_y_1.set_text(str(y))
         self.device_id_1.attributes["title"] = new_value
@@ -199,8 +225,8 @@ class registration(App):
     def onchange_device_2(self, emitter, new_value):
         number_str = new_value.split("(")[-1].split(")")[0]
         self.number_2 = int(number_str)
-        x = self.coordinate[self.number_2-1][0]
-        y = self.coordinate[self.number_2-1][1]
+        x = self.coordinate[self.number_2 - 1][0]
+        y = self.coordinate[self.number_2 - 1][1]
         self.gds_x_2.set_text(str(x))
         self.gds_y_2.set_text(str(y))
         self.device_id_2.attributes["title"] = new_value
@@ -208,8 +234,8 @@ class registration(App):
     def onchange_device_3(self, emitter, new_value):
         number_str = new_value.split("(")[-1].split(")")[0]
         self.number_3 = int(number_str)
-        x = self.coordinate[self.number_3-1][0]
-        y = self.coordinate[self.number_3-1][1]
+        x = self.coordinate[self.number_3 - 1][0]
+        y = self.coordinate[self.number_3 - 1][1]
         self.gds_x_3.set_text(str(x))
         self.gds_y_3.set_text(str(y))
         self.device_id_3.attributes["title"] = new_value
@@ -258,15 +284,22 @@ class registration(App):
         self.checkbox_2.set_value(False)
         self.checkbox_3.set_value(False)
 
-        self.onchange_checkbox_1(1,0)
+        self.onchange_checkbox_1(1, 0)
         self.onchange_checkbox_2(1, 0)
         self.onchange_checkbox_3(1, 0)
 
     def onclick_transform(self):
         if self.first_mark_set == 1 and self.second_mark_set == 1 and self.third_mark_set == 1:
-            return_value = self.gds.apply_transform([self.number_1, self.number_2, self.number_3],
-                                                    self.first_mark_position, self.second_mark_position, self.third_mark_position)
+            return_value = self.gds.apply_transform(
+                [self.number_1, self.number_2, self.number_3],
+                self.first_mark_position,
+                self.second_mark_position,
+                self.third_mark_position
+            )
             print(return_value)
+
+            # ----- condition 2: successful transform triggers devices reload -----
+            self.send_devices_load_command()
 
         else:
             print("Not all marks have been found")
@@ -278,20 +311,21 @@ class registration(App):
                 print("Third mark not found!")
 
 
-
 if __name__ == "__main__":
     configuration = {
         "config_project_name": "registration",
         "config_address": "0.0.0.0",
-        "config_port": 9002,
+        "config_port": 9102,
         "config_multiple_instance": False,
         "config_enable_file_cache": False,
         "config_start_browser": False,
         "config_resourcepath": "./res/"
     }
-    start(registration,
-          address=configuration["config_address"],
-          port=configuration["config_port"],
-          multiple_instance=configuration["config_multiple_instance"],
-          enable_file_cache=configuration["config_enable_file_cache"],
-          start_browser=configuration["config_start_browser"])
+    start(
+        registration,
+        address=configuration["config_address"],
+        port=configuration["config_port"],
+        multiple_instance=configuration["config_multiple_instance"],
+        enable_file_cache=configuration["config_enable_file_cache"],
+        start_browser=configuration["config_start_browser"]
+    )

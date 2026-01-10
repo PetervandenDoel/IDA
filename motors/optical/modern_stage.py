@@ -1,30 +1,30 @@
 import asyncio
 import time
-from typing import Optional, Dict, Any, Tuple, Callable
-# from dataclasses import replace
+from typing import Optional, Dict, Any, Tuple
 import threading
 from concurrent.futures import ThreadPoolExecutor
-# import numpy as np
-
-from motors.hal.motors_hal import MotorHAL, AxisType, MotorState, Position, MotorConfig, MotorEventType, MotorEvent
 import serial
+import re
 
+from motors.hal.motors_hal import (MotorHAL,
+                                   AxisType,
+                                   MotorState,
+                                   Position,
+                                   MotorConfig,
+                                   MotorEventType,
+                                   MotorEvent)
 
 """
-Made by: Cameron Basara, 5/30/2025
-
-Prototype implementation of Stage control at Probe_Stage using more modern Python features and the motor hardward abstraction layer
+Made by: Cameron Basara, 2025
 """
 
 # CONSTANTS
-_GLOBAL_COM_PORT = "COM4"
 _GLOBAL_BAUDRATE = 38400
-_GLOBAL_TIMEOUT = 0.3  # seconds
 
 _serial_lock = threading.Lock() # Guard read / write at serial port
 _global_serial_port = None
 
-def _get_shared_serial(): 
+def _get_shared_serial(port="COM4", timeout=0.3): 
     """
     Open or return the shared lock, all axis use this since they share a serial port
     """
@@ -32,9 +32,9 @@ def _get_shared_serial():
 
     if _global_serial_port is None:
         _global_serial_port = serial.Serial(
-            port=_GLOBAL_COM_PORT,
+            port=port,
             baudrate=_GLOBAL_BAUDRATE,
-            timeout=_GLOBAL_TIMEOUT
+            timeout=timeout
         )
     return _global_serial_port
 
@@ -58,23 +58,20 @@ class StageControl(MotorHAL):
             AxisType.ALL: 0
             }
     
-    def __init__(self, axis : AxisType, com_port: str = _GLOBAL_COM_PORT,
-                 baudrate: int = _GLOBAL_BAUDRATE, timeout: float = _GLOBAL_TIMEOUT,
-                 velocity: float = 3000.0, acceleration: float = 5000.0,
+    def __init__(self, axis : AxisType, 
+                 visa_addr: str = "ASRL4::INSTR",
+                 timeout: float = 0.3,
+                 velocity: float = 3000.0, 
+                 acceleration: float = 5000.0,
                  position_limits: Tuple[float, float] = (-50000.0, 50000.0),
-                 step_size: Dict[str, float] = {'step_size_x': 1,
-                                                'step_size_y': 1,
-                                                'step_size_z': 1,
-                                                'step_size_fr': 0.1,
-                                                'step_size_cr': 0.1},
                  position_tolerance: float = 1.0,      # um tolerance for move completion
                  status_poll_interval: float = 0.05):  # seconds between status checks
         
         super().__init__(axis)
         
         # Serial config 
-        self.com_port = com_port
-        self.baudrate = baudrate
+        matches = re.findall(r'\d+', visa_addr)
+        self.com_port = f'COM{matches[0]}' if matches else f'COM4'
         self.timeout = timeout
 
         # Thread pool for blocking operations
@@ -89,7 +86,6 @@ class StageControl(MotorHAL):
         self._velocity = velocity  # um/s default
         self._acceleration = acceleration  # um/s^2 default
         self._position_limits = position_limits  # um
-        self._step_size = step_size # (um, um)
         self._position_tolerance = position_tolerance  # um
         self._status_poll_interval = status_poll_interval  # seconds
         
@@ -100,7 +96,6 @@ class StageControl(MotorHAL):
         self._move_in_progress = False
         self._target_position = None
         self._placeholder = ''
-        # self._axis_grid: Tuple[float, float] = ()
         self._callbacks = []
 
     def add_callback(self, callback):
@@ -117,7 +112,10 @@ class StageControl(MotorHAL):
         def _connect():
             try:
                 if not self._serial_port:
-                    self._serial_port = _get_shared_serial()
+                    self._serial_port = _get_shared_serial(
+                        self.com_port,
+                        self.timeout
+                    )
                 
                 if not self._serial_port.is_open:
                     self._serial_port.open()
@@ -155,8 +153,7 @@ class StageControl(MotorHAL):
             if not self._serial_port or not self._serial_port.is_open:
                 raise ConnectionError("Serial port not connected")
 
-            # print(f"cmd: {cmd}")
-            self._serial_port.write((cmd + "\r").encode('ascii')) # maybe
+            self._serial_port.write((cmd + "\r").encode('ascii'))
             time.sleep(0.05)  # Small delay for command processing
             
             # Read response if available
@@ -187,7 +184,6 @@ class StageControl(MotorHAL):
             if "STA?" in cmd:
                 raw = self._serial_port.read_until(b"\n\r")
                 text = raw.decode('ascii').strip()
-                
                 if len(text) == 0:
                     return str(0)  # Default to moving if no response
                 
@@ -506,7 +502,6 @@ class StageControl(MotorHAL):
             max_acceleration=self._acceleration,
             position_limits=self._position_limits,
             units=units,
-            **self._step_size
         )
     
     # Home and limits
@@ -645,7 +640,11 @@ class StageControl(MotorHAL):
                 raise asyncio.CancelledError("Stop requested")
         
             if axis_num == 4:
+                # FA
                 mid_point = self._position_limits[1] * (37.0 / 45.0)
+            elif axis_num == 3:
+                # Z 
+                mid_point = self._position_limits[1] * (3/4)  # Safety
             else:
                 mid_point = (self._position_limits[1] - self._position_limits[0]) / 2
 

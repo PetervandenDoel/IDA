@@ -96,12 +96,18 @@ class MotorHAL(ABC):
         
     #  Core Movement Interface 
     @abstractmethod
-    async def move_absolute(self, position: float, velocity: Optional[float] = None) -> bool:
+    async def move_absolute(self,
+                            position: float,
+                            velocity: Optional[float] = None,
+                            wait_for_completion: bool = True) -> bool:
         """Move to absolute position. Returns True on success."""
         pass
     
     @abstractmethod
-    async def move_relative(self, distance: float, velocity: Optional[float] = None) -> bool:
+    async def move_relative(self,
+                            distance: float,
+                            velocity: Optional[float] = None,
+                            wait_for_completion: bool = True) -> bool:
         """Move relative distance. Returns True on success."""
         pass
     

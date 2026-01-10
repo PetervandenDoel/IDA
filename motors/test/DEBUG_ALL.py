@@ -110,7 +110,7 @@ async def test_safe_movements(mgr):
     success = await mgr.move_xy_rel(xy_return)
     print(f"✓ XY return move: {'SUCCESS' if success else 'FAILED'}")
     
-    print("⚠️  Skipping Z and rotation movements for safety")
+    print("!  Skipping Z and rotation movements for safety")
 
 async def test_status_operations(mgr):
     """Test status and state operations"""
@@ -186,13 +186,13 @@ async def comprehensive_test():
             await test_stop_operations(mgr)
             await test_config_operations(mgr)
         else:
-            print("❌ Initialization failed, skipping other tests")
+            print("X Initialization failed, skipping other tests")
         
         print("\n" + "=" * 50)
         print("🏁 Test sequence complete!")
         
     except Exception as e:
-        print(f"❌ Test failed with exception: {e}")
+        print(f"X Test failed with exception: {e}")
         import traceback
         traceback.print_exc()
         

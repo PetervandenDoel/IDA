@@ -101,11 +101,11 @@ class NIR_Measurment_System(App):
         main_tab.variable_name = "main_tab"
 
         tab_cfg = [
-            ("Start", 9000),
-            ("Instruments", 9001),
-            ("Registration", 9002),
-            ("Devices", 9003),
-            ("Testing", 9004),
+            ("Start", 9109),
+            ("Instruments", 9101),
+            ("Registration", 9102),
+            ("Devices", 9103),
+            ("Testing", 9104),
         ]
 
         def make_iframe(port: int):
@@ -125,7 +125,7 @@ class NIR_Measurment_System(App):
 
         main.append(main_tab, "main_tab")
         self.main = main
-        print("Welcome To Probe Stage")
+        # print("Welcome To Probe Stage")
         return self.main
 
 

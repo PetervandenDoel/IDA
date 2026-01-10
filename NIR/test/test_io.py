@@ -1,50 +1,99 @@
-# NIR/test/test_vi.py
 import time
 from NIR.nir_controller import NIR8164
+# from NIR.sweep import HP816xLambdaScan
+import numpy as np
+import matplotlib.pyplot as plt
+import logging
+logging.getLogger("matplotlib").setLevel(logging.ERROR)
+from utils.timing_helper import timed_function
 
 def main():
-    dev = NIR8164(com_port=6, gpib_addr=20)
-    print("Connecting...")
-    assert dev.connect(), "connect failed"
-    print("IDN ok")
+    dev = NIR8164()
+    dev.connect()
 
-    print("Configure units...")
-    dev.configure_units()
-    su = dev.query("SOUR0:POW:UNIT?")
-    d1 = dev.query("SENS1:CHAN1:POW:UNIT?")
-    d2 = dev.query("SENS1:CHAN2:POW:UNIT?")
-    print("Units:", su, d1, d2)
+    def plot_trials_side_by_side(trials):
+        """
+        trials: list of dicts like:
+            {
+                "label": "Trial 1: No settings",
+                "wl": wl_array,
+                "channels": [ch1_array, ch2_array, ...]
+            }
+        """
+        n = len(trials)
+        if n == 0:
+            return
 
-    print("Laser power/wavelength...")
-    dev.set_power_dbm(-10)
-    print("P =", dev.get_power_dbm())
-    dev.set_wavelength_nm(1550.0)
-    print("WL =", dev.get_wavelength_nm())
+        fig, axes = plt.subplots(1, n, figsize=(5 * n, 4), sharex=True, sharey=True)
+        if n == 1:
+            axes = [axes]  # make iterable
 
-    print("Detector live read...")
-    try:
-        p1, p2 = dev.read_power_dbm()
-        print("Pch1, Pch2 =", p1, p2)
-    except Exception as e:
-        print("Live read skipped:", e)
+        for ax, trial in zip(axes, trials):
+            wl = trial["wl"]
+            channels = trial["channels"]
+            y = np.vstack(channels)  # shape: (num_detectors, num_points)
 
-    # print("Sweep setup...")
-    # dev.set_sweep_range_nm(1549.9, 1550.1)
-    # dev.set_sweep_step_nm(0.01)
-    # dev.arm_sweep_cont_oneway()
-    # dev.enable_output(True)
-    # dev.start_sweep()
-    # time.sleep(1.0)
-    # print("Sweep state:", dev.get_sweep_state())
-    # dev.stop_sweep()
-    # dev.enable_output(False)
+            for i in range(y.shape[0]):
+                ax.plot(wl, y[i, :], label=f"Detector {i+1}")
 
-    print("Lambda scan (short)...")
-    wl, ch1, ch2 = dev.optical_sweep(1549.0, 1551.0, 0.1, 5.0, 0.02)
-    print("Points:", len(wl), "WL[0..-1] =", wl[0], wl[-1])
-    print(ch1,ch2)
+            ax.set_title(trial["label"])
+            ax.set_xlabel("Wavelength [nm]")
+            ax.grid(True)
+
+        # Only first subplot gets y-label
+        axes[0].set_ylabel("Power [dBm]")
+
+        # One shared legend for all subplots
+        handles, labels = axes[0].get_legend_handles_labels()
+        fig.legend(handles, labels, title="Detector", loc="upper right")
+
+        fig.tight_layout()
+        plt.show()
+    
+    def p(wl, ch1, ch2, title="Lambda Scan"):
+        x = wl
+        y = np.vstack([ch1, ch2])
+
+        plt.figure()
+        for i in range(y.shape[0]):
+            plt.plot(x, y[i, :], label=f"Detector {i+1}")
+
+        plt.xlabel("Wavelength [nm]")
+        plt.ylabel("Power [dBm]")
+        plt.title(title)
+        plt.legend(title="Detector")
+        plt.grid(True)
+        plt.tight_layout()
+        plt.show()
+
+    @timed_function
+    def optical_function(range):
+        return dev.optical_sweep(1500.0, 1570.0, 0.01, 1.0, args=[(1, -30, range),
+                                                                  (4, -30, range)])
+    
+    trials = []
+
+    for x in [-i for i in range(10,40, 10)]:
+        wl, chs = optical_function(x)
+        trials.append(
+            {
+                "label": f"{x} dBm Range",
+                "wl": wl,
+                "channels": chs
+            }
+        )
+    # wl, chs = optical_function(None)
+    # trials.append({
+    #     "label": "Auto dBm Range",
+    #     "wl": wl,
+    #     "channels": [chs[0], chs[1]],
+    # })
+
+    # Now show all trials side by side
+    plot_trials_side_by_side(trials)
 
     dev.cleanup_scan()
+    dev.configure_units()
     dev.disconnect()
     print("Done.")
 

@@ -38,7 +38,7 @@ class TSPSolver:
         solution = self._solve_tsp()
 
         if solution is None:
-            print("⚠️  No Path")
+            print("!  No Path")
 
         xs, ys, total_dist = self._print_solution(solution)
 
@@ -49,7 +49,7 @@ class TSPSolver:
         self._plot_route(xs, ys, latest_png)
         self._cleanup_old_plots(keep=1)          # 只留最新一张
 
-        print(f"\n📸 Saved in path: {latest_png.resolve()}")
+        print(f"\n Saved in path: {latest_png.resolve()}")
         self.path = f"tsp_result_{ts}.png"
 
     # ------------------------------------------------------------------
@@ -61,7 +61,7 @@ class TSPSolver:
                 data = json.load(f)
                 self.selected_numbers = set(data.get("Selection", []))
             except json.JSONDecodeError as e:
-                print(f"❌ Failed to parse JSON: {e}")
+                print(f"X Failed to parse JSON: {e}")
                 self.selected_numbers = set()
 
     def _load_coordinates(self) -> None:
@@ -75,7 +75,7 @@ class TSPSolver:
                 self.points.append(tuple(v["coordinate"][:2]))
 
         if len(self.numbers) == 1:
-            raise ValueError("⚠️  Do Not Have Any Devices")
+            raise ValueError("!  Do Not Have Any Devices")
 
     def _build_distance_matrix(self) -> None:
         self.dist = [
@@ -125,8 +125,8 @@ class TSPSolver:
 
         xs.append(0)
         ys.append(0)
-        print(f"{step:>4} {0:>8} {0:>10} {0:>10}  ← Return to Origin")
-        print(f"\nTotal Distance ≈ {total_dist} (same unit as coordinates)")
+        print(f"{step:>4} {0:>8} {0:>10} {0:>10}  <- Return to Origin")
+        print(f"\nTotal Distance = {total_dist} (same unit as coordinates)")
         return xs, ys, total_dist
 
     def _plot_route(self, xs, ys, png_path: Path) -> None:

@@ -7,9 +7,6 @@ import time
 
 # Local imports
 from motors.hal.motors_hal import AxisType, MotorState, Position, MotorEvent, MotorEventType
-#from motors.stage_controller import StageController
-# from motors.modern_stage import StageControl as StageController
-import motors.optical.modern_stage
 from motors.hal.stage_factory import create_driver
 from motors.config.stage_config import StageConfiguration
 from motors.utils.shared_memory import *
@@ -21,13 +18,13 @@ Cameron Basara, 2025
 logger = logging.getLogger(__name__)
 
 class StageManager:
-    def __init__(self, config: StageConfiguration, create_shm: bool = True, port: int = 7):
+    def __init__(self, config: StageConfiguration, create_shm: bool = True):
         # Core components
         self.config = config
-        motors.optical.modern_stage._GLOBAL_COM_PORT = f"COM{port}"
         self.motors: Dict[AxisType, Any] = {}
         self._event_callbacks: List[Callable[[MotorEvent], None]] = []
-        
+        self.driver_key = None
+
         # State tracking
         self._last_positions: Dict[AxisType, float] = {}
         self._homed_axes: Dict[AxisType, bool] = {}
@@ -115,8 +112,8 @@ class StageManager:
                 return False
             
             # Create motor controller
-            driver_key = axis_config['driver_types']
-            motor = create_driver(driver_key, **axis_config)
+            self.driver_key = axis_config['driver_types']
+            motor = create_driver(self.driver_key, **axis_config)
             
             # Add event callback
             motor.add_callback(self._handle_motor_event)
@@ -327,10 +324,11 @@ class StageManager:
         
         try:
             # X y safety handling
-            # if axis != AxisType.Z:
-                # position 5000 isnt al;ways reachable !!! and this will hang this await funtion forever, as there is a
-                # hard phyical limit on z. So if the Z position at start is less than 5000, then this handling hangs
-                # await self.move_axis(AxisType.Z, position=5000, relative=True, wait_for_completion=True)
+            if axis != AxisType.Z:
+                # This should be verified for per stage handling
+                # This is compatible with limits at Iris stage
+                # But may not work at other stages. Adjust as needed.
+                await self.move_axis(AxisType.Z, position=9000, relative=False, wait_for_completion=True)
 
             # Special handling for Z axis safety
             case = axis == AxisType.Z and AxisType.Y in self.motors
@@ -475,7 +473,7 @@ class StageManager:
     async def _position_monitor_loop(self):
         """Background task to monitor positions and update shared memory"""
         logger.info("Position monitor started")
-        
+        await asyncio.sleep(2.0)  # Wait a bit before starting
         while self._is_running:
             try:
                 if not self.motors:
@@ -485,7 +483,9 @@ class StageManager:
                 # Update positions in shared memory
                 for axis, motor in self.motors.items():
                     try:
-                        await motor.clear_all_errors()
+                        if hasattr(motor, "clear_all_errors"):
+                            # MMC-100 Iris stage quirk
+                            await motor.clear_all_errors()
                         pos = await motor.get_position()
                         if pos:
                             self._last_positions[axis] = pos.actual
@@ -500,6 +500,8 @@ class StageManager:
                     except Exception as e:
                         logger.debug(f"Position monitor error for {axis.name}: {e}")
                 
+                if self.driver_key == 'scylla_controller':
+                    await asyncio.sleep(1)  # Slower rate for Scylla
                 await asyncio.sleep(0.1)  # 10Hz update rate
                 
             except asyncio.CancelledError:
