@@ -10,7 +10,7 @@ import os, threading, webview
 from GUI.lib_gui import *
 from SMU.keithley2600_manager import Keithley2600Manager
 from SMU.config.smu_config import SMUConfiguration
-from motors.elec.bsc203_controller import BSC203Controller
+from motors.elec.BSC203_controller import BSC203Controller
 
 shared_path = os.path.join("database", "shared_memory.json")
 
