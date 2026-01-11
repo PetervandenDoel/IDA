@@ -65,13 +65,13 @@ class elecprobe(App):
                 if 'A' in voltages and 'A' in currents and 'A' in resistances:
                     self.chl_a_v.set_text(f"{voltages['A']:.4f}")
                     self.chl_a_i.set_text(f"{currents['A']*1e6:.4f}")  # Convert to µA
-                    self.chl_a_o.set_text(f"{resistances['A']/1000:.4f}")  # Convert to KΩ
+                    self.chl_a_o.set_text(f"{resistances['A']:.3e}")  # Scientific notation in Ω
                 
                 # Update Channel B display
                 if 'B' in voltages and 'B' in currents and 'B' in resistances:
                     self.chl_b_v.set_text(f"{voltages['B']:.4f}")
                     self.chl_b_i.set_text(f"{currents['B']*1e6:.4f}")  # Convert to µA
-                    self.chl_b_o.set_text(f"{resistances['B']/1000:.4f}")  # Convert to KΩ
+                    self.chl_b_o.set_text(f"{resistances['B']:.3e}")  # Scientific notation in Ω
         except Exception as e:
             # Silently ignore errors to avoid spamming console during normal operation
             pass
@@ -322,7 +322,7 @@ class elecprobe(App):
         metric_labels = [
             ("V (V)", "v", 57),
             ("I (µA)", "i", 97),
-            ("R (KΩ)", "o", 137),
+            ("R (Ω)", "o", 137),
         ]
 
         for text, suffix, top in metric_labels:
