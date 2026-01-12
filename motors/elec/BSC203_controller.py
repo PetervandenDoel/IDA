@@ -653,11 +653,9 @@ def list_devices() -> List[str]:
 
 
 if __name__ == "__main__":
-    # 示例代码
     print("BSC203 Controller")
     print("=" * 60)
     
-    # 列出设备
     devices = list_devices()
     print(f"\nFind {len(devices)} devices:")
     for dev in devices:
