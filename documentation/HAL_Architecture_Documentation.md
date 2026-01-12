@@ -2,7 +2,7 @@
 
 ## Overview
 
-The 347 Probe system implements a three-layer hardware abstraction layer designed to provide a unified interface for controlling diverse laboratory instruments found in our labs. The goal of the architecture is modularity and extensibility while providing multiprocessing communication between GUI components and hardware controllers.
+The automated probe system implements a three-layer hardware abstraction layer designed to provide a unified interface for controlling the diverse laboratory instruments found in our labs. The goal of the architecture is modularity and extensibility while providing multiprocessing communication between GUI components and hardware controllers.
 
 ![Hardware Abstraction Layer diagram](./images/hal_architecture.png)
 
@@ -51,9 +51,6 @@ Position data and other frequently updated information uses structured shared me
 ### JSON-Based Configuration and Commands
 Less frequent operations like configuration updates and discrete commands use JSON serialization over shared memory or file-based communication. The `write_shared_stage_config()` function demonstrates this pattern, using length-prefixed JSON to ensure atomic updates. This approach provides human-readable debugging while maintaining type safety through the configuration dataclasses.
 
-### Event-Driven Architecture
-Hardware events like move completion, errors, or limit switches trigger event callbacks that propagate through the system. The event system uses standardized event types and structured data payloads, enabling loose coupling between hardware layers and GUI components. Events can be logged, displayed to users, or trigger automated responses like emergency stops. Events should be called from the manager side, so all the controllers have to do is through exceptions and the debug log will automatically display.
-
 ## GUI Integration and Configuration Management
 
 The GUI system leverages the HAL architecture through several integration patterns that maintain separation between presentation and hardware control:
@@ -64,23 +61,3 @@ GUI components read hardware configurations to dynamically generate appropriate 
 ### Manager-Based Control
 GUI components interact with hardware through manager objects rather than directly accessing individual drivers. This pattern provides transaction-like operations where complex sequences can be coordinated atomically. For instance, an area scan operation coordinates stage movement with optical measurements through the respective managers. This means that adding drivers does not destroy functionality, and you **should** be able to drop in controllers.
 
-
-## Best Practices and Design Patterns
-
-Successful HAL implementations follow several established patterns that ensure reliability and maintainability:
-
-### Resource Management
-Use context managers and proper cleanup to ensure hardware resources are released correctly. The async context manager pattern in `StageManager` demonstrates proper startup and shutdown sequencing for complex hardware arrangements.
-
-### Error Handling and Recovery
-Implement comprehensive error handling with structured error information. Hardware errors should be captured, logged, and propagated through the event system to enable appropriate user feedback and recovery procedures.
-
-### Parameter Validation
-Validate parameters at the HAL boundary rather than relying on hardware to catch invalid inputs. This provides better error messages and prevents potentially harmful operations from reaching the hardware.
-
-### State Synchronization
-Maintain software state that reflects hardware reality, with periodic synchronization to handle cases where hardware state changes independently. The position monitoring loop in `StageManager` demonstrates this pattern.
-
-This is an ongoing project and this document will be added among others. I will include some diagrams that put these words into pictures.
-
-This HAL documentation was assisted by Claude Opus and written by Cameron Basara. 
