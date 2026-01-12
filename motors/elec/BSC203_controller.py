@@ -35,7 +35,6 @@ from typing import Optional, Dict, Tuple, List
 from enum import Enum
 from dataclasses import dataclass
 
-# 加载Kinesis DLL
 try:
     clr.AddReference("C:\\Program Files\\Thorlabs\\Kinesis\\Thorlabs.MotionControl.DeviceManagerCLI.dll")
     clr.AddReference("C:\\Program Files\\Thorlabs\\Kinesis\\Thorlabs.MotionControl.GenericMotorCLI.dll")
@@ -655,12 +654,12 @@ def list_devices() -> List[str]:
 
 if __name__ == "__main__":
     # 示例代码
-    print("BSC203 控制库")
+    print("BSC203 Controller")
     print("=" * 60)
     
     # 列出设备
     devices = list_devices()
-    print(f"\n找到 {len(devices)} 个设备:")
+    print(f"\nFind {len(devices)} devices:")
     for dev in devices:
         print(f"  - {dev}")
     
