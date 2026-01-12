@@ -10,6 +10,7 @@ import os, threading, webview
 from GUI.lib_gui import *
 from SMU.keithley2600_manager import Keithley2600Manager
 from SMU.config.smu_config import SMUConfiguration
+from motors.elec.BSC203_controller import BSC203Controller
 
 shared_path = os.path.join("database", "shared_memory.json")
 
@@ -17,6 +18,8 @@ class elecprobe(App):
     # Class-level variables (shared across all instances)
     _smu_manager_instance = None
     _smu_initialized = False
+    _bsc_controller_instance = None
+    _bsc_initialized = False
     
     def __init__(self, *args, **kwargs):
         self._user_stime = None
@@ -31,6 +34,15 @@ class elecprobe(App):
         # Use the shared instance
         self.smu_manager = elecprobe._smu_manager_instance
         self.smu_connected = False
+        
+        # Initialize BSC203 Controller (only once for all instances)
+        if not elecprobe._bsc_initialized:
+            self._init_bsc()
+            elecprobe._bsc_initialized = True
+        
+        # Use the shared BSC instance
+        self.bsc_controller = elecprobe._bsc_controller_instance
+        self.bsc_connected = False
 
     def idle(self):
         try:
@@ -48,6 +60,9 @@ class elecprobe(App):
         
         # Update SMU display if connected
         self._update_smu_display()
+        
+        # Update BSC203 positions if connected
+        self._update_bsc_display()
     
     def _update_smu_display(self):
         """Update SMU measurement display"""
@@ -65,13 +80,13 @@ class elecprobe(App):
                 if 'A' in voltages and 'A' in currents and 'A' in resistances:
                     self.chl_a_v.set_text(f"{voltages['A']:.4f}")
                     self.chl_a_i.set_text(f"{currents['A']*1e6:.4f}")  # Convert to µA
-                    self.chl_a_o.set_text(f"{resistances['A']/1000:.4f}")  # Convert to KΩ
+                    self.chl_a_o.set_text(f"{resistances['A']:.3e}")  # Scientific notation in Ω
                 
                 # Update Channel B display
                 if 'B' in voltages and 'B' in currents and 'B' in resistances:
                     self.chl_b_v.set_text(f"{voltages['B']:.4f}")
                     self.chl_b_i.set_text(f"{currents['B']*1e6:.4f}")  # Convert to µA
-                    self.chl_b_o.set_text(f"{resistances['B']/1000:.4f}")  # Convert to KΩ
+                    self.chl_b_o.set_text(f"{resistances['B']:.3e}")  # Scientific notation in Ω
         except Exception as e:
             # Silently ignore errors to avoid spamming console during normal operation
             pass
@@ -99,6 +114,93 @@ class elecprobe(App):
         except Exception as e:
             print(f"[SMU] Initialization failed: {e}")
             elecprobe._smu_manager_instance = None
+    
+    def _init_bsc(self):
+        """Initialize BSC203 Controller (singleton pattern)"""
+        try:
+            # Create BSC203 Controller instance and store in class variable
+            elecprobe._bsc_controller_instance = BSC203Controller()
+            print("[BSC203] Controller created successfully")
+        except Exception as e:
+            print(f"[BSC203] Initialization failed: {e}")
+            elecprobe._bsc_controller_instance = None
+    
+    def connect_bsc(self):
+        """Connect to BSC203 device"""
+        if self.bsc_controller is None:
+            print("[BSC203] Controller not initialized")
+            return False
+        
+        try:
+            print("[BSC203] Attempting to connect to device...")
+            success = self.bsc_controller.connect()
+            if success:
+                self.bsc_connected = True
+                print("[BSC203] ✓ BSC203 connected successfully")
+                
+                # Get device info
+                try:
+                    info = self.bsc_controller.get_device_info()
+                    print(f"[BSC203] Device: {info['name']} (SN: {info['serial_number']})")
+                except:
+                    pass
+                    
+                # Set default safety limits (3mm = 3000um)
+                try:
+                    self.bsc_controller.set_limits('X', 0, 3)
+                    self.bsc_controller.set_limits('Y', 0, 3)
+                    self.bsc_controller.set_limits('Z', 0, 3)
+                    print("[BSC203] Safety limits set (X/Y/Z: 0-3mm)")
+                except Exception as e:
+                    print(f"[BSC203] Warning: Could not set limits: {e}")
+            else:
+                self.bsc_connected = False
+                print("[BSC203] ✗ BSC203 connection failed")
+            return success
+        except Exception as e:
+            print(f"[BSC203] Connection error: {e}")
+            self.bsc_connected = False
+            return False
+    
+    def disconnect_bsc(self):
+        """Disconnect from BSC203 device"""
+        if self.bsc_controller and self.bsc_connected:
+            try:
+                self.bsc_controller.disconnect()
+                self.bsc_connected = False
+                print("[BSC203] BSC203 disconnected")
+            except Exception as e:
+                print(f"[BSC203] Disconnect error: {e}")
+    
+    def _update_bsc_display(self):
+        """Update BSC203 position display"""
+        if not self.bsc_connected:
+            return
+        
+        try:
+            positions = self.bsc_controller.get_all_positions()
+            
+            if positions:
+                # Update X axis (convert mm to um)
+                if 'X' in positions:
+                    self.x_position_lb.set_text(f"{positions['X']*1000:.1f}")
+                    limits = self.bsc_controller.get_limits('X')
+                    self.x_limit_lb.set_text(f"lim: [0, {limits[1]*1000:.0f}]")
+                
+                # Update Y axis (convert mm to um)
+                if 'Y' in positions:
+                    self.y_position_lb.set_text(f"{positions['Y']*1000:.1f}")
+                    limits = self.bsc_controller.get_limits('Y')
+                    self.y_limit_lb.set_text(f"lim: [0, {limits[1]*1000:.0f}]")
+                
+                # Update Z axis (convert mm to um)
+                if 'Z' in positions:
+                    self.z_position_lb.set_text(f"{positions['Z']*1000:.1f}")
+                    limits = self.bsc_controller.get_limits('Z')
+                    self.z_limit_lb.set_text(f"lim: [0, {limits[1]*1000:.0f}]")
+        except Exception as e:
+            # Silently ignore errors
+            pass
     
     def connect_smu(self):
         """Connect to SMU device"""
@@ -163,7 +265,7 @@ class elecprobe(App):
         BTN_L_LEFT = 185 + DELTA  # left jog button
         SPIN_LEFT = 245 + DELTA  # step spinbox
         BTN_R_LEFT = 345 + DELTA  # right jog button
-        ROW_TOPS = [45, 85, 125, 165, 205]
+        ROW_TOPS = [50, 85, 120, 155, 190]  # Adjusted for title bar
         ROW_H = 30
 
         elecprobe_container = StyledContainer(
@@ -173,6 +275,25 @@ class elecprobe(App):
         xyz_container = StyledContainer(
             container=elecprobe_container, variable_name="xyz_container", border=0,
             left=0, top=400, height=190, width=490
+        )
+        
+        # BSC203 Title and Connect Button
+        StyledLabel(
+            container=xyz_container, text="BSC203 Stage Control", variable_name="bsc_title_lb",
+            left=10, top=5, width=200, height=25, font_size=120, color="#222", position="absolute",
+            flex=True, bold=True, justify_content="left"
+        )
+        
+        self.bsc_connect_btn = StyledButton(
+            container=xyz_container, variable_name="bsc_connect_btn", text="Connect",
+            left=240, top=5, width=100, height=25, font_size=100,
+            normal_color="#28a745", press_color="#1e7e34"
+        )
+        
+        self.bsc_status_lb = StyledLabel(
+            container=xyz_container, text="Not Connected", variable_name="bsc_status_lb",
+            left=350, top=8, width=130, height=20, font_size=90, color="#dc3545", position="absolute",
+            flex=True, justify_content="left"
         )
 
         smu_container = StyledContainer(
@@ -322,7 +443,7 @@ class elecprobe(App):
         metric_labels = [
             ("V (V)", "v", 57),
             ("I (µA)", "i", 97),
-            ("R (KΩ)", "o", 137),
+            ("R (Ω)", "o", 137),
         ]
 
         for text, suffix, top in metric_labels:
@@ -422,9 +543,9 @@ class elecprobe(App):
         left_arrows = ["⮜", "⮟", "Down"]
         right_arrows = ["⮞", "⮝", "Up"]
         var_prefixes = ["x", "y", "z"]
-        position_texts = ["0", "0", "0"]
+        position_texts = ["0.000", "0.000", "0.000"]
         position_unit = ["um", "um", "um"]
-        init_value = ["10.0", "10.0", "10.0"]
+        init_value = ["100.0", "100.0", "50.0"]  # Default step in um
 
         for i in range(3):
             prefix = var_prefixes[i]
@@ -487,6 +608,15 @@ class elecprobe(App):
         self.set_v_limit_bt.do_onclick(lambda *_: self.run_in_thread(self.onclick_set_v_limit))
         self.set_i_limit_bt.do_onclick(lambda *_: self.run_in_thread(self.onclick_set_i_limit))
         self.set_p_limit_bt.do_onclick(lambda *_: self.run_in_thread(self.onclick_set_p_limit))
+        
+        # Bind BSC203 movement buttons
+        self.bsc_connect_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_bsc_connect_toggle))
+        self.x_left_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_move_axis, 'X', 1))  # Reversed
+        self.x_right_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_move_axis, 'X', -1))  # Reversed
+        self.y_left_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_move_axis, 'Y', -1))
+        self.y_right_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_move_axis, 'Y', 1))
+        self.z_left_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_move_axis, 'Z', -1))
+        self.z_right_btn.do_onclick(lambda *_: self.run_in_thread(self.onclick_move_axis, 'Z', 1))
 
         self.elecprobe_container = elecprobe_container
         return elecprobe_container
@@ -731,6 +861,75 @@ class elecprobe(App):
                     print(f"[SMU] Failed to set power limit for channel {channel}")
         except Exception as e:
             print(f"[SMU] Set power limit error: {e}")
+    
+    # === BSC203 Movement Event Handlers ===
+    
+    def onclick_bsc_connect_toggle(self):
+        """Toggle BSC203 connection"""
+        if self.bsc_connected:
+            # Disconnect
+            self.disconnect_bsc()
+            self.bsc_connect_btn.set_text("Connect")
+            self.bsc_connect_btn.normal_color = '#28a745'
+            self.bsc_connect_btn.press_color = '#1e7e34'
+            self.bsc_connect_btn.style['background-color'] = '#28a745'
+            self.bsc_status_lb.set_text("Not Connected")
+            self.bsc_status_lb.style['color'] = '#dc3545'
+        else:
+            # Connect
+            success = self.connect_bsc()
+            if success:
+                self.bsc_connect_btn.set_text("Disconnect")
+                self.bsc_connect_btn.normal_color = '#dc3545'
+                self.bsc_connect_btn.press_color = '#bd2130'
+                self.bsc_connect_btn.style['background-color'] = '#dc3545'
+                self.bsc_status_lb.set_text("Connected")
+                self.bsc_status_lb.style['color'] = '#28a745'
+            else:
+                self.bsc_status_lb.set_text("Connection Failed")
+                self.bsc_status_lb.style['color'] = '#dc3545'
+    
+    def onclick_move_axis(self, axis: str, direction: int):
+        """Handle axis movement button click
+        
+        Args:
+            axis: Axis name ('X', 'Y', 'Z')
+            direction: -1 for left/down, 1 for right/up
+        """
+        if not self.bsc_connected:
+            print(f"[BSC203] Cannot move {axis}: Not connected")
+            return
+        
+        # Check if axis is locked
+        axis_lower = axis.lower()
+        lock_widget = getattr(self, f"{axis_lower}_lock", None)
+        if lock_widget and lock_widget.get_value():
+            print(f"[BSC203] Cannot move {axis}: Axis is locked")
+            return
+        
+        # Get step size from spinbox (in um, convert to mm)
+        step_widget = getattr(self, f"{axis_lower}_input", None)
+        if not step_widget:
+            print(f"[BSC203] Cannot get step size for {axis}")
+            return
+        
+        step_um = float(step_widget.get_value())
+        step_mm = step_um / 1000.0  # Convert um to mm
+        distance = step_mm * direction
+        
+        try:
+            print(f"[BSC203] Moving {axis} by {step_um * direction:.1f} um...")
+            success = self.bsc_controller.move_relative(axis, distance, wait=True)
+            
+            if success:
+                # Update position display immediately
+                pos = self.bsc_controller.get_position(axis)
+                print(f"[BSC203] {axis} moved to {pos*1000:.1f} um")
+            else:
+                print(f"[BSC203] Failed to move {axis}")
+                
+        except Exception as e:
+            print(f"[BSC203] Error moving {axis}: {e}")
 
 def run_remi():
     start(
